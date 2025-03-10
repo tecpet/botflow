@@ -19,4 +19,5 @@ export const forgedBlockIds = [
   "zendesk",
   "perplexity",
   "deepseek",
+  "tecpet",
 ] as const satisfies readonly ForgedBlock["type"][];

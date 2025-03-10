@@ -25,6 +25,8 @@ import { posthogBlock } from "@typebot.io/posthog-block";
 import { posthogCredentialsSchema } from "@typebot.io/posthog-block/schemas";
 import { segmentBlock } from "@typebot.io/segment-block";
 import { segmentCredentialsSchema } from "@typebot.io/segment-block/schemas";
+import { tecpetBlock } from "@typebot.io/tecpet-block";
+import { tecpetCredentialsSchema } from "@typebot.io/tecpet-block/schemas";
 import { togetherAiBlock } from "@typebot.io/together-ai-block";
 import { togetherAiCredentialsSchema } from "@typebot.io/together-ai-block/schemas";
 import { zendeskBlock } from "@typebot.io/zendesk-block";
@@ -46,4 +48,5 @@ export const forgedCredentialsSchemas = {
   [posthogBlock.id]: posthogCredentialsSchema,
   [perplexityBlock.id]: perplexityCredentialsSchema,
   [deepSeekBlock.id]: deepSeekCredentialsSchema,
+  [tecpetBlock.id]: tecpetCredentialsSchema,
 };
