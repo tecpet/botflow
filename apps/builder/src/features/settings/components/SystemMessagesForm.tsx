@@ -47,6 +47,33 @@ export const SystemMessagesForm = ({
     });
   };
 
+  const updateOfflineErrorTitle = (
+    networkErrorTitle: SystemMessages["networkErrorTitle"],
+  ) => {
+    onSystemMessagesChange({
+      ...systemMessages,
+      networkErrorTitle,
+    });
+  };
+
+  const updateOfflineErrorMessage = (
+    networkErrorMessage: SystemMessages["networkErrorMessage"],
+  ) => {
+    onSystemMessagesChange({
+      ...systemMessages,
+      networkErrorMessage,
+    });
+  };
+
+  const updatePopupBlockedTitle = (
+    popupBlockedTitle: SystemMessages["popupBlockedTitle"],
+  ) => {
+    onSystemMessagesChange({
+      ...systemMessages,
+      popupBlockedTitle,
+    });
+  };
+
   const updatePopupBlockedDescription = (
     popupBlockedDescription: SystemMessages["popupBlockedDescription"],
   ) => {
@@ -83,6 +110,30 @@ export const SystemMessagesForm = ({
         defaultValue={systemMessages?.invalidMessage}
         placeholder={defaultSystemMessages.invalidMessage}
         onChange={updateInvalidMessage}
+      />
+      <TextInput
+        label={t(
+          "settings.sideMenu.general.systemMessages.networkErrorTitle.label",
+        )}
+        defaultValue={systemMessages?.networkErrorTitle}
+        placeholder={defaultSystemMessages.networkErrorTitle}
+        onChange={updateOfflineErrorTitle}
+      />
+      <Textarea
+        label={t(
+          "settings.sideMenu.general.systemMessages.networkErrorMessage.label",
+        )}
+        defaultValue={systemMessages?.networkErrorMessage}
+        placeholder={defaultSystemMessages.networkErrorMessage}
+        onChange={updateOfflineErrorMessage}
+      />
+      <TextInput
+        label={t(
+          "settings.sideMenu.general.systemMessages.popupBlockedTitle.label",
+        )}
+        defaultValue={systemMessages?.popupBlockedTitle}
+        placeholder={defaultSystemMessages.popupBlockedTitle}
+        onChange={updatePopupBlockedTitle}
       />
       <Textarea
         label={t(

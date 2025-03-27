@@ -13,6 +13,7 @@ export enum InputBlockType {
   PAYMENT = "payment input",
   RATING = "rating input",
   FILE = "file input",
+  CARDS = "cards",
 }
 
 export const TecpetInputBlockType: { [key in InputBlockType]: boolean } = {

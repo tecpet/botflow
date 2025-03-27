@@ -24,8 +24,9 @@
     "@typebot.io/zendesk-block": "workspace:*",
     "@typebot.io/posthog-block": "workspace:*",
     "@typebot.io/perplexity-block": "workspace:*",
+    "@typebot.io/tecpet-block": "workspace:*",
     "@typebot.io/deepseek-block": "workspace:*",
-    "@typebot.io/tecpet-block": "workspace:*"
+    "@typebot.io/blink-block": "workspace:*"
   },
   "devDependencies": {
     "@typebot.io/tsconfig": "workspace:*"
