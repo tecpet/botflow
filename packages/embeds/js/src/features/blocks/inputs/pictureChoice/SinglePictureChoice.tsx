@@ -87,14 +87,14 @@ export const SinglePictureChoice = (props: Props) => {
                 (isSvgSrc(item.pictureSrc) ? "has-svg" : "")
               }
             >
-              <img
-                src={item.pictureSrc}
-                alt={item.title ?? `Picture ${index() + 1}`}
-                elementtiming={`Picture choice ${index() + 1}`}
-                fetchpriority={"high"}
-                class="m-auto"
-                onLoad={onImageLoad}
-              />
+              {/*<img*/}
+              {/*  src={item.pictureSrc}*/}
+              {/*  alt={item.title ?? `Picture ${index() + 1}`}*/}
+              {/*  elementtiming={`Picture choice ${index() + 1}`}*/}
+              {/*  fetchpriority={"high"}*/}
+              {/*  class="m-auto"*/}
+              {/*  onLoad={onImageLoad}*/}
+              {/*/>*/}
               <div
                 class={
                   "flex flex-col gap-1 py-2 flex-shrink-0 px-4 w-full" +

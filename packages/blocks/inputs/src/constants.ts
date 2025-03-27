@@ -14,3 +14,18 @@ export enum InputBlockType {
   RATING = "rating input",
   FILE = "file input",
 }
+
+export const TecpetInputBlockType: { [key in InputBlockType]: boolean } = {
+  [InputBlockType.TEXT]: true,
+  [InputBlockType.NUMBER]: true,
+  [InputBlockType.EMAIL]: true,
+  [InputBlockType.URL]: false,
+  [InputBlockType.DATE]: true,
+  [InputBlockType.TIME]: true,
+  [InputBlockType.PHONE]: true,
+  [InputBlockType.CHOICE]: true,
+  [InputBlockType.PICTURE_CHOICE]: true,
+  [InputBlockType.PAYMENT]: false,
+  [InputBlockType.RATING]: false,
+  [InputBlockType.FILE]: true,
+};

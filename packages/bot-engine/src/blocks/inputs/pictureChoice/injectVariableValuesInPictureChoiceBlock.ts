@@ -12,11 +12,11 @@ export const injectVariableValuesInPictureChoiceBlock =
   (block: PictureChoiceBlock): PictureChoiceBlock => {
     if (
       block.options?.dynamicItems?.isEnabled &&
-      block.options.dynamicItems.pictureSrcsVariableId
+      block.options.dynamicItems.titlesVariableId
     ) {
       const pictureSrcsVariable = variables.find(
         (variable) =>
-          variable.id === block.options?.dynamicItems?.pictureSrcsVariableId &&
+          variable.id === block.options?.dynamicItems?.titlesVariableId &&
           isDefined(variable.value),
       ) as VariableWithValue | undefined;
       if (!pictureSrcsVariable) return deepParseVariables(variables)(block);

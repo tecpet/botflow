@@ -14,9 +14,9 @@ import {
   useEventListener,
 } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
-import { BubbleBlockType } from "@typebot.io/blocks-bubbles/constants";
+import { BubbleBlockType, TecpetBubblesBlockType } from "@typebot.io/blocks-bubbles/constants";
 import type { BlockV6 } from "@typebot.io/blocks-core/schemas/schema";
-import { InputBlockType } from "@typebot.io/blocks-inputs/constants";
+import {InputBlockType, TecpetInputBlockType} from "@typebot.io/blocks-inputs/constants";
 import { IntegrationBlockType } from "@typebot.io/blocks-integrations/constants";
 import { LogicBlockType } from "@typebot.io/blocks-logic/constants";
 import { env } from "@typebot.io/env";
@@ -152,14 +152,18 @@ export const BlocksSideBar = () => {
     })
     .map((block) => block.id);
 
-  const filteredBubbleBlockTypes = Object.values(BubbleBlockType).filter(
-    (type) =>
-      getBubbleBlockLabel(t)
-        [type].toLowerCase()
-        .includes(searchInput.toLowerCase()),
-  );
+  const filteredBubbleBlockTypes = Object.values(BubbleBlockType)
+    .filter(t => TecpetBubblesBlockType[t])
+    .filter(
+      (type) =>
+        getBubbleBlockLabel(t)
+          [type].toLowerCase()
+          .includes(searchInput.toLowerCase()),
+    );
 
-  const filteredInputBlockTypes = Object.values(InputBlockType).filter((type) =>
+  const filteredInputBlockTypes = Object.values(InputBlockType)
+    .filter(t => TecpetInputBlockType[t])
+    .filter((type) =>
     getInputBlockLabel(t)
       [type].toLowerCase()
       .includes(searchInput.toLowerCase()),
