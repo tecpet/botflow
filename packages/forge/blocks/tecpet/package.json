@@ -10,7 +10,8 @@
   "dependencies": {
     "ky": "1.2.4",
     "@typebot.io/forge": "workspace:*",
-    "@typebot.io/lib": "workspace:*"
+    "@typebot.io/lib": "workspace:*",
+    "tecpet-sdk": "file:/Users/pablo/workspace/tecpet/tecpet-sdk"
   },
   "devDependencies": {
     "@typebot.io/tsconfig": "workspace:*"

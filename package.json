@@ -54,6 +54,7 @@
     "esbuild",
     "isolated-vm",
     "prisma",
-    "sharp"
+    "sharp",
+    "tecpet-sdk"
   ]
 }

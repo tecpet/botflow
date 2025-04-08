@@ -1,21 +1,21 @@
 import {createAction, option} from "@typebot.io/forge";
 import {auth} from "../auth";
-import got from "ky";
-import {defaultBaseUrl, baseOptions} from "../constants";
+import {baseOptions} from "../constants";
+import {TecpetSDK} from "tecpet-sdk";
 
 export const getClient = createAction({
   auth,
   baseOptions,
-  name: "Create Record",
+  name: "Buscar Cliente pelo Telefone",
   options: option.object({
-    inputTest: option.string.layout({
-      label: "Input teste",
+    phoneNumber: option.string.layout({
+      label: "Telefone",
       isRequired: true,
-      helperText: "Identifier of the table to create records in.",
+      helperText: "Telefone do cliente",
     }),
     variableIdToSave: option.string.layout({
-      label: "Save audio URL in variable",
-      placeholder: "Select a variable",
+      label: "Nome do cliente",
+      placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
   }),
@@ -28,21 +28,10 @@ export const getClient = createAction({
           status: 'success',
           description: 'Começando',
         });
-        const baseUrl = options.baseUrl ?? defaultBaseUrl;
-        const response = await got
-          .get(baseUrl, {
-            headers: {
-              "xi-api-key": credentials.apiKey,
-            },
-            // json: {
-            //   model_id: options.modelId,
-            //   text: options.text,
-            // },
-            // timeout: false,
-          })
-          .text();
+        const tecpetSdk = new TecpetSDK(credentials.baseUrl, credentials.apiKey);
+        const client = await tecpetSdk.client.getByPhone(options.phoneNumber, 1393);
         if (options.variableIdToSave){
-          variables.set([{id: options.variableIdToSave, value: `${options.inputTest} - ${response}`}]);
+          variables.set([{id: options.variableIdToSave, value: `${client.name}`}]);
         }
       } catch (error) {
         logs.add({
