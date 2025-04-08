@@ -4495,10 +4495,14 @@
                                                 },
                                                 "caption": {
                                                   "type": "string"
+                                                },
+                                                "mime_type": {
+                                                  "type": "string"
                                                 }
                                               },
                                               "required": [
-                                                "id"
+                                                "id",
+                                                "mime_type"
                                               ]
                                             }
                                           },
@@ -4543,10 +4547,14 @@
                                                 },
                                                 "caption": {
                                                   "type": "string"
+                                                },
+                                                "mime_type": {
+                                                  "type": "string"
                                                 }
                                               },
                                               "required": [
-                                                "id"
+                                                "id",
+                                                "mime_type"
                                               ]
                                             }
                                           },
@@ -4588,10 +4596,14 @@
                                               "properties": {
                                                 "id": {
                                                   "type": "string"
+                                                },
+                                                "mime_type": {
+                                                  "type": "string"
                                                 }
                                               },
                                               "required": [
-                                                "id"
+                                                "id",
+                                                "mime_type"
                                               ]
                                             }
                                           },
@@ -4636,10 +4648,14 @@
                                                 },
                                                 "caption": {
                                                   "type": "string"
+                                                },
+                                                "mime_type": {
+                                                  "type": "string"
                                                 }
                                               },
                                               "required": [
-                                                "id"
+                                                "id",
+                                                "mime_type"
                                               ]
                                             }
                                           },
@@ -4814,10 +4830,14 @@
                                               "properties": {
                                                 "id": {
                                                   "type": "string"
+                                                },
+                                                "mime_type": {
+                                                  "type": "string"
                                                 }
                                               },
                                               "required": [
-                                                "id"
+                                                "id",
+                                                "mime_type"
                                               ]
                                             }
                                           },
@@ -4826,6 +4846,73 @@
                                             "timestamp",
                                             "type",
                                             "sticker"
+                                          ]
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "from": {
+                                              "type": "string"
+                                            },
+                                            "timestamp": {
+                                              "type": "string"
+                                            },
+                                            "referral": {
+                                              "type": "object",
+                                              "properties": {
+                                                "ctwa_clid": {
+                                                  "type": "string"
+                                                },
+                                                "source_id": {
+                                                  "type": "string"
+                                                }
+                                              }
+                                            },
+                                            "type": {
+                                              "type": "string",
+                                              "enum": [
+                                                "contacts"
+                                              ]
+                                            },
+                                            "contacts": {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "name": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "formatted_name": {
+                                                        "type": "string"
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "formatted_name"
+                                                    ]
+                                                  },
+                                                  "phones": {
+                                                    "type": "array",
+                                                    "items": {
+                                                      "type": "object",
+                                                      "properties": {
+                                                        "phone": {
+                                                          "type": "string"
+                                                        },
+                                                        "type": {
+                                                          "type": "string"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "from",
+                                            "timestamp",
+                                            "type",
+                                            "contacts"
                                           ]
                                         },
                                         {
@@ -7344,6 +7431,20 @@
                       "multiple": {
                         "type": "string"
                       }
+                    }
+                  }
+                }
+              },
+              "allowedFileTypes": {
+                "type": "object",
+                "properties": {
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "types": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
                     }
                   }
                 }
@@ -10555,19 +10656,7 @@
                     ]
                   },
                   "model": {
-                    "type": "string",
-                    "enum": [
-                      "claude-3-7-sonnet-latest",
-                      "claude-3-5-haiku-latest",
-                      "claude-3-5-sonnet-latest",
-                      "claude-3-5-sonnet-20240620",
-                      "claude-3-opus-20240229",
-                      "claude-3-sonnet-20240229",
-                      "claude-3-haiku-20240307",
-                      "claude-2.1",
-                      "claude-2.0",
-                      "claude-instant-1.2"
-                    ]
+                    "type": "string"
                   },
                   "messages": {
                     "type": "array",
@@ -10839,19 +10928,7 @@
                     ]
                   },
                   "model": {
-                    "type": "string",
-                    "enum": [
-                      "claude-3-7-sonnet-latest",
-                      "claude-3-5-haiku-latest",
-                      "claude-3-5-sonnet-latest",
-                      "claude-3-5-sonnet-20240620",
-                      "claude-3-opus-20240229",
-                      "claude-3-sonnet-20240229",
-                      "claude-3-haiku-20240307",
-                      "claude-2.1",
-                      "claude-2.0",
-                      "claude-instant-1.2"
-                    ]
+                    "type": "string"
                   },
                   "prompt": {
                     "type": "string"
@@ -12569,14 +12646,7 @@
                     ]
                   },
                   "model": {
-                    "type": "string",
-                    "enum": [
-                      "sonar-deep-research",
-                      "sonar-reasoning-pro",
-                      "sonar-reasoning",
-                      "sonar-pro",
-                      "sonar"
-                    ]
+                    "type": "string"
                   },
                   "messages": {
                     "type": "array",
@@ -12889,11 +12959,7 @@
                     ]
                   },
                   "model": {
-                    "type": "string",
-                    "enum": [
-                      "deepseek-chat",
-                      "deepseek-reasoner"
-                    ]
+                    "type": "string"
                   },
                   "messages": {
                     "type": "array",
@@ -16037,6 +16103,20 @@
                       "multiple": {
                         "type": "string"
                       }
+                    }
+                  }
+                }
+              },
+              "allowedFileTypes": {
+                "type": "object",
+                "properties": {
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "types": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
                     }
                   }
                 }
