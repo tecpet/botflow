@@ -1,6 +1,6 @@
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { trpc } from "@/lib/trpc";
-import { Tag, Text } from "@chakra-ui/react";
+import {Tag, Text, Wrap} from "@chakra-ui/react";
 import type { TypebotLinkBlock } from "@typebot.io/blocks-logic/typebotLink/schema";
 import { byId, isNotEmpty } from "@typebot.io/lib/utils";
 import React from "react";
@@ -32,21 +32,47 @@ export const TypebotLinkNode = ({ block }: Props) => {
     byId(block.options?.groupId),
   )?.title;
 
-  if (!block.options?.typebotId)
+  const dynamicVariableName = typebot?.variables.find(
+    (variable) =>
+      variable.id === block.options?.variableId,
+  )?.name;
+
+  if (!block.options?.variableId && block.options?.fluxByVariable)
     return <Text color="gray.500">Configure...</Text>;
+
+  if (block.options?.variableId)
   return (
     <Text>
-      Jump{" "}
+      Ir para{" "}
+      {dynamicVariableName ? (
+        <>
+          <Wrap spacing={1}>
+            <Tag bg="orange.400" color="white">
+              {dynamicVariableName}
+            </Tag>
+          </Wrap>
+        </>
+      ) : (
+        <></>
+      )}
+    </Text>);
+
+  if (!blockTitle && !block.options?.fluxByVariable)
+    return <Text color="gray.500">Configure...</Text>;
+
+  return (
+    <Text>
+      Ir para{" "}
       {blockTitle ? (
         <>
-          to <Tag>{blockTitle}</Tag>
+          <Tag>{blockTitle}</Tag>
         </>
       ) : (
         <></>
       )}{" "}
       {!isCurrentTypebot ? (
         <>
-          in <Tag colorScheme="orange">{linkedTypebot?.name}</Tag>
+          em <Tag colorScheme="orange">{linkedTypebot?.name}</Tag>
         </>
       ) : (
         <></>

@@ -1,7 +1,8 @@
-import { createBlock } from "@typebot.io/forge";
-import { auth } from "./auth";
-import { TecpetLogo } from "./logo";
+import {createBlock} from "@typebot.io/forge";
+import {auth} from "./auth";
+import {TecpetLogo} from "./logo";
 import {getClient} from "./actions/getClient";
+import {getConfigurations} from "./actions/getConfigurations";
 
 export const tecpetBlock = createBlock({
   id: "tecpet",
@@ -9,5 +10,5 @@ export const tecpetBlock = createBlock({
   tags: [],
   LightLogo: TecpetLogo,
   auth,
-  actions: [getClient],
+  actions: [getConfigurations, getClient],
 });

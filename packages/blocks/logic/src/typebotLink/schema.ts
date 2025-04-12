@@ -6,6 +6,8 @@ export const typebotLinkOptionsSchema = z.object({
   typebotId: z.string().optional(),
   groupId: z.string().optional(),
   mergeResults: z.boolean().optional(),
+  variableId: z.string().optional(),
+  fluxByVariable: z.boolean().optional(),
 });
 
 export const typebotLinkBlockSchema = blockBaseSchema

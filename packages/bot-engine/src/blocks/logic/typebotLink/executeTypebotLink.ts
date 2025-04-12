@@ -23,7 +23,21 @@ export const executeTypebotLink = async (
   block: TypebotLinkBlock,
 ): Promise<ExecuteLogicResponse> => {
   const logs: LogInSession[] = [];
-  const typebotId = block.options?.typebotId;
+  let typebotId;
+  logs.push({
+    status: "info",
+    description: JSON.stringify(block.options),
+    details: `Typebot ID is not specified`,
+  });
+  if (block.options?.fluxByVariable) {
+    const variableId = block.options?.variableId;
+    const variableTypebotId = state.typebotsQueue[0].typebot.variables.find(
+      (v) => v.id === variableId,
+    );
+    typebotId = await getTypebotByPublicId(state, variableTypebotId?.value);
+  } else {
+    typebotId = block.options?.typebotId;
+  }
   if (!typebotId) {
     logs.push({
       status: "error",
@@ -267,6 +281,17 @@ const fetchTypebot = async (state: SessionState, typebotId: string) => {
     systemMessages: settingsSchema.parse(typebot.settings).general
       ?.systemMessages,
   });
+};
+
+const getTypebotByPublicId = async (state: SessionState, publicId: string) => {
+  const typebot = await prisma.typebot.findUnique({
+    where: {publicId, workspaceId: state.workspaceId},
+    select: {
+      id: true,
+    },
+  });
+  if (!typebot) return null;
+  return typebot.id;
 };
 
 const getNextGroupId = (
