@@ -1,6 +1,6 @@
 import {createAction, option} from "@typebot.io/forge";
 import {auth} from "../auth";
-import {baseOptions} from "../constants";
+import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
 import {TecpetSDK} from "tecpet-sdk";
 
 export const getClient = createAction({
@@ -28,8 +28,8 @@ export const getClient = createAction({
           status: 'success',
           description: 'Começando',
         });
-        const tecpetSdk = new TecpetSDK(credentials.baseUrl, credentials.apiKey);
-        const client = await tecpetSdk.client.getByPhone(options.phoneNumber, 1393);
+        const tecpetSdk = new TecpetSDK(credentials.baseUrl ?? tecpetDefaultBaseUrl, credentials.apiKey);
+        const client = await tecpetSdk.client.getByPhone(options?.phoneNumber ?? '', 1393);
         if (options.variableIdToSave){
           variables.set([{id: options.variableIdToSave, value: `${client.name}`}]);
         }

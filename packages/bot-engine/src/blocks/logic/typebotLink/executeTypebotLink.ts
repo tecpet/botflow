@@ -24,16 +24,19 @@ export const executeTypebotLink = async (
 ): Promise<ExecuteLogicResponse> => {
   const logs: LogInSession[] = [];
   let typebotId;
-  logs.push({
-    status: "info",
-    description: JSON.stringify(block.options),
-    details: `Typebot ID is not specified`,
-  });
   if (block.options?.fluxByVariable) {
     const variableId = block.options?.variableId;
     const variableTypebotId = state.typebotsQueue[0].typebot.variables.find(
       (v) => v.id === variableId,
     );
+    if (!variableTypebotId) {
+      logs.push({
+        status: "error",
+        description: `Failed to get variableTypebotId`,
+        details: `Typebot ID is not specified`,
+      });
+      return { outgoingEdgeId: block.outgoingEdgeId, logs };
+    }
     typebotId = await getTypebotByPublicId(state, variableTypebotId?.value);
   } else {
     typebotId = block.options?.typebotId;
@@ -283,9 +286,12 @@ const fetchTypebot = async (state: SessionState, typebotId: string) => {
   });
 };
 
-const getTypebotByPublicId = async (state: SessionState, publicId: string | undefined) => {
+const getTypebotByPublicId = async (state: SessionState, publicId: string) => {
+  if (!publicId) {
+    return null;
+  }
   const typebot = await prisma.typebot.findUnique({
-    where: {publicId, workspaceId: state.workspaceId},
+    where: { publicId, workspaceId: state.workspaceId },
     select: {
       id: true,
     },

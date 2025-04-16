@@ -1,6 +1,6 @@
 import type { AuthDefinition } from "@typebot.io/forge/types";
 import { option } from "@typebot.io/forge";
-import {defaultBaseUrl} from "./constants";
+import {tecpetDefaultBaseUrl} from "./constants";
 
 export const auth = {
   type: "encryptedCredentials",
@@ -10,9 +10,9 @@ export const auth = {
       .layout({
         label: "Base URL",
         isRequired: true,
-        helperText: "Change it only if you are self-hosting NocoDB.",
+        helperText: "Change it only if you are self-hosting.",
         withVariableButton: false,
-        defaultValue: defaultBaseUrl,
+        defaultValue: tecpetDefaultBaseUrl,
       })
       .transform((value) => value?.replace(/\/$/, "")),
     apiKey: option.string.layout({

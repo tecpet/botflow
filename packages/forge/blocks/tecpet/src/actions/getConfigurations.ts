@@ -1,7 +1,8 @@
 import {createAction, option} from "@typebot.io/forge";
 import {auth} from "../auth";
-import {baseOptions} from "../constants";
+import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
 import {TecpetSDK} from "tecpet-sdk";
+import {defaultChatwootOptions} from "@typebot.io/blocks-integrations/chatwoot/constants";
 
 export const getConfigurations = createAction({
   auth,
@@ -25,7 +26,7 @@ export const getConfigurations = createAction({
     server: async ({credentials, options, variables, logs}) => {
       try {
         if (options.shopId) {
-          const tecpetSdk = new TecpetSDK(credentials.baseUrl, credentials.apiKey);
+          const tecpetSdk = new TecpetSDK(credentials.baseUrl ?? tecpetDefaultBaseUrl, credentials.apiKey);
           const result = await tecpetSdk.chatbotSettings.getByShop(options.shopId);
           if (result) {
             if (options.configurations){

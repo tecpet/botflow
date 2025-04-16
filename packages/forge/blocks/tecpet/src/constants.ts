@@ -1,6 +1,6 @@
 import { option } from "@typebot.io/forge";
 
-export const defaultBaseUrl = "https://api.tec.pet";
+export const tecpetDefaultBaseUrl = "https://api.tec.pet";
 
 export const baseOptions = option
   .object({
