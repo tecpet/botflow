@@ -283,7 +283,7 @@ const fetchTypebot = async (state: SessionState, typebotId: string) => {
   });
 };
 
-const getTypebotByPublicId = async (state: SessionState, publicId: string) => {
+const getTypebotByPublicId = async (state: SessionState, publicId: string | undefined) => {
   const typebot = await prisma.typebot.findUnique({
     where: {publicId, workspaceId: state.workspaceId},
     select: {
