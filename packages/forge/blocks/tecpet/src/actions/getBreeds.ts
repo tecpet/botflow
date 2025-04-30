@@ -2,7 +2,6 @@ import {createAction, option} from "@typebot.io/forge";
 import {auth} from "../auth";
 import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
 import {TecpetSDK} from "tecpet-sdk";
-import {SpecieTypeTranslation} from "../helpers/enums";
 import {getSimilarBreeds} from "../helpers/utils";
 
 export const getBreeds = createAction({
@@ -37,7 +36,7 @@ export const getBreeds = createAction({
     server: async ({credentials, options, variables, logs}) => {
       try {
         const tecpetSdk = new TecpetSDK(credentials.baseUrl ?? tecpetDefaultBaseUrl, credentials.apiKey);
-        const specie = SpecieTypeTranslation[options?.specie] ?? '';
+        const specie = options?.specie ?? '';
         const name = options?.name ?? '';
         const breeds = await tecpetSdk.breed.getBySpecieAndName(specie, name, options.shopId);
         logs.add({

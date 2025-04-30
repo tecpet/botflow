@@ -2,7 +2,6 @@ import {createAction, option} from "@typebot.io/forge";
 import {auth} from "../auth";
 import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
 import {TecpetSDK} from "tecpet-sdk";
-import {HairTypeTranslation, SizeTypeTranslation, SpecieTypeTranslation} from "../helpers/enums";
 
 export const createPet = createAction({
   auth,
