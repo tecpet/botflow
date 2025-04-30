@@ -186,6 +186,7 @@
   "blocks.inputs.picture.settings.dynamicItems.images.label": "Imagens:",
   "blocks.inputs.picture.settings.dynamicItems.label": "Itens dinâmicos",
   "blocks.inputs.picture.settings.dynamicItems.titles.label": "Títulos:",
+  "blocks.inputs.picture.settings.dynamicItems.titles.value": "Valores (ids):",
   "blocks.inputs.picture.settings.dynamicVariables.display.label": "Exibir",
   "blocks.inputs.picture.settings.dynamicVariables.pictures.label": "itens",
   "blocks.inputs.rating.from.label": "Avalie de",
