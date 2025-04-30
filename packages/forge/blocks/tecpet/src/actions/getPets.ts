@@ -3,37 +3,32 @@ import {auth} from "../auth";
 import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
 import {TecpetSDK} from "tecpet-sdk";
 
-export const getClient = createAction({
+export const getPets = createAction({
   auth,
   baseOptions,
-  name: "Buscar Cliente pelo Telefone",
+  name: "Buscar Pets do Cliente",
   options: option.object({
-    shopId: option.string.layout({
-      label: "Id da Loja",
-      isRequired: true,
-      helperText: "Id da loja",
-    }),
-    phoneNumber: option.string.layout({
-      label: "Telefone",
-      isRequired: true,
-      helperText: "Telefone do cliente",
-    }),
-    client: option.string.layout({
+    clientId: option.string.layout({
       label: "Cliente",
+      isRequired: true,
+      helperText: "Id do cliente",
+    }),
+    pets: option.string.layout({
+      label: "Pets",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({client}) =>
-    client ? [client] : [],
+  getSetVariableIds: ({pets}) =>
+    pets ? [pets] : [],
   run: {
     server: async ({credentials, options, variables, logs}) => {
       try {
         const tecpetSdk = new TecpetSDK(credentials.baseUrl ?? tecpetDefaultBaseUrl, credentials.apiKey);
-        const client = await tecpetSdk.client.getByPhone(options?.phoneNumber ?? '', options.shopId);
-        if (client) {
-          if (options.client){
-            variables.set([{id: options.client, value: client }]);
+        const pets = await tecpetSdk.pet.getByClient(options?.clientId ?? '');
+        if (pets) {
+          if (options.pets) {
+            variables.set([{id: options.pets, value: pets}]);
           }
         }
       } catch (error) {
