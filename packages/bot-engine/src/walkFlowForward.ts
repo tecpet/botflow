@@ -7,6 +7,7 @@ import {
   isIntegrationBlock,
   isLogicBlock,
 } from "@typebot.io/blocks-core/helpers";
+import type { ContinueChatResponse } from "@typebot.io/chat-api/schemas";
 import type { SessionState } from "@typebot.io/chat-session/schemas";
 import { env } from "@typebot.io/env";
 import type { Group } from "@typebot.io/groups/schemas";
@@ -25,7 +26,6 @@ import {
   parseBubbleBlock,
 } from "./parseBubbleBlock";
 import { upsertResult } from "./queries/upsertResult";
-import type { ContinueChatResponse } from "./schemas/api";
 import type { ExecuteIntegrationResponse, ExecuteLogicResponse } from "./types";
 
 export type WalkFlowStartingPoint =
@@ -56,7 +56,7 @@ export const walkFlowForward = async (
     textBubbleContentFormat: "richText" | "markdown";
   },
 ) => {
-  const timeoutStartTime = Date.now();
+  let timeoutStartTime = Date.now();
 
   const visitedEdges: Prisma.VisitedEdge[] = [];
   let newSessionState: SessionState = state;
@@ -68,9 +68,11 @@ export const walkFlowForward = async (
   let nextEdge: { id: string; isOffDefaultPath: boolean } | undefined =
     startingPoint.type === "nextEdge" ? startingPoint.nextEdge : undefined;
 
+  let i = -1;
   do {
+    i += 1;
     const nextGroupResponse =
-      startingPoint.type === "group" && !nextEdge
+      i === 0 && startingPoint.type === "group" && !nextEdge
         ? {
             group: startingPoint.group,
             newSessionState,
@@ -81,11 +83,12 @@ export const walkFlowForward = async (
             isOffDefaultPath: nextEdge?.isOffDefaultPath ?? false,
           });
     newSessionState = nextGroupResponse.newSessionState;
+    if (nextGroupResponse.visitedEdge)
+      visitedEdges.push(nextGroupResponse.visitedEdge);
     if (!nextGroupResponse?.group) break;
     const executionResponse = await executeGroup(nextGroupResponse.group, {
       version,
       state: newSessionState,
-      visitedEdges,
       setVariableHistory,
       skipFirstMessageBubble,
       timeoutStartTime,
@@ -94,20 +97,21 @@ export const walkFlowForward = async (
     });
     if (executionResponse.logs) logs.push(...executionResponse.logs);
     newSessionState = executionResponse.newSessionState;
-    if (executionResponse.visitedEdges)
-      visitedEdges.push(...executionResponse.visitedEdges);
-    if (executionResponse.setVariableHistory)
-      setVariableHistory.push(...executionResponse.setVariableHistory);
+    if (executionResponse.newSetVariableHistoryItems)
+      setVariableHistory.push(...executionResponse.newSetVariableHistoryItems);
     if (executionResponse.messages)
       messages.push(...executionResponse.messages);
     if (executionResponse.input) input = executionResponse.input;
     if (executionResponse.clientSideActions)
       clientSideActions.push(...executionResponse.clientSideActions);
+    if (executionResponse.updatedTimeoutStartTime)
+      timeoutStartTime = executionResponse.updatedTimeoutStartTime;
 
     nextEdge = executionResponse.nextEdge;
   } while (
     nextEdge ||
     (!input &&
+      !clientSideActions.some((ca) => ca.expectsDedicatedReply) &&
       (newSessionState.typebotsQueue[0].queuedEdgeIds?.length ||
         newSessionState.typebotsQueue.length > 1))
   );
@@ -129,7 +133,6 @@ type ContextProps = {
   sessionStore: SessionStore;
   currentLastBubbleId?: string;
   skipFirstMessageBubble?: boolean;
-  visitedEdges: Prisma.VisitedEdge[];
   setVariableHistory: SetVariableHistoryItem[];
   timeoutStartTime?: number;
   textBubbleContentFormat: "richText" | "markdown";
@@ -137,8 +140,8 @@ type ContextProps = {
 
 export type ExecuteGroupResponse = ContinueChatResponse & {
   newSessionState: SessionState;
-  setVariableHistory: SetVariableHistoryItem[];
-  visitedEdges: Prisma.VisitedEdge[];
+  newSetVariableHistoryItems: SetVariableHistoryItem[];
+  updatedTimeoutStartTime?: number;
   nextEdge?: {
     id: string;
     isOffDefaultPath: boolean;
@@ -151,7 +154,6 @@ const executeGroup = async (
     version,
     state,
     sessionStore,
-    visitedEdges,
     setVariableHistory,
     currentLastBubbleId,
     skipFirstMessageBubble,
@@ -164,15 +166,16 @@ const executeGroup = async (
   let logs: ContinueChatResponse["logs"] = [];
   let nextEdge;
   let lastBubbleBlockId: string | undefined = currentLastBubbleId;
-
+  let updatedTimeoutStartTime = timeoutStartTime;
+  const newSetVariableHistoryItems: SetVariableHistoryItem[] = [];
   let newSessionState = state;
 
   let index = -1;
   for (const block of group.blocks) {
     if (
-      timeoutStartTime &&
+      updatedTimeoutStartTime &&
       env.CHAT_API_TIMEOUT &&
-      Date.now() - timeoutStartTime > env.CHAT_API_TIMEOUT
+      Date.now() - updatedTimeoutStartTime > env.CHAT_API_TIMEOUT
     ) {
       throw new TRPCError({
         code: "TIMEOUT",
@@ -210,8 +213,7 @@ const executeGroup = async (
           },
           clientSideActions,
           logs,
-          visitedEdges,
-          setVariableHistory,
+          newSetVariableHistoryItems,
         };
       }
 
@@ -232,8 +234,7 @@ const executeGroup = async (
         },
         clientSideActions,
         logs,
-        visitedEdges,
-        setVariableHistory,
+        newSetVariableHistoryItems,
       };
     const logicOrIntegrationExecutionResponse = (
       isLogicBlock(block)
@@ -276,7 +277,7 @@ const executeGroup = async (
           },
         };
       else
-        setVariableHistory.push(
+        newSetVariableHistoryItems.push(
           ...logicOrIntegrationExecutionResponse.newSetVariableHistory,
         );
     }
@@ -285,7 +286,7 @@ const executeGroup = async (
       "startTimeShouldBeUpdated" in logicOrIntegrationExecutionResponse &&
       logicOrIntegrationExecutionResponse.startTimeShouldBeUpdated
     )
-      timeoutStartTime = Date.now();
+      updatedTimeoutStartTime = Date.now();
     if (logicOrIntegrationExecutionResponse.logs)
       logs = [...(logs ?? []), ...logicOrIntegrationExecutionResponse.logs];
     if (logicOrIntegrationExecutionResponse.newSessionState)
@@ -327,8 +328,7 @@ const executeGroup = async (
           },
           clientSideActions,
           logs,
-          visitedEdges,
-          setVariableHistory,
+          newSetVariableHistoryItems,
         };
       }
     }
@@ -342,6 +342,11 @@ const executeGroup = async (
       };
       break;
     }
+
+    if (logicOrIntegrationExecutionResponse.outgoingEdgeId === null) {
+      nextEdge = undefined;
+      break;
+    }
   }
 
   return {
@@ -349,9 +354,9 @@ const executeGroup = async (
     messages,
     newSessionState,
     clientSideActions,
+    updatedTimeoutStartTime,
     logs,
-    visitedEdges,
-    setVariableHistory,
+    newSetVariableHistoryItems,
   };
 };
 
@@ -481,7 +486,7 @@ const navigateToNextGroupAndUpdateState = async ({
             },
     },
     visitedEdge:
-      resultId && isOffDefaultPath && !nextEdge.id.startsWith("virtual-")
+      resultId && isOffDefaultPath
         ? {
             index: currentVisitedEdgeIndex as number,
             edgeId: nextEdge.id,
