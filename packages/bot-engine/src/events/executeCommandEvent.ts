@@ -4,25 +4,24 @@ import { EventType } from "@typebot.io/events/constants";
 import type { CommandEvent } from "@typebot.io/events/schemas";
 import { getBlockById } from "@typebot.io/groups/helpers/getBlockById";
 import { byId } from "@typebot.io/lib/utils";
-import { addBlockToTypebotIfMissing } from "../addBlockToTypebotIfMissing";
+import { addDummyFirstBlockToGroupIfMissing } from "../addDummyFirstBlockToGroupIfMissing";
 import { addVirtualEdge } from "../addPortalEdge";
 
 type Props = {
   state: SessionState;
   command: string;
 };
-export const executeCommandEvent = async ({
-  state,
-  command,
-}: Props): Promise<SessionState> => {
+export const executeCommandEvent = ({ state, command }: Props) => {
   const event = state.typebotsQueue[0].typebot.events?.find(
     (e) => e.type === EventType.COMMAND && e.options?.command === command,
   ) as CommandEvent | undefined;
+
   if (!event)
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Command event not found",
     });
+
   let newSessionState = state;
   if (newSessionState.currentBlockId) {
     if (event.options?.resumeAfter) {
@@ -56,6 +55,7 @@ export const executeCommandEvent = async ({
       };
     } else {
       newSessionState.returnMark = {
+        status: "pending",
         blockId: newSessionState.currentBlockId,
       };
     }
@@ -78,8 +78,9 @@ export const executeCommandEvent = async ({
       message: "Command event doesn't have a connected group",
     });
   const nextBlockIndex = nextGroup.blocks.findIndex(byId(nextEdge.to.blockId));
-  newSessionState = addBlockToTypebotIfMissing(
-    `virtual-${event.id}`,
+  const newBlockId = `virtual-${event.id}-block`;
+  newSessionState = addDummyFirstBlockToGroupIfMissing(
+    newBlockId,
     newSessionState,
     {
       groupId: nextGroup.id,
@@ -88,6 +89,6 @@ export const executeCommandEvent = async ({
   );
   return {
     ...newSessionState,
-    currentBlockId: `virtual-${event.id}`,
+    currentBlockId: newBlockId,
   };
 };

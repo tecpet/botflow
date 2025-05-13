@@ -107,11 +107,11 @@ if (
   );
 }
 
-if (env.CUSTOM_OAUTH_WELL_KNOWN_URL) {
+if (env.CUSTOM_OAUTH_ISSUER) {
   providers.push({
     id: "custom-oauth",
     name: env.CUSTOM_OAUTH_NAME,
-    type: "oauth",
+    type: "oidc",
     authorization: {
       params: {
         scope: env.CUSTOM_OAUTH_SCOPE,
@@ -120,6 +120,7 @@ if (env.CUSTOM_OAUTH_WELL_KNOWN_URL) {
     clientId: env.CUSTOM_OAUTH_CLIENT_ID,
     clientSecret: env.CUSTOM_OAUTH_CLIENT_SECRET,
     wellKnown: env.CUSTOM_OAUTH_WELL_KNOWN_URL,
+    issuer: env.CUSTOM_OAUTH_ISSUER,
     profile(profile) {
       const user = {
         id: getAtPath(profile, env.CUSTOM_OAUTH_USER_ID_PATH),
