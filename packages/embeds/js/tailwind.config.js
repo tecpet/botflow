@@ -1,4 +1,5 @@
 import defaultTheme from "tailwindcss/defaultTheme";
+import { chatContainerBreakpoints } from "./src/constants";
 
 function rem2px(input, fontSize = 16) {
   if (input == null) {
@@ -59,9 +60,18 @@ const config = {
       "input-bg":
         "rgba(var(--typebot-input-bg-rgb), var(--typebot-input-opacity));",
     },
+    containers: {
+      xs: `${chatContainerBreakpoints.xs}px`,
+    },
     extend: {
       maxWidth: {
         "chat-container": "var(--typebot-chat-container-max-width)",
+      },
+      maxHeight: {
+        "chat-container": "var(--typebot-chat-container-max-height)",
+      },
+      minHeight: {
+        "chat-container": "var(--typebot-chat-container-max-height)",
       },
       blur: {
         button: "var(--typebot-button-blur)",
@@ -76,6 +86,7 @@ const config = {
         chat: "var(--typebot-chat-container-border-radius)",
         button: "var(--typebot-button-border-radius)",
         "host-bubble": "var(--typebot-host-bubble-border-radius)",
+        "chat-container": "var(--typebot-chat-container-border-radius)",
       },
       borderWidth: {
         button: "var(--typebot-button-border-width)",
@@ -119,7 +130,7 @@ const config = {
       },
     },
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/container-queries")],
 };
 
 export default config;

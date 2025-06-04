@@ -1,16 +1,16 @@
 import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
+import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { trpc } from "@/lib/trpc";
-import {FormLabel, Stack} from "@chakra-ui/react";
+import { FormLabel, Stack } from "@chakra-ui/react";
+import { useTranslate } from "@tolgee/react";
 import { defaultTypebotLinkOptions } from "@typebot.io/blocks-logic/typebotLink/constants";
 import type { TypebotLinkBlock } from "@typebot.io/blocks-logic/typebotLink/schema";
 import { isNotEmpty } from "@typebot.io/lib/utils";
+import type { Variable } from "@typebot.io/variables/schemas";
+import React from "react";
 import { GroupsDropdown } from "./GroupsDropdown";
 import { TypebotsDropdown } from "./TypebotsDropdown";
-import {VariableSearchInput} from "@/components/inputs/VariableSearchInput";
-import React from "react";
-import {useTranslate} from "@tolgee/react";
-import type {Variable} from "@typebot.io/variables/schemas";
 
 type Props = {
   options: TypebotLinkBlock["options"];
@@ -45,7 +45,13 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
     onOptionsChange({ ...options, variableId: variable?.id });
 
   const updateFluxByVariable = (fluxByVariable: boolean) =>
-    onOptionsChange({ ...options, fluxByVariable, groupId: undefined, typebotId: undefined, variableId: undefined });
+    onOptionsChange({
+      ...options,
+      fluxByVariable,
+      groupId: undefined,
+      typebotId: undefined,
+      variableId: undefined,
+    });
 
   const isCurrentTypebotSelected =
     (typebot && options?.typebotId === typebot.id) ||
@@ -53,22 +59,22 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
 
   return (
     <Stack>
-        <SwitchWithLabel
-          label="Definir fluxo por variável"
-          moreInfoContent=""
-          initialValue={
-            options?.fluxByVariable ?? defaultTypebotLinkOptions.fluxByVariable
-          }
-          onCheckChange={updateFluxByVariable}
-        />
+      <SwitchWithLabel
+        label="Definir fluxo por variável"
+        moreInfoContent=""
+        initialValue={
+          options?.fluxByVariable ?? defaultTypebotLinkOptions.fluxByVariable
+        }
+        onCheckChange={updateFluxByVariable}
+      />
       {options?.fluxByVariable && (
-      <Stack>
-        <VariableSearchInput
-          initialVariableId={options?.variableId}
-          onSelectVariable={updateVariableId}
-        />
-      </Stack>
-    )}
+        <Stack>
+          <VariableSearchInput
+            initialVariableId={options?.variableId}
+            onSelectVariable={updateVariableId}
+          />
+        </Stack>
+      )}
       {!options?.fluxByVariable && typebot && (
         <TypebotsDropdown
           idsToExclude={[typebot.id]}

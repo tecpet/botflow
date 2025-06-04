@@ -12,6 +12,8 @@ const ignoreTrpcMessages = [
   "start group doesn't exist",
   "origin not allowed",
   "Missing credentialsId",
+  "Provided response is not valid JSON",
+  "Could not parse amount, make sure your block is configured correctly",
 ];
 
 const ignoreMessages = [
@@ -27,7 +29,6 @@ const crawlersToIgnore = ["Googlebot"];
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   environment: process.env.NODE_ENV,
-  tracesSampleRate: 1,
   beforeSend: (event, hint) => {
     const exception = hint.originalException;
     const userAgent = event.contexts?.browser?.name;

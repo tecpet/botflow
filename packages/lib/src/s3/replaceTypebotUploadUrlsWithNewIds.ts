@@ -18,29 +18,26 @@ export const replaceTypebotUploadUrlsWithNewIds = async <
   typebot: T;
   filesToCopy: { oldName: string; newName: string }[];
 }> => {
-
-  console.log('A0');
+  console.log("A0");
   if (!typebot.id || !typebot.workspaceId || !env.S3_ENDPOINT)
     return {
       typebot,
       filesToCopy: [],
     };
 
-  console.log('A1');
+  console.log("A1");
 
   let stringifiedTypebot = JSON.stringify(typebot);
   const minioClient = initClient();
 
-  console.log('A2');
-
+  console.log("A2");
 
   const objectsStream = minioClient.listObjectsV2(
     env.S3_BUCKET,
     `public/workspaces/${typebot.workspaceId}/typebots/${typebot.id}/`,
   );
 
-
-  console.log('A3', objectsStream);
+  console.log("A3", objectsStream);
 
   const filesToCopy: { oldName: string; newName: string }[] = [];
   for await (const obj of objectsStream) {

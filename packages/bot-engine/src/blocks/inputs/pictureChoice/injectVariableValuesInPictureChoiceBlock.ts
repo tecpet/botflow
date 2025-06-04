@@ -56,14 +56,12 @@ export const injectVariableValuesInPictureChoiceBlock = (
         ? [pictureSrcsVariable.value]
         : pictureSrcsVariable.value;
 
-    const valuesVariable = block.options.dynamicItems
-      .valuesVariableId
+    const valuesVariable = block.options.dynamicItems.valuesVariableId
       ? (variables.find(
-        (variable) =>
-          variable.id ===
-          block.options?.dynamicItems?.valuesVariableId &&
-          isDefined(variable.value),
-      ) as VariableWithValue | undefined)
+          (variable) =>
+            variable.id === block.options?.dynamicItems?.valuesVariableId &&
+            isDefined(variable.value),
+        ) as VariableWithValue | undefined)
       : undefined;
     const valuesVariableValues =
       typeof valuesVariable?.value === "string"

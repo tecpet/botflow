@@ -1,6 +1,6 @@
-import type { AuthDefinition } from "@typebot.io/forge/types";
 import { option } from "@typebot.io/forge";
-import {tecpetDefaultBaseUrl} from "./constants";
+import type { AuthDefinition } from "@typebot.io/forge/types";
+import { tecpetDefaultBaseUrl } from "./constants";
 
 export const auth = {
   type: "encryptedCredentials",

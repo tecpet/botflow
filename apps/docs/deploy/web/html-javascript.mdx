@@ -10,7 +10,7 @@ There, you can change the container dimensions. Here is a code example:
 
 ```html
 <script type="module">
-  import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js'
+  import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0/dist/web.js'
 
   Typebot.initStandard({
     typebot: 'my-typebot',
@@ -108,7 +108,7 @@ If you have different bots on the same page you will have to make them distinct 
 
 ```html
 <script type="module">
-  import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js'
+  import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0/dist/web.js'
 
   Typebot.initStandard({
     id: 'bot1'
@@ -140,7 +140,7 @@ Here is an example:
 
 ```html
 <script type="module">
-  import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js'
+  import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0/dist/web.js'
 
   Typebot.initPopup({
     typebot: 'my-typebot',
@@ -248,7 +248,7 @@ Here is an example:
 
 ```html
 <script type="module">
-  import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js'
+  import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0/dist/web.js'
 
   Typebot.initBubble({
     typebot: 'my-typebot',
@@ -309,6 +309,7 @@ This code will show the bubble and let a preview message appear after 5 seconds.
        maxHeight?: string;
      };
      button?: {
+       isHidden?: boolean;
        size?: "medium" | "large" | `${number}px`;
        backgroundColor?: string;
        iconColor?: string;
@@ -329,6 +330,7 @@ This code will show the bubble and let a preview message appear after 5 seconds.
      autoShowDelay?: number;
    };
    autoShowDelay?: number;
+   isOpen?: boolean;
    onNewInputBlock?: (inputBlock: any) => void;
    onAnswer?: (answer: { message: string; blockId: string }) => void;
    onInit?: () => void;
@@ -399,6 +401,7 @@ Here are the commands you can use to trigger your embedded typebot:
 
 - `Typebot.setInputValue(...)`: Set the value in the currently displayed input.
 - `Typebot.sendCommand(...)`: Send a [command](/editor/events/command) to the bot.
+- `Typebot.reload()`: Reload the bot.
 
 You can bind these commands on a button element, for example:
 

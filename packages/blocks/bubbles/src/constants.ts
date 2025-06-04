@@ -12,4 +12,4 @@ export const TecpetBubblesBlockType: { [key in BubbleBlockType]: boolean } = {
   [BubbleBlockType.VIDEO]: true,
   [BubbleBlockType.EMBED]: false,
   [BubbleBlockType.TEXT]: true,
-}
+};

@@ -1,8 +1,8 @@
-import {createAction, option} from "@typebot.io/forge";
-import {auth} from "../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
-import {TecpetSDK} from "tecpet-sdk";
-import {defaultChatwootOptions} from "@typebot.io/blocks-integrations/chatwoot/constants";
+import { defaultChatwootOptions } from "@typebot.io/blocks-integrations/chatwoot/constants";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import { auth } from "../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../constants";
 
 export const getConfigurations = createAction({
   auth,
@@ -20,23 +20,28 @@ export const getConfigurations = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({configurations}) =>
+  getSetVariableIds: ({ configurations }) =>
     configurations ? [configurations] : [],
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
         if (options.shopId) {
-          const tecpetSdk = new TecpetSDK(credentials.baseUrl ?? tecpetDefaultBaseUrl, credentials.apiKey);
-          const result = await tecpetSdk.chatbotSettings.getByShop(options.shopId);
+          const tecpetSdk = new TecpetSDK(
+            credentials.baseUrl ?? tecpetDefaultBaseUrl,
+            credentials.apiKey,
+          );
+          const result = await tecpetSdk.chatbotSettings.getByShop(
+            options.shopId,
+          );
           if (result) {
-            if (options.configurations){
-              variables.set([{id: options.configurations, value: result }]);
+            if (options.configurations) {
+              variables.set([{ id: options.configurations, value: result }]);
             }
           }
         }
       } catch (error) {
         logs.add({
-          status: 'error',
+          status: "error",
           description: JSON.stringify(error),
         });
       }

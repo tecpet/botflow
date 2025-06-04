@@ -1,7 +1,7 @@
-import {createAction, option} from "@typebot.io/forge";
-import {auth} from "../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
-import {TecpetSDK} from "tecpet-sdk";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import { auth } from "../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../constants";
 
 export const getPets = createAction({
   auth,
@@ -19,21 +19,23 @@ export const getPets = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) =>
-    pets ? [pets] : [],
+  getSetVariableIds: ({ pets }) => (pets ? [pets] : []),
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
-        const tecpetSdk = new TecpetSDK(credentials.baseUrl ?? tecpetDefaultBaseUrl, credentials.apiKey);
-        const pets = await tecpetSdk.pet.getByClient(options?.clientId ?? '');
+        const tecpetSdk = new TecpetSDK(
+          credentials.baseUrl ?? tecpetDefaultBaseUrl,
+          credentials.apiKey,
+        );
+        const pets = await tecpetSdk.pet.getByClient(options?.clientId ?? "");
         if (pets) {
           if (options.pets) {
-            variables.set([{id: options.pets, value: pets}]);
+            variables.set([{ id: options.pets, value: pets }]);
           }
         }
       } catch (error) {
         logs.add({
-          status: 'error',
+          status: "error",
           description: JSON.stringify(error),
         });
       }

@@ -1,8 +1,8 @@
-import {createAction, option} from "@typebot.io/forge";
-import {auth} from "../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
-import {TecpetSDK} from "tecpet-sdk";
-import {getSimilarBreeds} from "../helpers/utils";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import { auth } from "../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../constants";
+import { getSimilarBreeds } from "../helpers/utils";
 
 export const getBreeds = createAction({
   auth,
@@ -30,28 +30,34 @@ export const getBreeds = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({breeds}) =>
-    breeds ? [breeds] : [],
+  getSetVariableIds: ({ breeds }) => (breeds ? [breeds] : []),
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
-        const tecpetSdk = new TecpetSDK(credentials.baseUrl ?? tecpetDefaultBaseUrl, credentials.apiKey);
-        const specie = options?.specie ?? '';
-        const name = options?.name ?? '';
-        const breeds = await tecpetSdk.breed.getBySpecieAndName(specie, name, options.shopId);
+        const tecpetSdk = new TecpetSDK(
+          credentials.baseUrl ?? tecpetDefaultBaseUrl,
+          credentials.apiKey,
+        );
+        const specie = options?.specie ?? "";
+        const name = options?.name ?? "";
+        const breeds = await tecpetSdk.breed.getBySpecieAndName(
+          specie,
+          name,
+          options.shopId,
+        );
         logs.add({
-          status: 'success',
+          status: "success",
           description: JSON.stringify(breeds),
         });
         if (breeds) {
           if (options.breeds) {
             const similarBreeds = getSimilarBreeds(breeds, name);
-            variables.set([{id: options.breeds, value: similarBreeds}]);
+            variables.set([{ id: options.breeds, value: similarBreeds }]);
           }
         }
       } catch (error) {
         logs.add({
-          status: 'error',
+          status: "error",
           description: JSON.stringify(error),
         });
       }

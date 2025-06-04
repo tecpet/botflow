@@ -1,8 +1,7 @@
+import { BotContainerContext } from "@/contexts/BotContainerContext";
 import { startChatQuery } from "@/queries/startChatQuery";
 import type { BotContext } from "@/types";
 import { CorsError } from "@/utils/CorsError";
-import { setBotContainerHeight } from "@/utils/botContainerHeightSignal";
-import { setBotContainer } from "@/utils/botContainerSignal";
 import { mergeThemes } from "@/utils/dynamicTheme";
 import { injectFont } from "@/utils/injectFont";
 import { persist } from "@/utils/persist";
@@ -34,11 +33,17 @@ import {
   defaultProgressBarPosition,
 } from "@typebot.io/theme/constants";
 import type { Font } from "@typebot.io/theme/schemas";
-import typebotColors from "@typebot.io/ui/colors.css";
 import { cn } from "@typebot.io/ui/lib/cn";
 import { cx } from "@typebot.io/ui/lib/cva";
 import { HTTPError } from "ky";
-import { Show, createEffect, createSignal, onCleanup, onMount } from "solid-js";
+import {
+  Show,
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+} from "solid-js";
 import { Portal } from "solid-js/web";
 import { buttonVariants } from "./Button";
 import { ConversationContainer } from "./ConversationContainer/ConversationContainer";
@@ -225,8 +230,7 @@ export const Bot = (props: BotProps & { class?: string }) => {
 
   return (
     <>
-      <style>{typebotColors}</style>
-      <style>{customCss()}</style>
+      <Show when={customCss()}>{(css) => <style>{css()}</style>}</Show>
       <Show when={error()} keyed>
         {(error) => <ErrorMessage error={error} />}
       </Show>
@@ -300,13 +304,7 @@ const BotContent = (props: BotContentProps) => {
       key: `typebot-${props.context.typebot.id}-progressValue`,
     },
   );
-  let botContainerElement: HTMLDivElement | undefined;
-
-  onMount(() => {
-    if (!botContainerElement) return;
-    setBotContainer(botContainerElement);
-    setBotContainerHeight(`${botContainerElement.clientHeight}px`);
-  });
+  let botContainer: HTMLDivElement | undefined;
 
   createEffect(() => {
     injectFont(
@@ -315,13 +313,13 @@ const BotContent = (props: BotContentProps) => {
         family: defaultFontFamily,
       },
     );
-    if (!botContainerElement) return;
+    if (!botContainer) return;
     setCssVariablesValue({
       theme: mergeThemes(
         props.initialChatReply.typebot.theme,
         props.initialChatReply.dynamicTheme,
       ),
-      container: botContainerElement,
+      container: botContainer,
       isPreview: props.context.isPreview,
       typebotVersion: isTypebotVersionAtLeastV6(
         props.initialChatReply.typebot.version,
@@ -331,85 +329,95 @@ const BotContent = (props: BotContentProps) => {
     });
   });
 
+  const botContainerHeight = createMemo(() => {
+    if (!botContainer) return "100%";
+    return botContainer.clientHeight;
+  });
+
   return (
-    <div
-      ref={botContainerElement}
-      class={cx(
-        "relative flex w-full h-full text-base overflow-hidden flex-col justify-center items-center typebot-container",
-        props.class,
-      )}
-    >
-      <Show
-        when={
-          isDefined(progressValue()) &&
-          props.initialChatReply.typebot.theme.general?.progressBar?.isEnabled
-        }
+    <BotContainerContext.Provider value={() => botContainer}>
+      <div
+        ref={botContainer}
+        class={cx(
+          "relative flex w-full h-full text-base overflow-hidden flex-col justify-center items-center typebot-container",
+          props.class,
+        )}
+        style={{
+          "--bot-container-height": botContainerHeight(),
+        }}
       >
         <Show
           when={
-            props.progressBarRef &&
-            (props.initialChatReply.typebot.theme.general?.progressBar
-              ?.position ?? defaultProgressBarPosition) === "fixed"
+            isDefined(progressValue()) &&
+            props.initialChatReply.typebot.theme.general?.progressBar?.isEnabled
           }
-          fallback={<ProgressBar value={progressValue() as number} />}
         >
-          <Portal mount={props.progressBarRef}>
-            <ProgressBar value={progressValue() as number} />
-          </Portal>
+          <Show
+            when={
+              props.progressBarRef &&
+              (props.initialChatReply.typebot.theme.general?.progressBar
+                ?.position ?? defaultProgressBarPosition) === "fixed"
+            }
+            fallback={<ProgressBar value={progressValue() as number} />}
+          >
+            <Portal mount={props.progressBarRef}>
+              <ProgressBar value={progressValue() as number} />
+            </Portal>
+          </Show>
         </Show>
-      </Show>
-      <ConversationContainer
-        context={props.context}
-        initialChatReply={props.initialChatReply}
-        onNewInputBlock={props.onNewInputBlock}
-        onAnswer={props.onAnswer}
-        onEnd={props.onEnd}
-        onNewLogs={props.onNewLogs}
-        onProgressUpdate={setProgressValue}
-        onScriptExecutionSuccess={props.onScriptExecutionSuccess}
-      />
-      <Show
-        when={
-          props.initialChatReply.typebot.settings.general?.isBrandingEnabled
-        }
-      >
-        <LiteBadge botContainer={botContainerElement} />
-      </Show>
-      <Toaster toaster={toaster} class="w-full">
-        {(toast) => (
-          <Toast.Root class="flex flex-col pl-4 py-4 pr-8 gap-2 max-w-[350px] rounded-chat text-input-text border-input border-input-border bg-input-bg shadow-input data-[state=open]:animate-fade-in-from-bottom data-[state=closed]:animate-fade-out-from-bottom">
-            <Toast.Title class="font-semibold">{toast().title}</Toast.Title>
-            <Toast.Description class="text-sm">
-              {toast().description}
-            </Toast.Description>
-            <Toast.CloseTrigger
-              class={cn(
-                "absolute right-2 top-2",
-                buttonVariants({ variant: "secondary", size: "icon" }),
-              )}
-            >
-              <CloseIcon class="w-4 h-4" />
-            </Toast.CloseTrigger>
-            <Show when={toast().meta?.link as string}>
-              {(link) => (
-                <a
-                  href={link()}
-                  target="_blank"
-                  class={cn(
-                    buttonVariants({ variant: "primary", size: "sm" }),
-                    "no-underline",
-                  )}
-                  rel="noreferrer"
-                >
-                  {props.initialChatReply.typebot.settings.general
-                    ?.systemMessages?.popupBlockedButtonLabel ??
-                    defaultSystemMessages.popupBlockedButtonLabel}
-                </a>
-              )}
-            </Show>
-          </Toast.Root>
-        )}
-      </Toaster>
-    </div>
+        <ConversationContainer
+          context={props.context}
+          initialChatReply={props.initialChatReply}
+          onNewInputBlock={props.onNewInputBlock}
+          onAnswer={props.onAnswer}
+          onEnd={props.onEnd}
+          onNewLogs={props.onNewLogs}
+          onProgressUpdate={setProgressValue}
+          onScriptExecutionSuccess={props.onScriptExecutionSuccess}
+        />
+        <Show
+          when={
+            props.initialChatReply.typebot.settings.general?.isBrandingEnabled
+          }
+        >
+          <LiteBadge botContainer={botContainer} />
+        </Show>
+        <Toaster toaster={toaster} class="w-full">
+          {(toast) => (
+            <Toast.Root class="flex flex-col pl-4 py-4 pr-8 gap-2 max-w-[350px] rounded-chat text-input-text border-input border-input-border bg-input-bg shadow-input data-[state=open]:animate-fade-in-from-bottom data-[state=closed]:animate-fade-out-from-bottom">
+              <Toast.Title class="font-semibold">{toast().title}</Toast.Title>
+              <Toast.Description class="text-sm">
+                {toast().description}
+              </Toast.Description>
+              <Toast.CloseTrigger
+                class={cn(
+                  "absolute right-2 top-2",
+                  buttonVariants({ variant: "secondary", size: "icon" }),
+                )}
+              >
+                <CloseIcon class="w-4 h-4" />
+              </Toast.CloseTrigger>
+              <Show when={toast().meta?.link as string}>
+                {(link) => (
+                  <a
+                    href={link()}
+                    target="_blank"
+                    class={cn(
+                      buttonVariants({ variant: "primary", size: "sm" }),
+                      "no-underline",
+                    )}
+                    rel="noreferrer"
+                  >
+                    {props.initialChatReply.typebot.settings.general
+                      ?.systemMessages?.popupBlockedButtonLabel ??
+                      defaultSystemMessages.popupBlockedButtonLabel}
+                  </a>
+                )}
+              </Show>
+            </Toast.Root>
+          )}
+        </Toaster>
+      </div>
+    </BotContainerContext.Provider>
   );
 };

@@ -1,7 +1,7 @@
-import {createAction, option} from "@typebot.io/forge";
-import {auth} from "../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
-import {TecpetSDK} from "tecpet-sdk";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import { auth } from "../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../constants";
 
 export const createPet = createAction({
   auth,
@@ -54,31 +54,33 @@ export const createPet = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pet}) =>
-    pet ? [pet] : [],
+  getSetVariableIds: ({ pet }) => (pet ? [pet] : []),
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
-        const tecpetSdk = new TecpetSDK(credentials.baseUrl ?? tecpetDefaultBaseUrl, credentials.apiKey);
+        const tecpetSdk = new TecpetSDK(
+          credentials.baseUrl ?? tecpetDefaultBaseUrl,
+          credentials.apiKey,
+        );
         const petInput = {
           clientId: Number(options?.clientId),
           name: options?.name,
           specie: options?.specie,
           breedId: options?.breedId ?? 57094,
-          genre: options?.genre ?? 'MALE',
+          genre: options?.genre ?? "MALE",
           size: options?.size,
           hair: options?.hair,
-          birthDate: new Date(options.birthDate) ?? '',
-        }
+          birthDate: new Date(options.birthDate) ?? "",
+        };
         const pet = await tecpetSdk.pet.createPet(petInput);
         if (pet) {
           if (options.pet) {
-            variables.set([{id: options.pet, value: pet}]);
+            variables.set([{ id: options.pet, value: pet }]);
           }
         }
       } catch (error) {
         logs.add({
-          status: 'error',
+          status: "error",
           description: JSON.stringify(error),
         });
       }
