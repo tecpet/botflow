@@ -14127,6 +14127,10 @@
                     "preferredLanguage": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "termsAcceptedAt": {
+                      "type": "string",
+                      "nullable": true
                     }
                   },
                   "required": [
@@ -14141,7 +14145,8 @@
                     "preferredAppAppearance",
                     "displayedInAppNotifications",
                     "groupTitlesAutoGeneration",
-                    "preferredLanguage"
+                    "preferredLanguage",
+                    "termsAcceptedAt"
                   ]
                 }
               }
@@ -14476,6 +14481,18 @@
               },
               "isLong": {
                 "type": "boolean"
+              },
+              "inputMode": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "decimal",
+                  "numeric",
+                  "tel",
+                  "search",
+                  "email",
+                  "url"
+                ]
               },
               "audioClip": {
                 "type": "object",
