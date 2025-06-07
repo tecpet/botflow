@@ -3,28 +3,28 @@ import {TecpetSDK} from "tecpet-sdk";
 import {auth} from "../auth";
 import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
 
-export const getPets = createAction({
+export const getSpecies = createAction({
   auth,
   baseOptions,
-  name: "Buscar Pets do Cliente",
+  name: "Buscar Espécies da Loja",
   options: option.object({
-    clientId: option.string.layout({
-      label: "Cliente",
+    shopId: option.string.layout({
+      label: "Loja",
       isRequired: true,
-      helperText: "Id do cliente",
+      helperText: "Id da loja",
     }),
-    pets: option.string.layout({
-      label: "Pets",
+    species: option.string.layout({
+      label: "Espécies",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    petsIds: option.string.layout({
-      label: "Pets Ids",
+    speciesIds: option.string.layout({
+      label: "Espécies Ids",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    petsNames: option.string.layout({
-      label: "Pets Nomes",
+    speciesNames: option.string.layout({
+      label: "Espécies Nomes",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -37,19 +37,16 @@ export const getPets = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const pets = await tecpetSdk.pet.getByClient(options?.clientId ?? "");
-        if (pets) {
-          if (options.pets) {
-            pets.push({ id: 'new', name: 'Cadastrar novo pet'});
-            variables.set([{id: options.pets, value: pets}]);
+        const species = await tecpetSdk.specie.list(options?.shopId);
+        if (species) {
+          if (options.species) {
+            variables.set([{id: options.species, value: species}]);
           }
-          if (options.petsIds) {
-            const petsIds = pets.map(p => p.id);
-            variables.set([{id: options.petsIds, value: petsIds}]);
+          if (options.speciesIds) {
+            variables.set([{id: options.speciesIds, value: species.map(s => s.id)}]);
           }
-          if (options.petsNames) {
-            const petsNames = pets.map(p => p.name);
-            variables.set([{id: options.petsNames, value: petsNames}]);
+          if (options.speciesNames) {
+            variables.set([{id: options.speciesNames, value: species.map(s => s.name)}]);
           }
         }
       } catch (error) {

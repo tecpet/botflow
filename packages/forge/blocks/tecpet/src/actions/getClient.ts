@@ -1,7 +1,7 @@
-import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
-import { auth } from "../auth";
-import { baseOptions, tecpetDefaultBaseUrl } from "../constants";
+import {createAction, option} from "@typebot.io/forge";
+import {TecpetSDK} from "tecpet-sdk";
+import {auth} from "../auth";
+import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
 
 export const getClient = createAction({
   auth,
@@ -24,21 +24,22 @@ export const getClient = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({ client }) => (client ? [client] : []),
+  getSetVariableIds: ({client}) => (client ? [client] : []),
   run: {
-    server: async ({ credentials, options, variables, logs }) => {
+    server: async ({credentials, options, variables, logs}) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const client = await tecpetSdk.client.getByPhone(
+        const response = await tecpetSdk.client.getByPhone(
           options?.phoneNumber ?? "",
           options.shopId,
         );
-        if (client) {
+
+        if (response) {
           if (options.client) {
-            variables.set([{ id: options.client, value: client }]);
+            variables.set([{id: options.client, value: response}]);
           }
         }
       } catch (error) {

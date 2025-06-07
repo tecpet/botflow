@@ -29,6 +29,21 @@ export const getBreeds = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    breedsIds: option.string.layout({
+      label: "Raças Ids",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    breedsNames: option.string.layout({
+      label: "Raças Nomes",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    petBreed: option.string.layout({
+      label: "Raça Pet",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({ breeds }) => (breeds ? [breeds] : []),
   run: {
@@ -38,22 +53,33 @@ export const getBreeds = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const specie = options?.specie ?? "";
-        const name = options?.name ?? "";
-        const breeds = await tecpetSdk.breed.getBySpecieAndName(
-          specie,
-          name,
-          options.shopId,
+        const specieId = options?.specie ?? "";
+        const breeds = await tecpetSdk.breed.list(
+          specieId,
+          null,
+          options.shopId
         );
-        logs.add({
-          status: "success",
-          description: JSON.stringify(breeds),
-        });
+
         if (breeds) {
+          const similarBreeds = getSimilarBreeds(options.name, breeds);
+
+          console.log(similarBreeds)
           if (options.breeds) {
-            const similarBreeds = getSimilarBreeds(breeds, name);
             variables.set([{ id: options.breeds, value: similarBreeds }]);
           }
+
+          if (options.breedsIds) {
+            variables.set([{ id: options.breedsIds, value: similarBreeds.map(b => b.id) }]);
+          }
+
+          if (options.breedsNames) {
+            variables.set([{ id: options.breedsNames, value: similarBreeds.map(b => b.name) }]);
+          }
+
+          if (similarBreeds.length === 1) {
+            variables.set([{ id: options.petBreed, value: similarBreeds[0].id }]);
+          }
+
         }
       } catch (error) {
         logs.add({
