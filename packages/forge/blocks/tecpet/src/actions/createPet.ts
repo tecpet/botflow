@@ -18,7 +18,7 @@ export const createPet = createAction({
       isRequired: true,
       helperText: "Nome do Pet",
     }),
-    specie: option.string.layout({
+    specieId: option.string.layout({
       label: "Espécie",
       isRequired: true,
       helperText: "Espécie do Pet",
@@ -28,7 +28,7 @@ export const createPet = createAction({
       isRequired: true,
       helperText: "Id da raça do Pet",
     }),
-    genre: option.string.layout({
+    gender: option.string.layout({
       label: "Genero Nome",
       isRequired: true,
       helperText: "Genero do Pet",
@@ -53,6 +53,16 @@ export const createPet = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    petId: option.string.layout({
+      label: "Pet Id",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    petName: option.string.layout({
+      label: "Pet Name",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({ pet }) => (pet ? [pet] : []),
   run: {
@@ -65,17 +75,24 @@ export const createPet = createAction({
         const petInput = {
           clientId: Number(options?.clientId),
           name: options?.name,
-          specie: options?.specie,
-          breedId: options?.breedId ?? 57094,
-          genre: options?.genre ?? "MALE",
+          specieId: options?.specieId,
+          breedId: Number(options?.breedId),
+          genre: options?.gender ?? "MALE",
           size: options?.size,
           hair: options?.hair,
           birthDate: new Date(options.birthDate) ?? "",
         };
-        const pet = await tecpetSdk.pet.createPet(petInput);
+        const pet = await tecpetSdk.pet.create(petInput);
+        console.log(pet);
         if (pet) {
           if (options.pet) {
             variables.set([{ id: options.pet, value: pet }]);
+          }
+          if (options.petId) {
+            variables.set([{ id: options.petId, value: pet.id }]);
+          }
+          if (options.petName) {
+            variables.set([{ id: options.petName, value: pet.name }]);
           }
         }
       } catch (error) {
