@@ -38,6 +38,7 @@ export const getPets = createAction({
           credentials.apiKey,
         );
         const pets = await tecpetSdk.pet.getByClient(options?.clientId ?? "");
+        console.log(pets);
         if (pets) {
           if (options.pets) {
             pets.push({ id: 'new', name: 'Cadastrar novo pet'});

@@ -18,6 +18,11 @@ export const getBillingMethods = createAction({
       isRequired: true,
       helperText: "Segmento",
     }),
+    displayMode: option.string.layout({
+      label: "Modo de visualização do Porte",
+      isRequired: true,
+      helperText: "Modo Porte",
+    }),
     sizes: option.string.layout({
       label: "Portes",
       placeholder: "Selecione",
@@ -64,7 +69,22 @@ export const getBillingMethods = createAction({
             variables.set([{id: options.sizes, value: sizeMethod.billingItems}]);
           }
           if (options.sizesNames) {
-            variables.set([{id: options.sizesNames, value: sizeMethod.billingItems.map(bi => bi.name)}]);
+            const sizesNames = [];
+            switch (options.displayMode) {
+              case "SIZE_NAME":
+                sizesNames.push(...sizeMethod.billingItems.map(bi => bi.name));
+                break;
+              case "SIZE_WEIGHT":
+                sizesNames.push(...sizeMethod.billingItems.map(bi => `De ${bi.min} a ${bi.max} kg`));
+                break;
+              case "SIZE_WEIGHT_AND_NAME":
+                sizesNames.push(...sizeMethod.billingItems.map(bi => `${bi.name} - de ${bi.min} a ${bi.max} kg`));
+                break;
+              default:
+                sizesNames.push(...sizeMethod.billingItems.map(bi => `${bi.name} - de ${bi.min} a ${bi.max} kg`));
+                break;
+            }
+            variables.set([{id: options.sizesNames, value: sizesNames}]);
           }
           if (options.sizesTags) {
             variables.set([{id: options.sizesTags, value: sizeMethod.billingItems.map(bi => bi.tag)}]);

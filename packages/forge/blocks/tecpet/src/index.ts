@@ -8,6 +8,8 @@ import {getSpecies} from "./actions/getSpecies";
 import {auth} from "./auth";
 import {TecpetLogo} from "./logo";
 import {getBillingMethods} from "./actions/getBillingMethods";
+import {getShopConfigurations} from "./actions/getShopConfigurations";
+import {getCombos} from "./actions/getCombos";
 
 export const tecpetBlock = createBlock({
   id: "tecpet",
@@ -15,5 +17,5 @@ export const tecpetBlock = createBlock({
   tags: [],
   LightLogo: TecpetLogo,
   auth,
-  actions: [getConfigurations, getClient, getPets, getSpecies, createPet, getBreeds, getBillingMethods],
+  actions: [getConfigurations, getClient, getPets, getSpecies, createPet, getBreeds, getBillingMethods, getShopConfigurations, getCombos],
 });
