@@ -28,6 +28,11 @@ export const getPets = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    petsDescriptions: option.string.layout({
+      label: "Pets Descrição",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({pets}) => (pets ? [pets] : []),
   run: {
@@ -38,7 +43,6 @@ export const getPets = createAction({
           credentials.apiKey,
         );
         const pets = await tecpetSdk.pet.getByClient(options?.clientId ?? "");
-        console.log(pets);
         if (pets) {
           if (options.pets) {
             pets.push({ id: 'new', name: 'Cadastrar novo pet'});
@@ -51,6 +55,10 @@ export const getPets = createAction({
           if (options.petsNames) {
             const petsNames = pets.map(p => p.name);
             variables.set([{id: options.petsNames, value: petsNames}]);
+          }
+          if (options.petsDescriptions) {
+            const petsDescriptions = pets.map(p => p.breedName ? p.breedName : '');
+            variables.set([{id: options.petsDescriptions, value: petsDescriptions}]);
           }
         }
       } catch (error) {

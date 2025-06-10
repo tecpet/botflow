@@ -69,3 +69,8 @@ export const getSimilarBreeds = (
   // 3) Tudo > 5 → nenhum resultado
   return [];
 };
+
+export const formatAsCurrency = (valor: number) => {
+  return valor.toFixed(2).replace('.', ',');
+}
+
