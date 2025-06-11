@@ -4,10 +4,10 @@ import {auth} from "../../../auth";
 import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
 import {formatBRDate, formatISODate} from "../../../helpers/utils";
 
-export const getAvailableTimes = createAction({
+export const createBooking = createAction({
   auth,
   baseOptions,
-  name: "Buscar opções de horário",
+  name: "Criar um agendamento",
   options: option.object({
     shopId: option.string.layout({
       label: "Id da loja",
@@ -30,12 +30,22 @@ export const getAvailableTimes = createAction({
       helperText: "Serviços selecionados",
     }),
     selectedAdditionals: option.string.layout({
-      label: "Serviços adicionais selecionados",
+      label: "Adicionais selecionados",
       isRequired: true,
-      helperText: "Serviços adicionais selecionados",
+      helperText: "Adicionais selecionados",
     }),
-    availableTimes: option.string.layout({
-      label: "Array de horarios disponiveis",
+    selectedTimeOption: option.string.layout({
+      label: "Horário selecionado",
+      isRequired: true,
+      helperText: "Horário selecionado",
+    }),
+    booking: option.string.layout({
+      label: "Agendamento criado",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    bookingId: option.string.layout({
+      label: "Agendamento criado Id",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -48,53 +58,24 @@ export const getAvailableTimes = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-
         const services = [Number(options.selectedServices)];
         const additionalsRaw = options.selectedAdditionals ?? "[]";
         (typeof additionalsRaw === "string" ? JSON.parse(additionalsRaw) : additionalsRaw)
           .forEach((id: string | number) => services.push(Number(id)));
 
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        const searchDates = [formatISODate(today), formatISODate(tomorrow)];
-
-        type TimeItem = ReturnType<typeof tecpetSdk.availableTimes.list>[number] & {
-          dateISO: string;           // 2025-06-11
-          dateBR: string;           // 11/06/2025
-          startStop: string;         // 08:00 - 10:00
-        };
-
-        const all: TimeItem[] = [];
-
-        for (const dateISO of searchDates) {
-          const body = {
-            date: dateISO,
-            combos: [],
-            services,
-            petId: options.petId,
-            segment: options.segmentType,
-          };
-
-          const times = await tecpetSdk.availableTimes.list(body, options.shopId);
-
-          times?.forEach((t: any) =>
-            all.push({
-              ...t,
-              dateISO,
-              dateBR: formatBRDate(dateISO),
-              startStop: `${t.start} - ${t.stop}`,
-            }),
-          );
+        const body = {
+          timeId: options.selectedTimeOption,
+          petId: options.petId,
+          servicesId: services,
+          combosId: [],
+          segment: options.segmentType,
         }
-
-        all.sort((a, b) =>
-          a.dateISO === b.dateISO
-            ? a.start.localeCompare(b.start)
-            : a.dateISO.localeCompare(b.dateISO),
-        );
-
-        variables.set([{id: options.availableTimes, value: all}]);
+        const createdBooking = await tecpetSdk.booking.create(body, options.shopId);
+        console.log(createdBooking);
+        if (createdBooking) {
+          variables.set([{id: options.booking, value: createdBooking}]);
+          variables.set([{id: options.bookingId, value: createdBooking.id}]);
+        }
       } catch (error) {
         logs.add({
           status: "error",

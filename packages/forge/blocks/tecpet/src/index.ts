@@ -20,6 +20,7 @@ import {parsePetInfo} from "./actions/parser/infoCollectionMenus.petInfo";
 import {buildAvailableTimesOptions} from "./actions/internal/buildAvailableTimesOptions";
 import {parseTakeAndBring} from "./actions/parser/infoCollectionMenus.takeAndBring";
 import {parseGuidance} from "./actions/parser/infoCollectionMenus.guidance";
+import {createBooking} from "./actions/api/booking/createBooking";
 
 const buildActions = [
   parseServiceSelection,
@@ -44,6 +45,7 @@ const apiActions = [
   getCombos,
   getCategoriesAndServices,
   getAvailableTimes,
+  createBooking,
 ]
 export const tecpetBlock = createBlock({
   id: "tecpet",
