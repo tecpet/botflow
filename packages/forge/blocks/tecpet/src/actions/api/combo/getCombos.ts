@@ -1,12 +1,12 @@
 import {createAction, option} from "@typebot.io/forge";
 import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../constants";
+import {auth} from "../../../auth";
+import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
 
-export const getCategoriesAndServices = createAction({
+export const getCombos = createAction({
   auth,
   baseOptions,
-  name: "Buscar serviçis com Preço da Loja",
+  name: "Buscar Combos com Preço da Loja",
   options: option.object({
     shopId: option.string.layout({
       label: "Loja",
@@ -23,8 +23,8 @@ export const getCategoriesAndServices = createAction({
       isRequired: true,
       helperText: "Segmento",
     }),
-    categoriesAndServices: option.string.layout({
-      label: "Categorias e Serviços",
+    combos: option.string.layout({
+      label: "Combos",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -37,10 +37,11 @@ export const getCategoriesAndServices = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const categories = await tecpetSdk.service.listPricing(options.petId, options.segmentType, options?.shopId);
-        if (categories) {
-          if (options.categoriesAndServices) {
-            variables.set([{id: options.categoriesAndServices, value: categories}]);
+        const combos = await tecpetSdk.combo.listPricing(options.petId, options.segmentType, options?.shopId);
+        console.log(combos);
+        if (combos) {
+          if (options.combos) {
+            variables.set([{id: options.combos, value: combos}]);
           }
         }
       } catch (error) {

@@ -1,8 +1,8 @@
 import { createAction, option } from "@typebot.io/forge";
 import { TecpetSDK } from "tecpet-sdk";
-import { auth } from "../auth";
-import { baseOptions, tecpetDefaultBaseUrl } from "../constants";
-import { getSimilarBreeds } from "../helpers/utils";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { getSimilarBreeds } from "../../../helpers/utils";
 
 export const getBreeds = createAction({
   auth,

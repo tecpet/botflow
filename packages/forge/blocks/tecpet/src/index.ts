@@ -1,22 +1,24 @@
 import {createBlock} from "@typebot.io/forge";
-import {createPet} from "./actions/createPet";
-import {getBreeds} from "./actions/getBreeds";
-import {getClient} from "./actions/getClient";
-import {getConfigurations} from "./actions/getConfigurations";
-import {getPets} from "./actions/getPets";
-import {getSpecies} from "./actions/getSpecies";
+import {createPet} from "./actions/api/pet/createPet";
+import {getBreeds} from "./actions/api/breed/getBreeds";
+import {getClient} from "./actions/api/client/getClient";
+import {getConfigurations} from "./actions/api/chatbotSettings/getConfigurations";
+import {getPets} from "./actions/api/pet/getPets";
+import {getSpecies} from "./actions/api/specie/getSpecies";
 import {auth} from "./auth";
 import {TecpetLogo} from "./logo";
-import {getBillingMethods} from "./actions/getBillingMethods";
-import {getShopConfigurations} from "./actions/getShopConfigurations";
-import {getCombos} from "./actions/getCombos";
-import {getCategoriesAndServices} from "./actions/getCategoriesAndServices";
-import {buildServiceOptions} from "./actions/buildServiceOptions";
-import {buildServiceSelectionSettings} from "./actions/buildServiceSelection";
+import {getBillingMethods} from "./actions/api/billingMethod/getBillingMethods";
+import {getShopConfigurations} from "./actions/api/shop/getShopConfigurations";
+import {getCombos} from "./actions/api/combo/getCombos";
+import {getCategoriesAndServices} from "./actions/api/service/getCategoriesAndServices";
+import {buildServiceOptions} from "./actions/internal/buildServiceOptions";
+import {buildServiceSelectionSettings} from "./actions/internal/buildServiceSelection";
+import {buildSelectedAdditionals} from "./actions/internal/buildSelectedAdditionals";
 
 const buildActions = [
   buildServiceSelectionSettings,
   buildServiceOptions,
+  buildSelectedAdditionals
 ]
 
 const apiActions = [
