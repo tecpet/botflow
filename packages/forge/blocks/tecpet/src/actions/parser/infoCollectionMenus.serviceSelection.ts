@@ -1,7 +1,7 @@
 import {createAction, option} from "@typebot.io/forge";
 import {baseOptions} from "../../constants";
 
-export const buildServiceSelectionSettings = createAction({
+export const parseServiceSelection = createAction({
   baseOptions,
   name: "Construir configurações de seleção de serviço",
   options: option.object({

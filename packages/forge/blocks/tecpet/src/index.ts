@@ -12,13 +12,24 @@ import {getShopConfigurations} from "./actions/api/shop/getShopConfigurations";
 import {getCombos} from "./actions/api/combo/getCombos";
 import {getCategoriesAndServices} from "./actions/api/service/getCategoriesAndServices";
 import {buildServiceOptions} from "./actions/internal/buildServiceOptions";
-import {buildServiceSelectionSettings} from "./actions/internal/buildServiceSelection";
 import {buildSelectedAdditionals} from "./actions/internal/buildSelectedAdditionals";
+import {getAvailableTimes} from "./actions/api/availableTimes/getAvailableTimes";
+import {parseServiceSelection} from "./actions/parser/infoCollectionMenus.serviceSelection";
+import {parseTimeSelection} from "./actions/parser/infoCollectionMenus.timeSelection";
+import {parsePetInfo} from "./actions/parser/infoCollectionMenus.petInfo";
+import {buildAvailableTimesOptions} from "./actions/internal/buildAvailableTimesOptions";
+import {parseTakeAndBring} from "./actions/parser/infoCollectionMenus.takeAndBring";
+import {parseGuidance} from "./actions/parser/infoCollectionMenus.guidance";
 
 const buildActions = [
-  buildServiceSelectionSettings,
+  parseServiceSelection,
+  parseTimeSelection,
+  parsePetInfo,
+  parseTakeAndBring,
+  parseGuidance,
   buildServiceOptions,
-  buildSelectedAdditionals
+  buildSelectedAdditionals,
+  buildAvailableTimesOptions
 ]
 
 const apiActions = [
@@ -32,6 +43,7 @@ const apiActions = [
   getShopConfigurations,
   getCombos,
   getCategoriesAndServices,
+  getAvailableTimes,
 ]
 export const tecpetBlock = createBlock({
   id: "tecpet",

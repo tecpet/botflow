@@ -74,3 +74,11 @@ export const formatAsCurrency = (valor: number) => {
   return valor.toFixed(2).replace('.', ',');
 }
 
+export const formatISODate = (d: Date) => {
+  return d.toISOString().split("T")[0];
+}
+
+export const formatBRDate = (iso: string): string => {
+  const [year, month, day] = iso.split("T")[0].split("-");
+  return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+};
