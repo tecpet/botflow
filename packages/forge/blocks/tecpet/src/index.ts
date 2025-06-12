@@ -21,6 +21,7 @@ import {buildAvailableTimesOptions} from "./actions/internal/buildAvailableTimes
 import {parseTakeAndBring} from "./actions/parser/infoCollectionMenus.takeAndBring";
 import {parseGuidance} from "./actions/parser/infoCollectionMenus.guidance";
 import {createBooking} from "./actions/api/booking/createBooking";
+import {getFormattedMessages} from "./actions/api/chatbotSettings/getFormattedMessages";
 
 const buildActions = [
   parseServiceSelection,
@@ -46,6 +47,7 @@ const apiActions = [
   getCategoriesAndServices,
   getAvailableTimes,
   createBooking,
+  getFormattedMessages,
 ]
 export const tecpetBlock = createBlock({
   id: "tecpet",
