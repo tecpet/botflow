@@ -22,13 +22,12 @@ import {parseTakeAndBring} from "./actions/parser/infoCollectionMenus.takeAndBri
 import {parseGuidance} from "./actions/parser/infoCollectionMenus.guidance";
 import {createBooking} from "./actions/api/booking/createBooking";
 import {getFormattedMessages} from "./actions/api/chatbotSettings/getFormattedMessages";
+import {parseSelectedFluxSettings} from "./actions/parser/selectedFlux.settings";
+import {parseSelectedFluxInfoCollectionMenus} from "./actions/parser/selectedFlux.infoCollectionMenus";
 
 const buildActions = [
-  parseServiceSelection,
-  parseTimeSelection,
-  parsePetInfo,
-  parseTakeAndBring,
-  parseGuidance,
+  parseSelectedFluxSettings,
+  parseSelectedFluxInfoCollectionMenus,
   buildServiceOptions,
   buildSelectedAdditionals,
   buildAvailableTimesOptions
