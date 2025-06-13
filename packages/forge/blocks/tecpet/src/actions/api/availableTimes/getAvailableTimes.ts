@@ -2,7 +2,7 @@ import {createAction, option} from "@typebot.io/forge";
 import {TecpetSDK} from "tecpet-sdk";
 import {auth} from "../../../auth";
 import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
-import {formatBRDate, formatISODate} from "../../../helpers/utils";
+import {formatBRDate, formatISODate, parseIds} from "../../../helpers/utils";
 
 export const getAvailableTimes = createAction({
   auth,
@@ -13,6 +13,16 @@ export const getAvailableTimes = createAction({
       label: "Id da loja",
       isRequired: true,
       helperText: "Id da loja",
+    }),
+    combosIds: option.string.layout({
+      label: "Id dos combos disponiveis",
+      isRequired: true,
+      helperText: "Id dos combos disponiveis",
+    }),
+    servicesIds: option.string.layout({
+      label: "Id dos serviços disponiveis",
+      isRequired: true,
+      helperText: "Id dos serviços disponiveis",
     }),
     petId: option.string.layout({
       label: "Id do Pet",
@@ -49,7 +59,13 @@ export const getAvailableTimes = createAction({
           credentials.apiKey,
         );
 
-        const services = [Number(options.selectedServices)];
+        const serviceIds = parseIds(options.servicesIds);
+        const comboIds = parseIds(options.combosIds);
+        const selectedId = Number(options.selectedServices);
+
+        const services = serviceIds.includes(selectedId) ? [selectedId] : [];
+        const combos = comboIds.includes(selectedId) ? [selectedId] : [];
+
         const additionalsRaw = options.selectedAdditionals ?? "[]";
         (typeof additionalsRaw === "string" ? JSON.parse(additionalsRaw) : additionalsRaw)
           .forEach((id: string | number) => services.push(Number(id)));
@@ -70,7 +86,7 @@ export const getAvailableTimes = createAction({
         for (const dateISO of searchDates) {
           const body = {
             date: dateISO,
-            combos: [],
+            combos,
             services,
             petId: options.petId,
             segment: options.segmentType,

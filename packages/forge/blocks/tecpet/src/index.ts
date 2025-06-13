@@ -14,12 +14,7 @@ import {getCategoriesAndServices} from "./actions/api/service/getCategoriesAndSe
 import {buildServiceOptions} from "./actions/internal/buildServiceOptions";
 import {buildSelectedAdditionals} from "./actions/internal/buildSelectedAdditionals";
 import {getAvailableTimes} from "./actions/api/availableTimes/getAvailableTimes";
-import {parseServiceSelection} from "./actions/parser/infoCollectionMenus.serviceSelection";
-import {parseTimeSelection} from "./actions/parser/infoCollectionMenus.timeSelection";
-import {parsePetInfo} from "./actions/parser/infoCollectionMenus.petInfo";
 import {buildAvailableTimesOptions} from "./actions/internal/buildAvailableTimesOptions";
-import {parseTakeAndBring} from "./actions/parser/infoCollectionMenus.takeAndBring";
-import {parseGuidance} from "./actions/parser/infoCollectionMenus.guidance";
 import {createBooking} from "./actions/api/booking/createBooking";
 import {getFormattedMessages} from "./actions/api/chatbotSettings/getFormattedMessages";
 import {parseSelectedFluxSettings} from "./actions/parser/selectedFlux.settings";

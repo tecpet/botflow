@@ -28,6 +28,11 @@ export const getCategoriesAndServices = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    servicesIds: option.string.layout({
+      label: "Ids dos serviços",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({pets}) => (pets ? [pets] : []),
   run: {
@@ -39,8 +44,13 @@ export const getCategoriesAndServices = createAction({
         );
         const categories = await tecpetSdk.service.listPricing(options.petId, options.segmentType, options?.shopId);
         if (categories) {
+          const servicesIds = categories.flatMap(category =>
+            category.services.map(service => service.id)
+          );
+
           if (options.categoriesAndServices) {
             variables.set([{id: options.categoriesAndServices, value: categories}]);
+            variables.set([{id: options.servicesIds, value: servicesIds}]);
           }
         }
       } catch (error) {

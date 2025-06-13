@@ -28,6 +28,11 @@ export const getCombos = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    combosIds: option.string.layout({
+      label: "Combos Ids",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({pets}) => (pets ? [pets] : []),
   run: {
@@ -38,12 +43,8 @@ export const getCombos = createAction({
           credentials.apiKey,
         );
         const combos = await tecpetSdk.combo.listPricing(options.petId, options.segmentType, options?.shopId);
-        console.log(combos);
-        if (combos) {
-          if (options.combos) {
-            variables.set([{id: options.combos, value: combos}]);
-          }
-        }
+        variables.set([{id: options.combos, value: combos}]);
+        variables.set([{id: options.combosIds, value: combos.map(c => c.id)}]);
       } catch (error) {
         logs.add({
           status: "error",

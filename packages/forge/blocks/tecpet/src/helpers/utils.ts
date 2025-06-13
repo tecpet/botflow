@@ -82,3 +82,18 @@ export const formatBRDate = (iso: string): string => {
   const [year, month, day] = iso.split("T")[0].split("-");
   return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
 };
+
+
+export const parseIds = (raw: unknown): number[] => {
+  if (Array.isArray(raw)) return raw.map(Number);
+
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw).map(Number);
+    } catch {
+      throw new Error('IDs malformados: não é JSON válido');
+    }
+  }
+
+  throw new Error('IDs malformados: esperado array ou string JSON');
+};
