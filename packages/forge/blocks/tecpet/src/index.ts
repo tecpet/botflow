@@ -19,6 +19,8 @@ import {createBooking} from "./actions/api/booking/createBooking";
 import {getFormattedMessages} from "./actions/api/chatbotSettings/getFormattedMessages";
 import {parseSelectedFluxSettings} from "./actions/parser/selectedFlux.settings";
 import {parseSelectedFluxInfoCollectionMenus} from "./actions/parser/selectedFlux.infoCollectionMenus";
+import {editClient} from "./actions/api/client/editClient";
+import {editPet} from "./actions/api/pet/editPet";
 
 const buildActions = [
   parseSelectedFluxSettings,
@@ -28,12 +30,20 @@ const buildActions = [
   buildAvailableTimesOptions
 ]
 
+const clientActions = [
+  getClient,
+  editClient,
+]
+
+const petActions = [
+  getPets,
+  createPet,
+  editPet,
+]
+
 const apiActions = [
   getConfigurations,
-  getClient,
-  getPets,
   getSpecies,
-  createPet,
   getBreeds,
   getBillingMethods,
   getShopConfigurations,
@@ -42,6 +52,8 @@ const apiActions = [
   getAvailableTimes,
   createBooking,
   getFormattedMessages,
+  ...clientActions,
+  ...petActions,
 ]
 export const tecpetBlock = createBlock({
   id: "tecpet",

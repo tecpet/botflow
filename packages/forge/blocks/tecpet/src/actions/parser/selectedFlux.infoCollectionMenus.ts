@@ -205,7 +205,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
             ? JSON.parse(options.selectedMenuConfigurations)
             : (options.selectedMenuConfigurations as any);
 
-        const {petInfo, serviceSelection, timeSelection, takeAndBring, guidance} =
+        const {petInfo, serviceSelection, timeSelection, takeAndBring, guidance, extraInfo} =
           selectedMenuConfig.infoCollectionMenus;
 
         /* ---- Pet Info ---- */
@@ -251,6 +251,20 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
         ].forEach(([id, value]) => setVar(id as string, value));
 
         setVar(options.guidanceMessage, guidance.guidanceMessage.message ?? "");
+
+        [
+          [options.confirmClientNameEnabled, Boolean(extraInfo.confirmClientName.enabled)],
+          [options.confirmClientNameMessage, extraInfo.confirmClientName.message ?? ""],
+          [options.clientCpfEnabled, Boolean(extraInfo.clientCpf.enabled)],
+          [options.clientCpfMessage, extraInfo.clientCpf.message ?? ""],
+          [options.petGenderEnabled, Boolean(extraInfo.petGender.enabled)],
+          [options.petGenderMessage, extraInfo.petGender.message ?? ""],
+          [options.petBirthEnabled, Boolean(extraInfo.petBirthDate.enabled)],
+          [options.petBirthMessage, extraInfo.petBirthDate.message ?? ""],
+          [options.petWeightEnabled, Boolean(extraInfo.petWeight.enabled)],
+          [options.petWeightMessage, extraInfo.petWeight.message ?? ""],
+        ].forEach(([id, value]) => setVar(id as string, value));
+
       } catch (error) {
         logs.add({
           status: "error",
