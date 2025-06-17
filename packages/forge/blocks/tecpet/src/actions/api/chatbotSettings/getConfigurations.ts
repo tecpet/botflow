@@ -48,11 +48,6 @@ export const getConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    petInfo: option.string.layout({
-      label: "Mensagem Inicial para cliente antigo",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
   }),
   getSetVariableIds: ({configurations}) =>
     configurations ? [configurations] : [],
@@ -64,7 +59,7 @@ export const getConfigurations = createAction({
             credentials.baseUrl ?? tecpetDefaultBaseUrl,
             credentials.apiKey,
           );
-          const result = await tecpetSdk.chatbotSettings.getByShop(
+          const result = await tecpetSdk.chatbot.getByShop(
             options.shopId,
           );
           if (result) {

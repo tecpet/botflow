@@ -70,7 +70,7 @@ export const getFormattedMessages = createAction({
             {text: options.message}
           ]
         }
-        const result = await tecpetSdk.chatbotSettings.getFormattedMessage(
+        const result = await tecpetSdk.chatbot.getFormattedMessage(
           body,
           options.shopId,
         );

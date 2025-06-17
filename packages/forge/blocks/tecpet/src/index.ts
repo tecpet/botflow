@@ -21,10 +21,12 @@ import {parseSelectedFluxSettings} from "./actions/parser/selectedFlux.settings"
 import {parseSelectedFluxInfoCollectionMenus} from "./actions/parser/selectedFlux.infoCollectionMenus";
 import {editClient} from "./actions/api/client/editClient";
 import {editPet} from "./actions/api/pet/editPet";
+import {buildSelectedFlux} from "./actions/internal/buildSelectedFlux";
 
 const buildActions = [
   parseSelectedFluxSettings,
   parseSelectedFluxInfoCollectionMenus,
+  buildSelectedFlux,
   buildServiceOptions,
   buildSelectedAdditionals,
   buildAvailableTimesOptions
