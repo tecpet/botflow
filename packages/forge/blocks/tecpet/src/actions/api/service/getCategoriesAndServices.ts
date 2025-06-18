@@ -43,21 +43,15 @@ export const getCategoriesAndServices = createAction({
           credentials.apiKey,
         );
         const categories = await tecpetSdk.service.listPricing(options.petId, options.segmentType, options?.shopId);
-        if (categories) {
+        if (categories && categories.length > 0) {
           const servicesIds = categories.flatMap(category =>
             category.services.map(service => service.id)
           );
-
-          if (options.categoriesAndServices) {
-            variables.set([{id: options.categoriesAndServices, value: categories}]);
-            variables.set([{id: options.servicesIds, value: servicesIds}]);
-          }
+          variables.set([{id: options.categoriesAndServices, value: categories}]);
+          variables.set([{id: options.servicesIds, value: servicesIds}]);
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

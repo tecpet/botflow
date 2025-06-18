@@ -62,10 +62,7 @@ export const parseSelectedFluxSettings = createAction({
         variables.set([{id: options.schedulePermission, value: selectedMenuConfig.schedulePermission ?? ''}]);
         variables.set([{id: options.conclusionMessage, value: selectedMenuConfig.conclusionMessage ?? ''}]);
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error)
       }
     },
   },

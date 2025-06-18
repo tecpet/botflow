@@ -44,28 +44,18 @@ export const getPets = createAction({
         );
         const pets = await tecpetSdk.pet.getByClient(options?.clientId ?? "");
         if (pets) {
-          if (options.pets) {
-            pets.push({ id: 'new', name: 'Cadastrar novo pet'});
-            variables.set([{id: options.pets, value: pets}]);
-          }
-          if (options.petsIds) {
-            const petsIds = pets.map(p => p.id);
-            variables.set([{id: options.petsIds, value: petsIds}]);
-          }
-          if (options.petsNames) {
-            const petsNames = pets.map(p => p.name);
-            variables.set([{id: options.petsNames, value: petsNames}]);
-          }
-          if (options.petsDescriptions) {
-            const petsDescriptions = pets.map(p => p.breedName ? p.breedName : '');
-            variables.set([{id: options.petsDescriptions, value: petsDescriptions}]);
-          }
+          pets.push({id: 'new', name: 'Cadastrar novo pet'});
+          variables.set([{id: options.pets, value: pets}]);
+          const petsIds = pets.map(p => p.id);
+          const petsNames = pets.map(p => p.name);
+          const petsDescriptions = pets.map(p => p.breedName ? p.breedName : '');
+
+          variables.set([{id: options.petsIds, value: petsIds}]);
+          variables.set([{id: options.petsNames, value: petsNames}]);
+          variables.set([{id: options.petsDescriptions, value: petsDescriptions}]);
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

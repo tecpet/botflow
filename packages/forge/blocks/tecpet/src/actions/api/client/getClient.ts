@@ -38,15 +38,10 @@ export const getClient = createAction({
         );
 
         if (response) {
-          if (options.client) {
-            variables.set([{id: options.client, value: response}]);
-          }
+          variables.set([{id: options.client, value: response}]);
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

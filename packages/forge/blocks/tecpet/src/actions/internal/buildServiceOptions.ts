@@ -115,12 +115,8 @@ export const buildServiceOptions = createAction({
           value: additionalOptions.map(s => s.description)
         }]);
 
-      } catch
-        (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+      } catch (error) {
+        console.error(error)
       }
     }
     ,

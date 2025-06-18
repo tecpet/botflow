@@ -60,10 +60,9 @@ export const getBreeds = createAction({
           options.shopId
         );
 
-        if (breeds) {
+        if (breeds && breeds.length > 0) {
           const similarBreeds = getSimilarBreeds(options.name, breeds);
 
-          console.log(similarBreeds)
           if (options.breeds) {
             variables.set([{ id: options.breeds, value: similarBreeds }]);
           }
@@ -79,13 +78,9 @@ export const getBreeds = createAction({
           if (similarBreeds.length === 1) {
             variables.set([{ id: options.petBreed, value: similarBreeds[0].id }]);
           }
-
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

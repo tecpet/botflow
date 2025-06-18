@@ -46,10 +46,7 @@ export const getCombos = createAction({
         variables.set([{id: options.combos, value: combos}]);
         variables.set([{id: options.combosIds, value: combos.map(c => c.id)}]);
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

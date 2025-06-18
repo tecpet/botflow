@@ -112,10 +112,7 @@ export const getAvailableTimes = createAction({
 
         variables.set([{id: options.availableTimes, value: all}]);
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

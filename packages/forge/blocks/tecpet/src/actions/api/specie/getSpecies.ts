@@ -39,21 +39,12 @@ export const getSpecies = createAction({
         );
         const species = await tecpetSdk.specie.list(options?.shopId);
         if (species) {
-          if (options.species) {
             variables.set([{id: options.species, value: species}]);
-          }
-          if (options.speciesIds) {
             variables.set([{id: options.speciesIds, value: species.map(s => s.id)}]);
-          }
-          if (options.speciesNames) {
             variables.set([{id: options.speciesNames, value: species.map(s => s.name)}]);
-          }
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error)
       }
     },
   },

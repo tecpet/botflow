@@ -58,24 +58,20 @@ export const editClient = createAction({
           credentials.apiKey,
         );
 
-        console.log(options.clientName)
         const body = {
           name: options.clientName ? options.clientName : null,
           cpf: options.clientCpf ? options.clientCpf : null,
           birthDate: options.clientBirthDate ? options.clientBirthDate : null,
         }
         const editedClient = await tecpetSdk.client.edit(options.clientId, body, options.shopId);
-        console.log(editedClient)
+
         if (editedClient) {
           variables.set([{id: options.editedClientName, value: editedClient.name}]);
           variables.set([{id: options.editedClientCpf, value: editedClient.cpf}]);
           variables.set([{id: options.editedClientBirthDate, value: editedClient.birthDate}]);
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

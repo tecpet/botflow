@@ -79,10 +79,7 @@ export const getFormattedMessages = createAction({
           variables.set([{id: options.updatedMessage, value: result[0].message}]);
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

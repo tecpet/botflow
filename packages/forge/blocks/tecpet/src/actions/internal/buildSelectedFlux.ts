@@ -47,12 +47,8 @@ export const buildSelectedFlux = createAction({
 
         variables.set([{id: options.selectedMenuSettings, value: selected}]);
 
-      } catch
-        (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+      } catch (error) {
+        console.error(error)
       }
     }
   },

@@ -63,36 +63,24 @@ export const getConfigurations = createAction({
             options.shopId,
           );
           if (result) {
-            if (options.configurations) {
-              variables.set([{id: options.configurations, value: result}]);
-            }
-            if (options.menu) {
-              const menu = result.chatbotActions.filter(action => action.enabled);
-              variables.set([{id: options.menu, value: menu}]);
+            const variablesToSet = [
+              {id: options.configurations, value: result},
+              {id: options.menu, value: result.chatbotActions.filter(a => a.enabled)},
+              {id: options.menuTitles, value: result.chatbotActions.filter(a => a.enabled).map(a => a.name)},
+              {id: options.menuIds, value: result.chatbotActions.filter(a => a.enabled).map(a => a.id)},
+              {
+                id: options.menuDescriptions,
+                value: result.chatbotActions.filter(a => a.enabled).map(a => a.description)
+              },
+              {id: options.newClientMessage, value: result.newClientMessage},
+              {id: options.registeredClientMessage, value: result.registeredClientMessage}
+            ];
 
-              if (options.menuTitles) {
-                const menuTitles = menu.map(m => m.name);
-                variables.set([{id: options.menuTitles, value: menuTitles}]);
+            variablesToSet.forEach(({id, value}) => {
+              if (id !== undefined) {
+                variables.set([{id, value}]);
               }
-
-              if (options.menuIds) {
-                const menuIds = menu.map(m => m.id);
-                variables.set([{id: options.menuIds, value: menuIds}]);
-              }
-
-              if (options.menuDescriptions) {
-                const menuDescriptions = menu.map(m => m.description);
-                variables.set([{id: options.menuDescriptions, value: menuDescriptions}]);
-              }
-            }
-
-            if (options.newClientMessage) {
-              variables.set([{id: options.newClientMessage, value: result.newClientMessage}]);
-            }
-
-            if (options.registeredClientMessage) {
-              variables.set([{id: options.registeredClientMessage, value: result.registeredClientMessage}]);
-            }
+            });
           }
         }
       } catch (error) {

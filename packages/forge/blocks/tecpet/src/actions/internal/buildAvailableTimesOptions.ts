@@ -55,12 +55,8 @@ export const buildAvailableTimesOptions = createAction({
           {id: options.availableTimesStartAndStop, value: availableTimes.map(t => t.startStop)},
           {id: options.availableTimesDates, value: availableTimes.map(t => t.dateBR)}
         ]);
-      } catch
-        (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+      } catch (error) {
+       console.error(error)
       }
     }
     ,

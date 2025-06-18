@@ -32,10 +32,7 @@ export const buildSelectedAdditionals = createAction({
         const finalArray = [...withoutDuplicates];
         variables.set([{id: options.updatedAdditionalArray, value: finalArray},]);
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

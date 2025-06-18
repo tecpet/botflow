@@ -43,23 +43,14 @@ export const getShopConfigurations = createAction({
             options.shopId,
           );
           if (result) {
-            if (options.chargeModeBySizeAndHair) {
-              variables.set([{id: options.chargeModeBySizeAndHair, value: 'SIZE_AND_HAIR'}]);
-            }
-            if (options.chargeModeByBreed) {
-              variables.set([{id: options.chargeModeByBreed, value: 'BREED'}]);
-            }
-            if (options.chargeMode) {
-              const chargeMode = result.advancedConfig?.global?.serviceByBreed ? 'BREED' : 'SIZE_AND_HAIR';
-              variables.set([{id: options.chargeMode, value: chargeMode}]);
-            }
+            const chargeMode = result.advancedConfig?.global?.serviceByBreed ? 'BREED' : 'SIZE_AND_HAIR';
+            variables.set([{id: options.chargeModeBySizeAndHair, value: 'SIZE_AND_HAIR'}]);
+            variables.set([{id: options.chargeModeByBreed, value: 'BREED'}]);
+            variables.set([{id: options.chargeMode, value: chargeMode}]);
           }
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

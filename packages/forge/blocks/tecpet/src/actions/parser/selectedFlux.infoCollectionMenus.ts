@@ -266,10 +266,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
         ].forEach(([id, value]) => setVar(id as string, value));
 
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error)
       }
     }
   },

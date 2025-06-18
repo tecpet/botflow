@@ -93,10 +93,7 @@ export const createBooking = createAction({
           variables.set([{id: options.bookingId, value: createdBooking.id}]);
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

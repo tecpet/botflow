@@ -78,7 +78,6 @@ export const editPet = createAction({
           credentials.apiKey,
         );
 
-        console.log(options.clientName)
         const body = {
           weight: options.petWeight ? parseFloat(options.petWeight) : null,
           genre: options.petGender ? options.petGender === 'Macho' ? 'MALE' : 'FEMALE' : null,
@@ -87,7 +86,7 @@ export const editPet = createAction({
           size: options.petSize ? options.petSize : null,
         }
         const editedPet = await tecpetSdk.pet.edit(options.petId, body, options.shopId);
-        console.log(editedPet)
+
         if (editedPet) {
           variables.set([{id: options.editedPetWeight, value: editedPet.weight}]);
           variables.set([{id: options.editedPetGender, value: editedPet.genre}]);
@@ -96,10 +95,7 @@ export const editPet = createAction({
           variables.set([{id: options.editedPetHair, value: editedPet.hair}]);
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },

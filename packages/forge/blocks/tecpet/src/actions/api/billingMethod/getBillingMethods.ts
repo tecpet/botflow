@@ -63,49 +63,33 @@ export const getBillingMethods = createAction({
           credentials.apiKey,
         );
         const billingMethods = await tecpetSdk.billingMethod.list(options?.segmentType, options?.shopId);
-        if (billingMethods) {
+        if (billingMethods && billingMethods.length > 0) {
           const sizeMethod = billingMethods.find(m => m.tag === "SIZE");
-          if (options.sizes) {
-            variables.set([{id: options.sizes, value: sizeMethod.billingItems}]);
+          variables.set([{id: options.sizes, value: sizeMethod.billingItems}]);
+          const sizesNames = [];
+          switch (options.displayMode) {
+            case "SIZE_NAME":
+              sizesNames.push(...sizeMethod.billingItems.map(bi => bi.name));
+              break;
+            case "SIZE_WEIGHT":
+              sizesNames.push(...sizeMethod.billingItems.map(bi => `De ${bi.min} a ${bi.max} kg`));
+              break;
+            case "SIZE_WEIGHT_AND_NAME":
+              sizesNames.push(...sizeMethod.billingItems.map(bi => `${bi.name} - de ${bi.min} a ${bi.max} kg`));
+              break;
+            default:
+              sizesNames.push(...sizeMethod.billingItems.map(bi => `${bi.name} - de ${bi.min} a ${bi.max} kg`));
+              break;
           }
-          if (options.sizesNames) {
-            const sizesNames = [];
-            switch (options.displayMode) {
-              case "SIZE_NAME":
-                sizesNames.push(...sizeMethod.billingItems.map(bi => bi.name));
-                break;
-              case "SIZE_WEIGHT":
-                sizesNames.push(...sizeMethod.billingItems.map(bi => `De ${bi.min} a ${bi.max} kg`));
-                break;
-              case "SIZE_WEIGHT_AND_NAME":
-                sizesNames.push(...sizeMethod.billingItems.map(bi => `${bi.name} - de ${bi.min} a ${bi.max} kg`));
-                break;
-              default:
-                sizesNames.push(...sizeMethod.billingItems.map(bi => `${bi.name} - de ${bi.min} a ${bi.max} kg`));
-                break;
-            }
-            variables.set([{id: options.sizesNames, value: sizesNames}]);
-          }
-          if (options.sizesTags) {
-            variables.set([{id: options.sizesTags, value: sizeMethod.billingItems.map(bi => bi.tag)}]);
-          }
-
+          variables.set([{id: options.sizesNames, value: sizesNames}]);
+          variables.set([{id: options.sizesTags, value: sizeMethod.billingItems.map(bi => bi.tag)}]);
           const hairMethod = billingMethods.find(m => m.tag === "HAIR");
-          if (options.hairs) {
-            variables.set([{id: options.sizes, value: hairMethod.billingItems}]);
-          }
-          if (options.hairsNames) {
-            variables.set([{id: options.hairsNames, value: hairMethod.billingItems.map(bi => bi.name)}]);
-          }
-          if (options.hairsTags) {
-            variables.set([{id: options.hairsTags, value: hairMethod.billingItems.map(bi => bi.tag)}]);
-          }
+          variables.set([{id: options.sizes, value: hairMethod.billingItems}]);
+          variables.set([{id: options.hairsNames, value: hairMethod.billingItems.map(bi => bi.name)}]);
+          variables.set([{id: options.hairsTags, value: hairMethod.billingItems.map(bi => bi.tag)}]);
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+        console.error(error);
       }
     },
   },
