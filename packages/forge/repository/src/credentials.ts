@@ -33,6 +33,8 @@ import { togetherAiBlock } from "@typebot.io/together-ai-block";
 import { togetherAiCredentialsSchema } from "@typebot.io/together-ai-block/schemas";
 import { zendeskBlock } from "@typebot.io/zendesk-block";
 import { zendeskCredentialsSchema } from "@typebot.io/zendesk-block/schemas";
+import { tecpetAiBlock } from "@typebot.io/tecpet-ai-block";
+import { tecpetAiCredentialsSchema } from "@typebot.io/tecpet-ai-block/schemas";
 
 export const forgedCredentialsSchemas = {
   [openAIBlock.id]: openAICredentialsSchema,
@@ -51,5 +53,6 @@ export const forgedCredentialsSchemas = {
   [perplexityBlock.id]: perplexityCredentialsSchema,
   [deepSeekBlock.id]: deepSeekCredentialsSchema,
   [tecpetBlock.id]: tecpetCredentialsSchema,
+  [tecpetAiBlock.id]: tecpetAiCredentialsSchema,
   [blinkBlock.id]: blinkCredentialsSchema,
 };

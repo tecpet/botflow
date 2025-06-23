@@ -28,9 +28,31 @@ export const getShopConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    variableIdToSaveAll: option.string.layout({
+      label: "Salvar configurações",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
-  getSetVariableIds: ({configurations}) =>
-    configurations ? [configurations] : [],
+  getSetVariableIds: ({chargeMode, variableIdToSaveAll, chargeModeBySizeAndHair, chargeModeByBreed}) => {
+    const variables: Array<string> = [];
+    if (chargeMode) {
+      variables.push(chargeMode);
+    }
+    if (chargeModeBySizeAndHair) {
+      variables.push(chargeModeBySizeAndHair);
+    }
+    if (chargeModeByBreed) {
+      variables.push(chargeModeByBreed);
+    }
+    if (chargeMode) {
+      variables.push(chargeMode);
+    }
+    if (variableIdToSaveAll) {
+      variables.push(variableIdToSaveAll);
+    }
+    return variables;
+  },
   run: {
     server: async ({credentials, options, variables, logs}) => {
       try {
@@ -44,9 +66,18 @@ export const getShopConfigurations = createAction({
           );
           if (result) {
             const chargeMode = result.advancedConfig?.global?.serviceByBreed ? 'BREED' : 'SIZE_AND_HAIR';
-            variables.set([{id: options.chargeModeBySizeAndHair, value: 'SIZE_AND_HAIR'}]);
-            variables.set([{id: options.chargeModeByBreed, value: 'BREED'}]);
-            variables.set([{id: options.chargeMode, value: chargeMode}]);
+            if (options.chargeModeBySizeAndHair) {
+              variables.set([{id: options.chargeModeBySizeAndHair, value: 'SIZE_AND_HAIR'}]);
+            }
+            if (options.chargeModeByBreed) {
+              variables.set([{id: options.chargeModeByBreed, value: 'BREED'}]);
+            }
+            if (options.chargeMode) {
+              variables.set([{id: options.chargeMode, value: chargeMode}]);
+            }
+            if (options.variableIdToSaveAll) {
+              variables.set([{id: options.variableIdToSaveAll, value: result}]);
+            }
           }
         }
       } catch (error) {

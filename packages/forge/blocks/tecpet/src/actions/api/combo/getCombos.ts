@@ -42,7 +42,7 @@ export const getCombos = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const combos = await tecpetSdk.combo.listPricing(options.petId, options.segmentType, options?.shopId);
+        const combos = await tecpetSdk.combo.pricing(options.petId, options.segmentType, options?.shopId);
         variables.set([{id: options.combos, value: combos}]);
         variables.set([{id: options.combosIds, value: combos.map(c => c.id)}]);
       } catch (error) {

@@ -22,6 +22,7 @@ import {parseSelectedFluxInfoCollectionMenus} from "./actions/parser/selectedFlu
 import {editClient} from "./actions/api/client/editClient";
 import {editPet} from "./actions/api/pet/editPet";
 import {buildSelectedFlux} from "./actions/internal/buildSelectedFlux";
+import {getClientSummary} from "./actions/api/client/getClientSummary";
 
 const buildActions = [
   parseSelectedFluxSettings,
@@ -35,6 +36,7 @@ const buildActions = [
 const clientActions = [
   getClient,
   editClient,
+  getClientSummary,
 ]
 
 const petActions = [

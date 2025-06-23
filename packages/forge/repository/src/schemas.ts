@@ -38,6 +38,9 @@ import { togetherAiBlockSchema } from "@typebot.io/together-ai-block/schemas";
 import { zendeskBlock } from "@typebot.io/zendesk-block";
 import { zendeskBlockSchema } from "@typebot.io/zendesk-block/schemas";
 import { z } from "@typebot.io/zod";
+import { tecpetAiBlock } from "@typebot.io/tecpet-ai-block";
+import { tecpetAiBlockSchema } from "@typebot.io/tecpet-ai-block/schemas";
+
 
 export const forgedBlockSchemas = {
   [openAIBlock.id]: openAIBlockSchema,
@@ -59,6 +62,7 @@ export const forgedBlockSchemas = {
   [deepSeekBlock.id]: deepSeekBlockSchema,
   [tecpetBlock.id]: tecpetBlockSchema,
   [blinkBlock.id]: blinkBlockSchema,
+  [tecpetAiBlock.id]: tecpetAiBlockSchema,
 } as const;
 
 export const forgedBlockSchema = z.discriminatedUnion("type", [
@@ -80,6 +84,7 @@ export const forgedBlockSchema = z.discriminatedUnion("type", [
   perplexityBlockSchema,
   deepSeekBlockSchema,
   tecpetBlockSchema,
+  tecpetAiBlockSchema,
   blinkBlockSchema,
 ]);
 export type ForgedBlock = z.infer<typeof forgedBlockSchema>;

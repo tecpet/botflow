@@ -42,7 +42,7 @@ export const getCategoriesAndServices = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const categories = await tecpetSdk.service.listPricing(options.petId, options.segmentType, options?.shopId);
+        const categories = await tecpetSdk.service.pricing(options.petId, options.segmentType, options?.shopId);
         if (categories && categories.length > 0) {
           const servicesIds = categories.flatMap(category =>
             category.services.map(service => service.id)

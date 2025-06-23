@@ -16,6 +16,7 @@ import { posthogBlock } from "@typebot.io/posthog-block";
 import { qrCodeBlock } from "@typebot.io/qrcode-block";
 import { segmentBlock } from "@typebot.io/segment-block";
 import { tecpetBlock } from "@typebot.io/tecpet-block";
+import { tecpetAiBlock } from "@typebot.io/tecpet-ai-block";
 import { togetherAiBlock } from "@typebot.io/together-ai-block";
 import { zendeskBlock } from "@typebot.io/zendesk-block";
 
@@ -38,6 +39,7 @@ export const forgedBlocks = {
   [perplexityBlock.id]: perplexityBlock,
   [deepSeekBlock.id]: deepSeekBlock,
   [tecpetBlock.id]: tecpetBlock,
+  [tecpetAiBlock.id]: tecpetAiBlock,
   [blinkBlock.id]: blinkBlock,
 };
 export type ForgedBlockDefinition =
