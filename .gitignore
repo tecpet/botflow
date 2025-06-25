@@ -55,5 +55,4 @@ snapshots
 .vercel
 
 .content-collections
-packages/forge/blocks/tecpet/package.json
 packages/forge/blocks/tecpet-sdk
