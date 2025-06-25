@@ -56,4 +56,4 @@ snapshots
 
 .content-collections
 packages/forge/blocks/tecpet/package.json
-packages/tecpet-sdk
+packages/forge/blocks/tecpet-sdk
