@@ -1,7 +1,7 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const getPets = createAction({
   auth,
@@ -42,17 +42,22 @@ export const getPets = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const pets = await tecpetSdk.pet.getByClient(options?.clientId ?? "");
+        let pets = await tecpetSdk.pet.getByClient(options?.clientId ?? "");
+        
         if (pets) {
-          pets.push({id: 'new', name: 'Cadastrar novo pet'});
-          variables.set([{id: options.pets, value: pets}]);
-          const petsIds = pets.map(p => p.id);
-          const petsNames = pets.map(p => p.name);
-          const petsDescriptions = pets.map(p => p.breedName ? p.breedName : '');
-
-          variables.set([{id: options.petsIds, value: petsIds}]);
-          variables.set([{id: options.petsNames, value: petsNames}]);
-          variables.set([{id: options.petsDescriptions, value: petsDescriptions}]);
+          if (pets.length > 0) {
+            pets.push({id: 'new', name: 'Cadastrar novo pet'});
+            variables.set([{id: options.pets, value: pets}]);
+            const petsIds = pets.map(p => p.id);
+            const petsNames = pets.map(p => p.name);
+            const petsDescriptions = pets.map(p => p.breedName ? p.breedName : '');
+  
+            variables.set([{id: options.petsIds, value: petsIds}]);
+            variables.set([{id: options.petsNames, value: petsNames}]);
+            variables.set([{id: options.petsDescriptions, value: petsDescriptions}]);
+          } else {
+            pets = []
+          }
         }
       } catch (error) {
         console.error(error);
