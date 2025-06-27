@@ -1,7 +1,7 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const getCategoriesAndServices = createAction({
   auth,
@@ -42,11 +42,18 @@ export const getCategoriesAndServices = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const categories = await tecpetSdk.service.pricing(options.petId, options.segmentType, options?.shopId);
+
+
+        const categories = await tecpetSdk.service.pricing(options.petId, options.segmentType, ['BATH'], options?.shopId);
+
+
         if (categories && categories.length > 0) {
           const servicesIds = categories.flatMap(category =>
             category.services.map(service => service.id)
           );
+
+
+
           variables.set([{id: options.categoriesAndServices, value: categories}]);
           variables.set([{id: options.servicesIds, value: servicesIds}]);
         }

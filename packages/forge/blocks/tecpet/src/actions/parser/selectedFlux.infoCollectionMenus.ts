@@ -1,5 +1,5 @@
-import {createAction, option} from "@typebot.io/forge";
-import {baseOptions} from "../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { baseOptions } from "../../constants";
 
 export const parseSelectedFluxInfoCollectionMenus = createAction({
   baseOptions,

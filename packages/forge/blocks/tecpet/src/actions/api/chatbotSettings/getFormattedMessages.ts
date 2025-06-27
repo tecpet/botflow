@@ -1,7 +1,7 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const getFormattedMessages = createAction({
   auth,
@@ -58,6 +58,7 @@ export const getFormattedMessages = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
+        console.log(options);
         const body = {
           ids: {
             clientId: options.clientId || null,
@@ -67,14 +68,14 @@ export const getFormattedMessages = createAction({
             bookingId: options.bookingId || null,
           },
           messages: [
-            {text: options.message}
+            {text: options.message ?? ''}
           ]
         }
         const result = await tecpetSdk.chatbot.getFormattedMessage(
           body,
           options.shopId,
         );
-
+        console.log(result);
         if (result && result.length > 0) {
           variables.set([{id: options.updatedMessage, value: result[0].message}]);
         }

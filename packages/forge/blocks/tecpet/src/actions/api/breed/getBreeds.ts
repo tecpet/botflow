@@ -54,14 +54,16 @@ export const getBreeds = createAction({
           credentials.apiKey,
         );
         const specieId = options?.specie ?? "";
+        const shopId = Number(options.shopId);
+        const breedName = options.name
         const breeds = await tecpetSdk.breed.list(
           specieId,
-          null,
-          options.shopId
+          "",
+          shopId
         );
 
         if (breeds && breeds.length > 0) {
-          const similarBreeds = getSimilarBreeds(options.name, breeds);
+          const similarBreeds = getSimilarBreeds(breedName, breeds);
 
           if (options.breeds) {
             variables.set([{ id: options.breeds, value: similarBreeds }]);

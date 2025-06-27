@@ -1,7 +1,7 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const createPet = createAction({
   auth,
@@ -83,7 +83,6 @@ export const createPet = createAction({
           birthDate: new Date(options.birthDate) ?? "",
         };
         const pet = await tecpetSdk.pet.create(petInput);
-        console.log(pet);
         if (pet) {
           variables.set([{id: options.pet, value: pet}]);
           variables.set([{id: options.petId, value: pet.id}]);
