@@ -1,6 +1,6 @@
-import {createAction, option} from "@typebot.io/forge";
-import {baseOptions} from "../../constants";
-import {formatAsCurrency} from "../../helpers/utils";
+import { createAction, option } from "@typebot.io/forge";
+import { baseOptions } from "../../constants";
+import { formatAsCurrency } from "../../helpers/utils";
 
 export const buildServiceOptions = createAction({
   // auth,
@@ -93,7 +93,8 @@ export const buildServiceOptions = createAction({
         for (const combo of combos) {
           combo.description = buildDescription(combo);
           serviceOptions.push(combo);
-        }
+        } 
+
 
         for (const category of categoriesAndServices) {
           for (const service of category.services) {

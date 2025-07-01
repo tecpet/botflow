@@ -58,7 +58,6 @@ export const getFormattedMessages = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        console.log(options);
         const body = {
           ids: {
             clientId: options.clientId || null,
@@ -75,7 +74,6 @@ export const getFormattedMessages = createAction({
           body,
           options.shopId,
         );
-        console.log(result);
         if (result && result.length > 0) {
           variables.set([{id: options.updatedMessage, value: result[0].message}]);
         }

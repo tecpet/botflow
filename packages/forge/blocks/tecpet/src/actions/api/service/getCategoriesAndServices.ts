@@ -44,7 +44,7 @@ export const getCategoriesAndServices = createAction({
         );
 
 
-        const categories = await tecpetSdk.service.pricing(options.petId, options.segmentType, ['BATH'], options?.shopId);
+        const categories = await tecpetSdk.service.pricing(options.petId, options.segmentType, ['BATH','ADDITIONAL'], options?.shopId);
 
 
         if (categories && categories.length > 0) {

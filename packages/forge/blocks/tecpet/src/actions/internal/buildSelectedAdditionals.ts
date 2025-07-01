@@ -1,5 +1,12 @@
-import {createAction, option} from "@typebot.io/forge";
-import {baseOptions} from "../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { baseOptions } from "../../constants";
+
+
+export interface IAdditionals {
+  id: string;
+  name: string;
+  description: string;
+}
 
 export const buildSelectedAdditionals = createAction({
   baseOptions,
@@ -10,27 +17,83 @@ export const buildSelectedAdditionals = createAction({
       isRequired: true,
       helperText: "Adicional selecionado",
     }),
-    currentAdditionalArray: option.string.layout({
+    additionalArray: option.string.layout({
+      label: "Array de adicionais",
+      isRequired: true,
+      helperText: "Array de adicionais",
+    }),
+    selectedAdditionalsArray: option.string.layout({
       label: "Array de adicionais selecionados",
       isRequired: true,
       helperText: "Array de adicionais selecionados",
     }),
-    updatedAdditionalArray: option.string.layout({
-      label: "Array de adicionais selecionados atualizado",
+    updateSelectedAdditionalsArray: option.string.layout({
+      label: "Array de adicionais selecionados",
+      placeholder: "Selecione uma váriavel",
+      inputType: "variableDropdown",
+      isRequired: true,
+      helperText: "Array de adicionais selecionados",
+    }),
+    updatedAdditionalOptions: option.string.layout({
+      label: "Array de adicionais atualizado",
+      isRequired: true,
+      placeholder: "Selecione uma váriavel",
+      inputType: "variableDropdown",
+      helperText: "Array de adicionais atualizado",
+    }),
+    updatedAdditionalOptionsIds: option.string.layout({
+      label: "Ids de adicionais atualizados",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    updatedAdditionalOptionsNames: option.string.layout({
+      label: "Nomes de adicionais atualizados",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    updatedAdditionalOptionsDescriptions: option.string.layout({
+      label: "Descrições de adicionais atualizados",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
   }),
   getSetVariableIds: ({pets}) => (pets ? [pets] : []),
   run: {
     server: async ({options, variables, logs}) => {
       try {
-        const rawInput = options.currentAdditionalArray ?? "[]";
-        const additionalArray: string[] = typeof rawInput === "string" ? JSON.parse(rawInput) : rawInput;
-        const withoutDuplicates = new Set(additionalArray);
-        withoutDuplicates.add(options.selectedAdditional);
-        const finalArray = [...withoutDuplicates];
-        variables.set([{id: options.updatedAdditionalArray, value: finalArray},]);
+
+       const selectedAdditionalId: string = options.selectedAdditional as string;
+
+       const loadAdditionals: IAdditionals[] = JSON.parse(options.additionalArray ?? "[]");
+
+       const additionals = loadAdditionals.map(item =>
+            typeof item === "string" ? JSON.parse(item) : item
+       );
+
+        const selectedAdditionals = JSON.parse(options.selectedAdditionalsArray ?? "[]") ;
+
+        let withoutDuplicates: string[] = [];
+
+        if(selectedAdditionals && selectedAdditionals.length > 0){
+           withoutDuplicates = [...selectedAdditionals]; 
+        }
+
+        withoutDuplicates.push(selectedAdditionalId);
+        
+        const selectedItem = additionals.find(item => item.id == selectedAdditionalId); 
+
+        const updatedAdditionalArray = additionals.filter(item => item.id !== selectedItem.id);
+
+        variables.set([{id: options.updateSelectedAdditionalsArray as string, value: withoutDuplicates},]);
+        variables.set([{id: options.updatedAdditionalOptions as string, value: updatedAdditionalArray}]);
+        variables.set([{id: options.updatedAdditionalOptionsIds as string, value: updatedAdditionalArray.map(s => s.id)}]);
+        variables.set([{id: options.updatedAdditionalOptionsNames as string, value: updatedAdditionalArray.map(s => s.name)}]);
+        variables.set([{
+          id: options.updatedAdditionalOptionsDescriptions as string,
+          value: updatedAdditionalArray.map(s => s.description)
+        }]);
+        
       } catch (error) {
         console.error(error);
       }

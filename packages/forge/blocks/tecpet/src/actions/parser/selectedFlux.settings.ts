@@ -1,5 +1,5 @@
-import {createAction, option} from "@typebot.io/forge";
-import {baseOptions} from "../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { baseOptions } from "../../constants";
 
 export const parseSelectedFluxSettings = createAction({
   baseOptions,
@@ -54,13 +54,15 @@ export const parseSelectedFluxSettings = createAction({
             ? JSON.parse(options.selectedMenuConfigurations)
             : options.selectedMenuConfigurations as any;
 
-        variables.set([{id: options.fluxId, value: selectedMenuConfig.id ?? ''}]);
-        variables.set([{id: options.fluxTypebotId, value: selectedMenuConfig.fluxId ?? ''}]);
-        variables.set([{id: options.fluxName, value: selectedMenuConfig.name ?? ''}]);
-        variables.set([{id: options.fluxType, value: selectedMenuConfig.type ?? ''}]);
-        variables.set([{id: options.fluxMode, value: selectedMenuConfig.mode ?? ''}]);
-        variables.set([{id: options.schedulePermission, value: selectedMenuConfig.schedulePermission ?? ''}]);
-        variables.set([{id: options.conclusionMessage, value: selectedMenuConfig.conclusionMessage ?? ''}]);
+       
+
+        variables.set([{id: options.fluxId as string, value: selectedMenuConfig.id ?? ''}]);
+        variables.set([{id: options.fluxTypebotId as string, value: selectedMenuConfig.fluxId ?? ''}]);
+        variables.set([{id: options.fluxName as string, value: selectedMenuConfig.name ?? ''}]);
+        variables.set([{id: options.fluxType as string, value: selectedMenuConfig.type ?? ''}]);
+        variables.set([{id: options.fluxMode as string, value: selectedMenuConfig.mode ?? ''}]);
+        variables.set([{id: options.schedulePermission as string, value: selectedMenuConfig.schedulePermission ?? ''}]);
+        variables.set([{id: options.conclusionMessage as string, value: selectedMenuConfig.conclusionMessage ?? ''}]);
       } catch (error) {
         console.error(error)
       }

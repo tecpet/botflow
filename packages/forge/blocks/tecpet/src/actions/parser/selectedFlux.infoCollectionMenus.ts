@@ -224,6 +224,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
         ].forEach(([id, value]) => setVar(id as string, value));
 
         /* ---- Service Selection ---- */
+        
+        
         [
           [options.serviceSelectionEnabled, Boolean(serviceSelection.service.enabled)],
           [options.serviceSelectionMessage, serviceSelection.service.message ?? ""],
@@ -234,7 +236,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
           [options.professionalSelectionMessage, serviceSelection.serviceProfessionalChoice.message ?? ""],
           [options.promotionSelectionEnabled, Boolean(serviceSelection.showServicePromotions.enabled)],
         ].forEach(([id, value]) => setVar(id as string, value));
-
+        
         /* ---- Time Selection ---- */
         [
           [options.timeSelectionBehaviorMessage, timeSelection.timeSelectionBehavior.message],
@@ -250,7 +252,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
           [options.takeAndBringMinAdvanceHours, allowTakeAndBring.minAdvanceHours ?? ""],
         ].forEach(([id, value]) => setVar(id as string, value));
 
-        setVar(options.guidanceMessage, guidance.guidanceMessage.message ?? "");
+
+        setVar(options?.guidanceMessage as string, guidance?.guidanceMessage?.message ?? "");
 
         [
           [options.confirmClientNameEnabled, Boolean(extraInfo.confirmClientName.enabled)],
