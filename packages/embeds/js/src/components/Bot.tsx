@@ -19,6 +19,7 @@ import type { InputBlock } from "@typebot.io/blocks-inputs/schema";
 import type {
   StartChatResponse,
   StartFrom,
+  StartTypebot,
 } from "@typebot.io/chat-api/schemas";
 import { isDefined, isNotDefined, isNotEmpty } from "@typebot.io/lib/utils";
 import type { LogInSession } from "@typebot.io/logs/schemas";
@@ -28,6 +29,7 @@ import {
   defaultSystemMessages,
 } from "@typebot.io/settings/constants";
 import {
+  defaultContainerBackgroundColor,
   defaultFontFamily,
   defaultFontType,
   defaultProgressBarPosition,
@@ -42,11 +44,10 @@ import {
   createMemo,
   createSignal,
   onCleanup,
-  onMount,
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import { buttonVariants } from "./Button";
-import { ConversationContainer } from "./ConversationContainer/ConversationContainer";
+import { ChatContainer } from "./ConversationContainer/ChatContainer";
 import { ErrorMessage } from "./ErrorMessage";
 import { LiteBadge } from "./LiteBadge";
 import { ProgressBar } from "./ProgressBar";
@@ -54,7 +55,7 @@ import { CloseIcon } from "./icons/CloseIcon";
 
 export type BotProps = {
   id?: string;
-  typebot: string | any;
+  typebot: string | StartTypebot | undefined;
   isPreview?: boolean;
   resultId?: string;
   prefilledVariables?: Record<string, unknown>;
@@ -243,12 +244,12 @@ export const Bot = (props: BotProps & { class?: string }) => {
               typebot: {
                 ...initialChatReply.typebot,
                 settings:
-                  typeof props.typebot === "string"
-                    ? initialChatReply.typebot?.settings
+                  typeof props.typebot === "string" || !props.typebot
+                    ? initialChatReply.typebot.settings
                     : props.typebot?.settings,
                 theme:
-                  typeof props.typebot === "string"
-                    ? initialChatReply.typebot?.theme
+                  typeof props.typebot === "string" || !props.typebot
+                    ? initialChatReply.typebot.theme
                     : props.typebot?.theme,
               },
             }}
@@ -306,6 +307,12 @@ const BotContent = (props: BotContentProps) => {
   );
   let botContainer: HTMLDivElement | undefined;
 
+  const [botContainerHeight, setBotContainerHeight] = createSignal("100%");
+  createEffect(() => {
+    if (!botContainer) return;
+    setBotContainerHeight(`${botContainer.clientHeight}px`);
+  });
+
   createEffect(() => {
     injectFont(
       props.initialChatReply.typebot.theme.general?.font ?? {
@@ -329,17 +336,12 @@ const BotContent = (props: BotContentProps) => {
     });
   });
 
-  const botContainerHeight = createMemo(() => {
-    if (!botContainer) return "100%";
-    return botContainer.clientHeight;
-  });
-
   return (
     <BotContainerContext.Provider value={() => botContainer}>
       <div
         ref={botContainer}
         class={cx(
-          "relative flex w-full h-full text-base overflow-hidden flex-col justify-center items-center typebot-container",
+          "relative flex w-full overflow-hidden h-full text-base flex-col justify-center items-center typebot-container",
           props.class,
         )}
         style={{
@@ -365,7 +367,7 @@ const BotContent = (props: BotContentProps) => {
             </Portal>
           </Show>
         </Show>
-        <ConversationContainer
+        <ChatContainer
           context={props.context}
           initialChatReply={props.initialChatReply}
           onNewInputBlock={props.onNewInputBlock}

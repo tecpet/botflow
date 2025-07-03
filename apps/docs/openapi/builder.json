@@ -6062,6 +6062,10 @@
                         "title": "Typebot V5"
                       }
                     ]
+                  },
+                  "overwrite": {
+                    "type": "boolean",
+                    "description": "If true, even if we detect a conflict, we will overwrite push the updates to the typebot"
                   }
                 },
                 "required": [
@@ -12323,6 +12327,11 @@
         "tags": [
           "WhatsApp"
         ],
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
         "parameters": [
           {
             "in": "query",
@@ -12362,6 +12371,26 @@
               }
             }
           },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Not found",
             "content": {
@@ -12389,6 +12418,11 @@
         "summary": "Message webhook",
         "tags": [
           "WhatsApp"
+        ],
+        "security": [
+          {
+            "Authorization": []
+          }
         ],
         "requestBody": {
           "required": true,
@@ -13269,6 +13303,26 @@
               }
             }
           },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -14127,6 +14181,10 @@
                     "preferredLanguage": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "termsAcceptedAt": {
+                      "type": "string",
+                      "nullable": true
                     }
                   },
                   "required": [
@@ -14141,7 +14199,8 @@
                     "preferredAppAppearance",
                     "displayedInAppNotifications",
                     "groupTitlesAutoGeneration",
-                    "preferredLanguage"
+                    "preferredLanguage",
+                    "termsAcceptedAt"
                   ]
                 }
               }
@@ -14476,6 +14535,18 @@
               },
               "isLong": {
                 "type": "boolean"
+              },
+              "inputMode": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "decimal",
+                  "numeric",
+                  "tel",
+                  "search",
+                  "email",
+                  "url"
+                ]
               },
               "audioClip": {
                 "type": "object",
@@ -22896,7 +22967,7 @@
           "message",
           "code"
         ],
-        "title": "Error",
+        "title": "Invalid input data error (400)",
         "description": "The error information",
         "example": {
           "code": "BAD_REQUEST",
@@ -22938,7 +23009,7 @@
           "message",
           "code"
         ],
-        "title": "Error",
+        "title": "Authorization not provided error (401)",
         "description": "The error information",
         "example": {
           "code": "UNAUTHORIZED",
@@ -22980,7 +23051,7 @@
           "message",
           "code"
         ],
-        "title": "Error",
+        "title": "Insufficient access error (403)",
         "description": "The error information",
         "example": {
           "code": "FORBIDDEN",
@@ -23022,7 +23093,7 @@
           "message",
           "code"
         ],
-        "title": "Error",
+        "title": "Not found error (404)",
         "description": "The error information",
         "example": {
           "code": "NOT_FOUND",
@@ -23064,7 +23135,7 @@
           "message",
           "code"
         ],
-        "title": "Error",
+        "title": "Internal server error error (500)",
         "description": "The error information",
         "example": {
           "code": "INTERNAL_SERVER_ERROR",

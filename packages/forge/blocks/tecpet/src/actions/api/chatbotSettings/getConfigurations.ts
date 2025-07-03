@@ -49,8 +49,17 @@ export const getConfigurations = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({configurations}) =>
-    configurations ? [configurations] : [],
+  getSetVariableIds: ({configurations, menu, menuTitles, menuIds, menuDescriptions, newClientMessage, registeredClientMessage }) => {
+    const variables = [];
+    if (configurations) variables.push(configurations);
+    if (menu) variables.push(menu);
+    if (menuTitles) variables.push(menuTitles);
+    if (menuIds) variables.push(menuIds);
+    if (menuDescriptions) variables.push(menuDescriptions);
+    if (newClientMessage) variables.push(newClientMessage);
+    if (registeredClientMessage) variables.push(registeredClientMessage);
+    return variables;
+  },
   run: {
     server: async ({credentials, options, variables, logs}) => {
       try {
@@ -67,7 +76,7 @@ export const getConfigurations = createAction({
               {id: options.configurations, value: result},
               {id: options.menu, value: result.chatbotActions.filter(a => a.enabled)},
               {id: options.menuTitles, value: result.chatbotActions.filter(a => a.enabled).map(a => a.name)},
-              {id: options.menuIds, value: result.chatbotActions.filter(a => a.enabled).map(a => a.id)},
+              {id: options.menuIds, value: result.chatbotActions.filter(a => a.enabled).map(a => a.fluxId)},
               {
                 id: options.menuDescriptions,
                 value: result.chatbotActions.filter(a => a.enabled).map(a => a.description)
