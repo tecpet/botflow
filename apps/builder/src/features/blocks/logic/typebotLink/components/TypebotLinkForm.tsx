@@ -1,14 +1,12 @@
 import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
 import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
-import { trpc } from "@/lib/trpc";
-import { FormLabel, Stack } from "@chakra-ui/react";
-import { useTranslate } from "@tolgee/react";
+import { trpc } from "@/lib/queryClient";
+import { Stack } from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
 import { defaultTypebotLinkOptions } from "@typebot.io/blocks-logic/typebotLink/constants";
 import type { TypebotLinkBlock } from "@typebot.io/blocks-logic/typebotLink/schema";
 import { isNotEmpty } from "@typebot.io/lib/utils";
-import type { Variable } from "@typebot.io/variables/schemas";
-import React from "react";
 import { GroupsDropdown } from "./GroupsDropdown";
 import { TypebotsDropdown } from "./TypebotsDropdown";
 
@@ -19,20 +17,21 @@ type Props = {
 
 export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
   const { typebot } = useTypebot();
-  const { t } = useTranslate();
 
   const handleTypebotIdChange = async (
     typebotId: string | "current" | undefined,
   ) => onOptionsChange({ ...options, typebotId, groupId: undefined });
 
-  const { data: linkedTypebotData } = trpc.typebot.getTypebot.useQuery(
-    {
-      typebotId: options?.typebotId as string,
-    },
-    {
-      enabled:
-        isNotEmpty(options?.typebotId) && options?.typebotId !== "current",
-    },
+  const { data: linkedTypebotData } = useQuery(
+    trpc.typebot.getTypebot.queryOptions(
+      {
+        typebotId: options?.typebotId as string,
+      },
+      {
+        enabled:
+          isNotEmpty(options?.typebotId) && options?.typebotId !== "current",
+      },
+    ),
   );
 
   const handleGroupIdChange = (groupId: string | undefined) =>
@@ -41,8 +40,11 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
   const updateMergeResults = (mergeResults: boolean) =>
     onOptionsChange({ ...options, mergeResults });
 
-  const updateVariableId = (variable: Pick<Variable, "id" | "name">) =>
-    onOptionsChange({ ...options, variableId: variable?.id });
+  const updateVariableId = (id?: string) => {
+    if (id) {
+      onOptionsChange({ ...options, variableId: id });
+    }
+  }
 
   const updateFluxByVariable = (fluxByVariable: boolean) =>
     onOptionsChange({
@@ -71,7 +73,7 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
         <Stack>
           <VariableSearchInput
             initialVariableId={options?.variableId}
-            onSelectVariable={updateVariableId}
+            onSelectVariable={(v) => updateVariableId(v?.id)}
           />
         </Stack>
       )}
@@ -92,7 +94,7 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
               : (linkedTypebotData?.typebot?.groups ?? [])
           }
           groupId={options.groupId}
-          onGroupIdSelected={handleGroupIdChange}
+          onChange={handleGroupIdChange}
           isLoading={
             linkedTypebotData?.typebot === undefined &&
             options.typebotId !== "current" &&

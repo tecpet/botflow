@@ -51,7 +51,7 @@ export const TypebotPageV3 = ({
   return (
     <div
       style={{
-        height: "100vh",
+        height: "100dvh",
         // Set background color to avoid SSR flash
         backgroundColor:
           background?.type === BackgroundType.COLOR
@@ -68,7 +68,7 @@ export const TypebotPageV3 = ({
         isMatchingViewerUrl={isMatchingViewerUrl}
       />
       <Standard
-        typebot={publicId}
+        typebot={publicId ?? undefined}
         onInit={clearQueryParamsIfNecessary}
         font={font ?? undefined}
         apiHost={apiOrigin}

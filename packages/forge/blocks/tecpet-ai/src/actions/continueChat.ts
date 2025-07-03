@@ -36,7 +36,7 @@ export const continueChat = createAction({
             },
             json: {
               sessionId: options.sessionId,
-              text: options.text || 'oi',
+              message: options.text || 'oi',
             },
             timeout: 30000,
           })

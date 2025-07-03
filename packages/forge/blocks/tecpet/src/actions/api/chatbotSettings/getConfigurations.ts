@@ -64,21 +64,19 @@ export const getConfigurations = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({configurations, aiEnabled,aiPersonality,voiceSchedulingEnabled}) => {
-    const variables =[]
-    if(configurations){
-      variables.push(configurations)
-    }
-    if(aiEnabled){
-      variables.push(aiEnabled)
-    }    
-    if(aiPersonality){
-      variables.push(aiPersonality)
-    }      
-    if(voiceSchedulingEnabled){
-      variables.push(voiceSchedulingEnabled)
-    }
-    return variables
+  getSetVariableIds: ({configurations, menu, menuTitles, menuIds, menuDescriptions, newClientMessage, registeredClientMessage, aiEnabled, aiPersonality, voiceSchedulingEnabled }) => {
+    const variables = [];
+    if (configurations) variables.push(configurations);
+    if (menu) variables.push(menu);
+    if (menuTitles) variables.push(menuTitles);
+    if (menuIds) variables.push(menuIds);
+    if (menuDescriptions) variables.push(menuDescriptions);
+    if (newClientMessage) variables.push(newClientMessage);
+    if (registeredClientMessage) variables.push(registeredClientMessage);
+    if (aiEnabled) variables.push(aiEnabled)
+    if (aiPersonality) variables.push(aiPersonality)     
+    if (voiceSchedulingEnabled) variables.push(voiceSchedulingEnabled)
+    return variables;
   },
   run: {
     server: async ({credentials, options, variables, logs}) => {
@@ -96,13 +94,12 @@ export const getConfigurations = createAction({
               {id: options.configurations, value: result},
               {id: options.menu, value: result.chatbotActions.filter(a => a.enabled)},
               {id: options.menuTitles, value: result.chatbotActions.filter(a => a.enabled).map(a => a.name)},
-              {id: options.menuIds, value: result.chatbotActions.filter(a => a.enabled).map(a => a.id)},
+              {id: options.menuIds, value: result.chatbotActions.filter(a => a.enabled).map(a => a.fluxId)},
               {
                 id: options.menuDescriptions,
                 value: result.chatbotActions.filter(a => a.enabled).map(a => a.description)
               },
               {id: options.newClientMessage, value: result.newClientMessage},
-              {id: options.registeredClientMessage, value: result.registeredClientMessage},
               {id: options.aiEnabled, value: result.aiEnabled},
               {id: options.aiPersonality, value: result.aiPersonality},
               {id: options.voiceSchedulingEnabled, value: result.voiceSchedulingEnabled}

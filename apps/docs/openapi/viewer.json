@@ -21,6 +21,11 @@
         "tags": [
           "Deprecated"
         ],
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
         "deprecated": true,
         "requestBody": {
           "required": true,
@@ -832,6 +837,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/error.BAD_REQUEST"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
                 }
               }
             }
@@ -857,6 +882,11 @@
         "tags": [
           "Deprecated"
         ],
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
         "deprecated": true,
         "requestBody": {
           "required": true,
@@ -1672,6 +1702,26 @@
               }
             }
           },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -1689,6 +1739,11 @@
       "post": {
         "operationId": "startChat",
         "summary": "Start chat",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -1708,6 +1763,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "resultId": {
+                    "type": "string",
+                    "description": "Provide it if you'd like to overwrite an existing result."
+                  },
                   "message": {
                     "oneOf": [
                       {
@@ -1735,10 +1794,6 @@
                     "default": false,
                     "description": "If enabled, you will be required to stream OpenAI completions on a client and send the generated response back to the API."
                   },
-                  "resultId": {
-                    "type": "string",
-                    "description": "Provide it if you'd like to overwrite an existing result."
-                  },
                   "isOnlyRegistering": {
                     "type": "boolean",
                     "default": false,
@@ -1760,6 +1815,46 @@
                       "markdown"
                     ],
                     "default": "richText"
+                  },
+                  "startFrom": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "group"
+                            ]
+                          },
+                          "groupId": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "groupId"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "event"
+                            ]
+                          },
+                          "eventId": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "eventId"
+                        ]
+                      }
+                    ]
                   }
                 }
               }
@@ -2364,6 +2459,26 @@
               }
             }
           },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -2381,6 +2496,11 @@
       "post": {
         "operationId": "continueChat",
         "summary": "Continue chat",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -2888,6 +3008,26 @@
               }
             }
           },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -2906,6 +3046,11 @@
         "operationId": "startChatPreview",
         "summary": "Start preview chat",
         "description": "Use this endpoint to test your bot. The answers will not be saved. And some blocks like \"Send email\" will be skipped.",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -2925,36 +3070,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "isStreamEnabled": {
-                    "type": "boolean",
-                    "default": false
-                  },
-                  "message": {
-                    "oneOf": [
-                      {
-                        "$ref": "#/components/schemas/textMessage"
-                      },
-                      {
-                        "$ref": "#/components/schemas/audioMessage"
-                      },
-                      {
-                        "$ref": "#/components/schemas/commandMessage"
-                      }
-                    ],
-                    "discriminator": {
-                      "propertyName": "type",
-                      "mapping": {
-                        "text": "#/components/schemas/textMessage",
-                        "audio": "#/components/schemas/audioMessage",
-                        "command": "#/components/schemas/commandMessage"
-                      }
-                    }
-                  },
-                  "isOnlyRegistering": {
-                    "type": "boolean",
-                    "description": "If set to `true`, it will only register the session and not start the bot. This is used for 3rd party chat platforms as it can require a session to be registered before sending the first message.",
-                    "default": false
-                  },
                   "typebot": {
                     "oneOf": [
                       {
@@ -2975,6 +3090,59 @@
                       }
                     },
                     "description": "If set, it will override the typebot that is used to start the chat."
+                  },
+                  "sessionId": {
+                    "type": "string",
+                    "description": "If provided, will be used as the session ID and will overwrite any existing session with the same ID."
+                  },
+                  "message": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/textMessage"
+                      },
+                      {
+                        "$ref": "#/components/schemas/audioMessage"
+                      },
+                      {
+                        "$ref": "#/components/schemas/commandMessage"
+                      }
+                    ],
+                    "discriminator": {
+                      "propertyName": "type",
+                      "mapping": {
+                        "text": "#/components/schemas/textMessage",
+                        "audio": "#/components/schemas/audioMessage",
+                        "command": "#/components/schemas/commandMessage"
+                      }
+                    },
+                    "description": "Only provide it if your flow starts with an input block and you'd like to directly provide an answer to it."
+                  },
+                  "isStreamEnabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If enabled, you will be required to stream OpenAI completions on a client and send the generated response back to the API."
+                  },
+                  "isOnlyRegistering": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If set to `true`, it will only register the session and not start the bot. This is used for 3rd party chat platforms as it can require a session to be registered before sending the first message."
+                  },
+                  "prefilledVariables": {
+                    "type": "object",
+                    "additionalProperties": {},
+                    "description": "[More info about prefilled variables.](../../editor/variables#prefilled-variables)",
+                    "example": {
+                      "First name": "John",
+                      "Email": "john@gmail.com"
+                    }
+                  },
+                  "textBubbleContentFormat": {
+                    "type": "string",
+                    "enum": [
+                      "richText",
+                      "markdown"
+                    ],
+                    "default": "richText"
                   },
                   "startFrom": {
                     "oneOf": [
@@ -3015,27 +3183,6 @@
                         ]
                       }
                     ]
-                  },
-                  "prefilledVariables": {
-                    "type": "object",
-                    "additionalProperties": {},
-                    "description": "[More info about prefilled variables.](../../editor/variables#prefilled-variables)",
-                    "example": {
-                      "First name": "John",
-                      "Email": "john@gmail.com"
-                    }
-                  },
-                  "sessionId": {
-                    "type": "string",
-                    "description": "If provided, will be used as the session ID and will overwrite any existing session with the same ID."
-                  },
-                  "textBubbleContentFormat": {
-                    "type": "string",
-                    "enum": [
-                      "richText",
-                      "markdown"
-                    ],
-                    "default": "richText"
                   }
                 }
               }
@@ -3637,6 +3784,26 @@
               }
             }
           },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -3657,6 +3824,11 @@
         "description": "Used for the web client to get the bucket upload file.",
         "tags": [
           "Deprecated"
+        ],
+        "security": [
+          {
+            "Authorization": []
+          }
         ],
         "deprecated": true,
         "parameters": [
@@ -3725,6 +3897,26 @@
               }
             }
           },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Not found",
             "content": {
@@ -3753,6 +3945,11 @@
         "operationId": "generateUploadUrlV1",
         "summary": "Generate upload URL",
         "description": "Used to upload anything from the client to S3 bucket",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -3851,6 +4048,26 @@
               }
             }
           },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -3869,6 +4086,11 @@
         "operationId": "generateUploadUrlV2",
         "summary": "Generate upload URL",
         "description": "Used to upload anything from the client to S3 bucket",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -3932,6 +4154,26 @@
               }
             }
           },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -3950,6 +4192,11 @@
         "operationId": "generateUploadUrl",
         "summary": "Generate upload URL",
         "description": "Used to upload anything from the client to S3 bucket",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -4013,6 +4260,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/error.BAD_REQUEST"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
                 }
               }
             }
@@ -4229,6 +4496,11 @@
         "summary": "Message webhook",
         "tags": [
           "WhatsApp"
+        ],
+        "security": [
+          {
+            "Authorization": []
+          }
         ],
         "parameters": [
           {
@@ -5127,6 +5399,26 @@
               }
             }
           },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -5144,6 +5436,11 @@
       "post": {
         "operationId": "saveClientLogsV1",
         "summary": "Save logs",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -5219,6 +5516,26 @@
               }
             }
           },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -5236,6 +5553,11 @@
       "post": {
         "operationId": "saveClientLogs",
         "summary": "Save logs",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
@@ -5309,6 +5631,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/error.BAD_REQUEST"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authorization not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.UNAUTHORIZED"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.FORBIDDEN"
                 }
               }
             }
@@ -6789,6 +7131,18 @@
               },
               "isLong": {
                 "type": "boolean"
+              },
+              "inputMode": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "decimal",
+                  "numeric",
+                  "tel",
+                  "search",
+                  "email",
+                  "url"
+                ]
               },
               "audioClip": {
                 "type": "object",
@@ -17964,11 +18318,95 @@
           "message",
           "code"
         ],
-        "title": "Error",
+        "title": "Invalid input data error (400)",
         "description": "The error information",
         "example": {
           "code": "BAD_REQUEST",
           "message": "Invalid input data",
+          "issues": []
+        }
+      },
+      "error.UNAUTHORIZED": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The error message",
+            "example": "Authorization not provided"
+          },
+          "code": {
+            "type": "string",
+            "description": "The error code",
+            "example": "UNAUTHORIZED"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ]
+            },
+            "description": "An array of issues that were responsible for the error",
+            "example": []
+          }
+        },
+        "required": [
+          "message",
+          "code"
+        ],
+        "title": "Authorization not provided error (401)",
+        "description": "The error information",
+        "example": {
+          "code": "UNAUTHORIZED",
+          "message": "Authorization not provided",
+          "issues": []
+        }
+      },
+      "error.FORBIDDEN": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The error message",
+            "example": "Insufficient access"
+          },
+          "code": {
+            "type": "string",
+            "description": "The error code",
+            "example": "FORBIDDEN"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ]
+            },
+            "description": "An array of issues that were responsible for the error",
+            "example": []
+          }
+        },
+        "required": [
+          "message",
+          "code"
+        ],
+        "title": "Insufficient access error (403)",
+        "description": "The error information",
+        "example": {
+          "code": "FORBIDDEN",
+          "message": "Insufficient access",
           "issues": []
         }
       },
@@ -18006,7 +18444,7 @@
           "message",
           "code"
         ],
-        "title": "Error",
+        "title": "Internal server error error (500)",
         "description": "The error information",
         "example": {
           "code": "INTERNAL_SERVER_ERROR",
@@ -18113,95 +18551,11 @@
           "message",
           "code"
         ],
-        "title": "Error",
+        "title": "Not found error (404)",
         "description": "The error information",
         "example": {
           "code": "NOT_FOUND",
           "message": "Not found",
-          "issues": []
-        }
-      },
-      "error.UNAUTHORIZED": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "The error message",
-            "example": "Authorization not provided"
-          },
-          "code": {
-            "type": "string",
-            "description": "The error code",
-            "example": "UNAUTHORIZED"
-          },
-          "issues": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "message": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "message"
-              ]
-            },
-            "description": "An array of issues that were responsible for the error",
-            "example": []
-          }
-        },
-        "required": [
-          "message",
-          "code"
-        ],
-        "title": "Error",
-        "description": "The error information",
-        "example": {
-          "code": "UNAUTHORIZED",
-          "message": "Authorization not provided",
-          "issues": []
-        }
-      },
-      "error.FORBIDDEN": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "The error message",
-            "example": "Insufficient access"
-          },
-          "code": {
-            "type": "string",
-            "description": "The error code",
-            "example": "FORBIDDEN"
-          },
-          "issues": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "message": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "message"
-              ]
-            },
-            "description": "An array of issues that were responsible for the error",
-            "example": []
-          }
-        },
-        "required": [
-          "message",
-          "code"
-        ],
-        "title": "Error",
-        "description": "The error information",
-        "example": {
-          "code": "FORBIDDEN",
-          "message": "Insufficient access",
           "issues": []
         }
       }

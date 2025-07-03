@@ -50,7 +50,7 @@ export const startChat = createAction({
             },
             json: {
               sessionId: options.sessionId,
-              text: options.text || 'oi',
+              message: options.text || 'oi',
               shop: options.shop,
               client: options.client,
               chatbotSettings: options.chatbotSettings
