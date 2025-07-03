@@ -74,6 +74,14 @@ if (env.GITLAB_CLIENT_ID && env.GITLAB_CLIENT_SECRET) {
       token: `${BASE_URL}/oauth/token`,
       userinfo: `${BASE_URL}/api/v4/user`,
       name: env.GITLAB_NAME,
+      profile(profile) {
+        return {
+          id: profile.sub?.toString() || profile.id.toString(),
+          name: profile.name ?? profile.username,
+          email: profile.email,
+          image: profile.avatar_url,
+        };
+      },
     }),
   );
 }
@@ -124,9 +132,9 @@ if (env.CUSTOM_OAUTH_ISSUER) {
     profile(profile) {
       const user = {
         id: getAtPath(profile, env.CUSTOM_OAUTH_USER_ID_PATH),
-        name: getAtPath(profile, env.CUSTOM_OAUTH_USER_NAME_PATH),
+        name: getAtPath(profile, env.CUSTOM_OAUTH_USER_NAME_PATH) ?? null,
         email: getAtPath(profile, env.CUSTOM_OAUTH_USER_EMAIL_PATH),
-        image: getAtPath(profile, env.CUSTOM_OAUTH_USER_IMAGE_PATH),
+        image: getAtPath(profile, env.CUSTOM_OAUTH_USER_IMAGE_PATH) ?? null,
       };
       return userSchema
         .pick({ id: true, email: true, name: true, image: true })

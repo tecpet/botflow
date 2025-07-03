@@ -55,3 +55,8 @@ snapshots
 .vercel
 
 .content-collections
+
+*.local.md
+
+.tanstack
+.nitro
