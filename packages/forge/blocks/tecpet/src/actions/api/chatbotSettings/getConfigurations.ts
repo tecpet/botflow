@@ -1,7 +1,7 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const getConfigurations = createAction({
   auth,
@@ -48,9 +48,38 @@ export const getConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    aiEnabled: option.string.layout({
+      label: "Atendimento por IA habilitado",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    aiPersonality: option.string.layout({
+      label: "Personalidade da IA",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    voiceSchedulingEnabled: option.string.layout({
+      label: "Agendamento por voz habilitado",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
-  getSetVariableIds: ({configurations}) =>
-    configurations ? [configurations] : [],
+  getSetVariableIds: ({configurations, aiEnabled,aiPersonality,voiceSchedulingEnabled}) => {
+    const variables =[]
+    if(configurations){
+      variables.push(configurations)
+    }
+    if(aiEnabled){
+      variables.push(aiEnabled)
+    }    
+    if(aiPersonality){
+      variables.push(aiPersonality)
+    }      
+    if(voiceSchedulingEnabled){
+      variables.push(voiceSchedulingEnabled)
+    }
+    return variables
+  },
   run: {
     server: async ({credentials, options, variables, logs}) => {
       try {
@@ -73,7 +102,11 @@ export const getConfigurations = createAction({
                 value: result.chatbotActions.filter(a => a.enabled).map(a => a.description)
               },
               {id: options.newClientMessage, value: result.newClientMessage},
-              {id: options.registeredClientMessage, value: result.registeredClientMessage}
+              {id: options.registeredClientMessage, value: result.registeredClientMessage},
+              {id: options.aiEnabled, value: result.aiEnabled},
+              {id: options.aiPersonality, value: result.aiPersonality},
+              {id: options.voiceSchedulingEnabled, value: result.voiceSchedulingEnabled}
+
             ];
 
             variablesToSet.forEach(({id, value}) => {

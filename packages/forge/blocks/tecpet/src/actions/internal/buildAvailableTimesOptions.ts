@@ -1,5 +1,5 @@
-import {createAction, option} from "@typebot.io/forge";
-import {baseOptions} from "../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { baseOptions } from "../../constants";
 
 export const buildAvailableTimesOptions = createAction({
   baseOptions,
@@ -46,7 +46,9 @@ export const buildAvailableTimesOptions = createAction({
     server: async ({options, variables, logs}) => {
       try {
         const availableTimesRaw = typeof options.availableTimes === 'string' ? JSON.parse(options.availableTimes) : options.availableTimes as any;
-        const availableTimes = availableTimesRaw.map(JSON.parse);
+
+        console.log('Tempos disponiveis',availableTimesRaw);
+        const availableTimes = availableTimesRaw.map(item => typeof item === 'string' ? JSON.parse(item) : item);
 
         // TODO: remove and format available times according to config...
 
