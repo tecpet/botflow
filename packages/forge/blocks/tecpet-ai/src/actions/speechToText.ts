@@ -4,48 +4,46 @@ import {auth} from "../auth";
 import ky, {HTTPError} from "ky";
 import {parseUnknownError} from "@typebot.io/lib/parseUnknownError";
 
-export const continueChat = createAction({
+export const speechToText = createAction({
   auth,
   baseOptions,
-  name: "Continuar conversa",
+  name: "Converter audio",
   options: option.object({
     sessionId: option.string.layout({
       label: "Id da sessão",
       isRequired: true,
       helperText: "Id da sessão",
     }),
-    text: option.string.layout({
-      label: "Texto",
+    audioUrl: option.string.layout({
+      label: "URL do audio",
       isRequired: true,
-      helperText: "Texto",
+      helperText: "Url do audio",
     }),
-    saveResponseInVariableId: option.string.layout({
-      label: "Salvar resposta em",
+    saveTextInVariableId: option.string.layout({
+      label: "Salvar texto em",
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({saveResponseInVariableId}) =>
-    saveResponseInVariableId ? [saveResponseInVariableId] : [],
+  getSetVariableIds: ({saveTextInVariableId}) =>
+    saveTextInVariableId ? [saveTextInVariableId] : [],
   run: {
     server: async ({credentials, options, variables, logs}) => {
       try {
+        console.log(options)
         const response = await ky
-          .post(`${credentials.baseUrl}/continue`, {
+          .post(`${credentials.baseUrl}/speechToText`, {
             headers: {
               Authorization: `Bearer ${credentials.apiKey}`,
             },
             json: {
               sessionId: options.sessionId,
-              message: options.text || 'oi',
+              audioUrl: options.audioUrl,
             },
             timeout: 30000,
           })
           .json<any>();
-
-        console.log(response)
-
-        if (options.saveResponseInVariableId) {
-          variables.set([{id: options.saveResponseInVariableId, value: response.response}]);
+        if (options.saveTextInVariableId) {
+          variables.set([{id: options.saveTextInVariableId, value: response.text}]);
         }
       } catch (error) {
         if (error instanceof HTTPError)
