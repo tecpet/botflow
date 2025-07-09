@@ -49,15 +49,17 @@ export const parseSelectedFluxSettings = createAction({
   run: {
     server: async ({options, variables, logs}) => {
       try {
-        const selectedMenuConfig =
-          typeof options.selectedMenuConfigurations === 'string'
-            ? JSON.parse(options.selectedMenuConfigurations)
-            : options.selectedMenuConfigurations as any;
 
-       
+
+        
+        const selectedMenuConfig =
+        typeof options.selectedMenuConfigurations === 'string'
+        ? JSON.parse(options.selectedMenuConfigurations)
+        : options.selectedMenuConfigurations as any;
+        
 
         variables.set([{id: options.fluxId as string, value: selectedMenuConfig.id ?? ''}]);
-        variables.set([{id: options.fluxTypebotId as string, value: selectedMenuConfig.fluxId ?? ''}]);
+        variables.set([{id: options.fluxTypebotId as string, value: selectedMenuConfig.chatbotFlux.id ?? ''}]);
         variables.set([{id: options.fluxName as string, value: selectedMenuConfig.name ?? ''}]);
         variables.set([{id: options.fluxType as string, value: selectedMenuConfig.type ?? ''}]);
         variables.set([{id: options.fluxMode as string, value: selectedMenuConfig.mode ?? ''}]);

@@ -58,7 +58,7 @@ export const getConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    voiceSchedulingEnabled: option.string.layout({
+    voiceResponseEnabled: option.string.layout({
       label: "Agendamento por voz habilitado",
       placeholder: "Selecione",
       inputType: "variableDropdown",
@@ -90,11 +90,14 @@ export const getConfigurations = createAction({
             options.shopId,
           );
           if (result) {
+
+            console.log(result.chatbotActions);
+            
             const variablesToSet = [
               {id: options.configurations, value: result},
               {id: options.menu, value: result.chatbotActions.filter(a => a.enabled)},
               {id: options.menuTitles, value: result.chatbotActions.filter(a => a.enabled).map(a => a.name)},
-              {id: options.menuIds, value: result.chatbotActions.filter(a => a.enabled).map(a => a.fluxId)},
+              {id: options.menuIds, value: result.chatbotActions.filter(a => a.enabled).map(a => a.id)},
               {
                 id: options.menuDescriptions,
                 value: result.chatbotActions.filter(a => a.enabled).map(a => a.description)
@@ -102,7 +105,7 @@ export const getConfigurations = createAction({
               {id: options.newClientMessage, value: result.newClientMessage},
               {id: options.aiEnabled, value: result.aiEnabled},
               {id: options.aiPersonality, value: result.aiPersonality},
-              {id: options.voiceSchedulingEnabled, value: result.voiceSchedulingEnabled}
+              {id: options.voiceResponseEnabled, value: result.voiceResponseEnabled}
 
             ];
 

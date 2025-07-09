@@ -1,8 +1,8 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
-import {formatBRDate, formatISODate, parseIds} from "../../../helpers/utils";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { formatBRDate, formatISODate, parseIds } from "../../../helpers/utils";
 
 export const getAvailableTimes = createAction({
   auth,
@@ -48,6 +48,11 @@ export const getAvailableTimes = createAction({
       label: "Array de horarios disponiveis",
       placeholder: "Selecione",
       inputType: "variableDropdown",
+    }),
+    showOtherDates: option.string.layout({
+      label: "Escolher outras datas disponiveis",
+      isRequired: true,
+      helperText: "Selecionado outras datas",
     }),
   }),
   getSetVariableIds: ({pets}) => (pets ? [pets] : []),

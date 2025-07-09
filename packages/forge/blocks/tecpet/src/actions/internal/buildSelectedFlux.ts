@@ -1,5 +1,5 @@
-import {createAction, option} from "@typebot.io/forge";
-import {baseOptions} from "../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { baseOptions } from "../../constants";
 
 export const buildSelectedFlux = createAction({
   baseOptions,
@@ -25,11 +25,12 @@ export const buildSelectedFlux = createAction({
   run: {
     server: async ({options, variables, logs}) => {
       try {
+        
         const rawMenu = options.menu;
         const selectedId = options.selectedFluxId;
-
+        
         let menuArray;
-
+        
         if (typeof rawMenu === 'string') {
           const menuStrings = JSON.parse(rawMenu);
           menuArray = menuStrings.map(item =>
@@ -42,6 +43,7 @@ export const buildSelectedFlux = createAction({
         } else {
           throw new Error('Formato inesperado em "Menu"');
         }
+        
 
         const selected = menuArray.find(({id}) => id === selectedId);
 
