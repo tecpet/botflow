@@ -23,6 +23,7 @@ import {editClient} from "./actions/api/client/editClient";
 import {editPet} from "./actions/api/pet/editPet";
 import {buildSelectedFlux} from "./actions/internal/buildSelectedFlux";
 import {getClientSummary} from "./actions/api/client/getClientSummary";
+import {extractToken} from "./actions/api/token/extractToken";
 
 const buildActions = [
   parseSelectedFluxSettings,
@@ -46,6 +47,7 @@ const petActions = [
 ]
 
 const apiActions = [
+  extractToken,
   getConfigurations,
   getSpecies,
   getBreeds,
