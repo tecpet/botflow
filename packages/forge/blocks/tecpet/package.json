@@ -11,7 +11,7 @@
     "ky": "1.2.4",
     "@typebot.io/forge": "workspace:*",
     "@typebot.io/lib": "workspace:*",
-    "tecpet-sdk": "git+https://github.com/tecpet/tecpet-sdk.git#v0.0.25"
+    "tecpet-sdk": "github:tecpet/tecpet-sdk#v0.0.27"
   },
   "devDependencies": {
     "@typebot.io/tsconfig": "workspace:*"

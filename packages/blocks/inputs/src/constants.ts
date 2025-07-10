@@ -45,4 +45,5 @@ export const TecpetInputBlockType: { [key in InputBlockType]: boolean } = {
   [InputBlockType.PAYMENT]: false,
   [InputBlockType.RATING]: false,
   [InputBlockType.FILE]: true,
+  [InputBlockType.CARDS]: false,
 };
