@@ -48,10 +48,6 @@ jobs:
     - name: Configure Docker for Artifact Registry
       run: gcloud auth configure-docker us-east1-docker.pkg.dev
 
-    - name: Configure Git for private repos
-      run: |
-        git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
     - name: Extract metadata
       id: meta
       uses: docker/metadata-action@v5
@@ -73,6 +69,7 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         build-args: |
           SCOPE=${{ matrix.app }}
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
