@@ -1,7 +1,7 @@
-import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
-import { auth } from "../../../auth";
-import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import {createAction, option} from "@typebot.io/forge";
+import {TecpetSDK} from "tecpet-sdk";
+import {auth} from "../../../auth";
+import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
 
 export const getConfigurations = createAction({
   auth,
@@ -74,7 +74,7 @@ export const getConfigurations = createAction({
     if (newClientMessage) variables.push(newClientMessage);
     if (registeredClientMessage) variables.push(registeredClientMessage);
     if (aiEnabled) variables.push(aiEnabled)
-    if (aiPersonality) variables.push(aiPersonality)     
+    if (aiPersonality) variables.push(aiPersonality)
     if (voiceResponseEnabled) variables.push(voiceResponseEnabled)
     return variables;
   },
@@ -95,7 +95,7 @@ export const getConfigurations = createAction({
               {id: options.configurations, value: result},
               {id: options.menu, value: result.chatbotActions.filter(a => a.enabled)},
               {id: options.menuTitles, value: result.chatbotActions.filter(a => a.enabled).map(a => a.name)},
-              {id: options.menuIds, value: result.chatbotActions.filter(a => a.enabled).map(a => a.id)},
+              {id: options.menuIds, value: result.chatbotActions.filter(a => a.enabled).map(a => a.chatbotFlux.name)},
               {
                 id: options.menuDescriptions,
                 value: result.chatbotActions.filter(a => a.enabled).map(a => a.description)
@@ -104,7 +104,6 @@ export const getConfigurations = createAction({
               {id: options.aiEnabled, value: result.aiEnabled},
               {id: options.aiPersonality, value: result.aiPersonality},
               {id: options.voiceResponseEnabled, value: result.voiceResponseEnabled}
-
             ];
 
             variablesToSet.forEach(({id, value}) => {
