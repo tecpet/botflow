@@ -28,11 +28,7 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        app: ${{ 
-          github.event_name == 'workflow_dispatch' && github.event.inputs.app == 'both' && fromJson('["builder", "viewer"]') ||
-          github.event_name == 'workflow_dispatch' && github.event.inputs.app != 'both' && fromJson(format('["{0}"]', github.event.inputs.app)) ||
-          fromJson('["builder"]')
-        }}
+        app: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.app == 'both' && fromJson('["builder", "viewer"]') || github.event_name == 'workflow_dispatch' && github.event.inputs.app != 'both' && fromJson(format('["{0}"]', github.event.inputs.app)) || fromJson('["builder"]') }}
 
     steps:
     - name: Checkout repository
