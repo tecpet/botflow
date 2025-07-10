@@ -49,9 +49,6 @@ export const parseSelectedFluxSettings = createAction({
   run: {
     server: async ({options, variables, logs}) => {
       try {
-
-
-        
         const selectedMenuConfig =
         typeof options.selectedMenuConfigurations === 'string'
         ? JSON.parse(options.selectedMenuConfigurations)

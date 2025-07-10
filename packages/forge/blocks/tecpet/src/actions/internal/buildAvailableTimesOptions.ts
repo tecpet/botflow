@@ -47,15 +47,16 @@ export const buildAvailableTimesOptions = createAction({
       try {
         const availableTimesRaw = typeof options.availableTimes === 'string' ? JSON.parse(options.availableTimes) : options.availableTimes as any;
 
-        console.log('Tempos disponiveis',availableTimesRaw);
         const availableTimes = availableTimesRaw.map(item => typeof item === 'string' ? JSON.parse(item) : item);
 
         // TODO: remove and format available times according to config...
 
+        availableTimes.push({id: false, startStop: 'PREFIRO OUTRA DATA', dateBR: ''});
+
         variables.set([
-          {id: options.availableTimesIds, value: availableTimes.map(t => t.id)},
-          {id: options.availableTimesStartAndStop, value: availableTimes.map(t => t.startStop)},
-          {id: options.availableTimesDates, value: availableTimes.map(t => t.dateBR)}
+          {id: options.availableTimesIds as string, value: availableTimes.map(t => t.id)},
+          {id: options.availableTimesStartAndStop as string, value: availableTimes.map(t => t.startStop)},
+          {id: options.availableTimesDates as string, value: availableTimes.map(t => t.dateBR)}
         ]);
       } catch (error) {
        console.error(error)

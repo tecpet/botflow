@@ -64,7 +64,7 @@ export const getConfigurations = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({configurations, menu, menuTitles, menuIds, menuDescriptions, newClientMessage, registeredClientMessage, aiEnabled, aiPersonality, voiceSchedulingEnabled }) => {
+  getSetVariableIds: ({configurations, menu, menuTitles, menuIds, menuDescriptions, newClientMessage, registeredClientMessage, aiEnabled, aiPersonality, voiceResponseEnabled }) => {
     const variables = [];
     if (configurations) variables.push(configurations);
     if (menu) variables.push(menu);
@@ -75,7 +75,7 @@ export const getConfigurations = createAction({
     if (registeredClientMessage) variables.push(registeredClientMessage);
     if (aiEnabled) variables.push(aiEnabled)
     if (aiPersonality) variables.push(aiPersonality)     
-    if (voiceSchedulingEnabled) variables.push(voiceSchedulingEnabled)
+    if (voiceResponseEnabled) variables.push(voiceResponseEnabled)
     return variables;
   },
   run: {
@@ -90,8 +90,6 @@ export const getConfigurations = createAction({
             options.shopId,
           );
           if (result) {
-
-            console.log(result.chatbotActions);
             
             const variablesToSet = [
               {id: options.configurations, value: result},

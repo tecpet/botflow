@@ -21,7 +21,13 @@ export const buildSelectedFlux = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({menu,selectedFluxId,selectedMenuSettings}) =>   {
+      const variables = []
+      if(menu) variables.push(menu)
+      if(selectedFluxId) variables.push(selectedFluxId)
+      if(selectedMenuSettings) variables.push(selectedMenuSettings)
+      return variables
+    },
   run: {
     server: async ({options, variables, logs}) => {
       try {

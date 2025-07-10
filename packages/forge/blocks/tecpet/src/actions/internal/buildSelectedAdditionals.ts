@@ -58,7 +58,20 @@ export const buildSelectedAdditionals = createAction({
     }),
 
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({additionalArray,selectedAdditional,selectedAdditionalsArray,updateSelectedAdditionalsArray,updatedAdditionalOptions,updatedAdditionalOptionsDescriptions,updatedAdditionalOptionsIds,updatedAdditionalOptionsNames}) => 
+    {
+      const variables = []
+      if(additionalArray) variables.push(additionalArray)
+      if(selectedAdditional) variables.push(selectedAdditional)
+      if(selectedAdditionalsArray) variables.push(selectedAdditionalsArray)
+      if(updateSelectedAdditionalsArray) variables.push(updateSelectedAdditionalsArray)
+      if(updatedAdditionalOptions) variables.push(updatedAdditionalOptions)
+      if(updatedAdditionalOptionsDescriptions) variables.push(updatedAdditionalOptionsDescriptions)
+      if(updatedAdditionalOptionsIds) variables.push(updatedAdditionalOptionsIds)
+      if(updatedAdditionalOptionsNames) variables.push(updatedAdditionalOptionsNames)
+
+      return variables
+    },
   run: {
     server: async ({options, variables, logs}) => {
       try {
