@@ -1,0 +1,102 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'App to deploy'
+        required: false
+        default: 'both'
+        type: choice
+        options:
+        - both
+        - builder
+        - viewer
+
+env:
+  REGISTRY: us-east1-docker.pkg.dev
+  IMAGE_NAME: ${{ secrets.GCP_PROJECT_ID }}/botflow
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      matrix:
+        app: ${{ 
+          github.event_name == 'workflow_dispatch' && github.event.inputs.app == 'both' && fromJson('["builder", "viewer"]') ||
+          github.event_name == 'workflow_dispatch' && github.event.inputs.app != 'both' && fromJson(format('["{0}"]', github.event.inputs.app)) ||
+          fromJson('["builder"]')
+        }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker us-east1-docker.pkg.dev
+
+    - name: Configure Git for private repos
+      run: |
+        git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/botflow-${{ matrix.app }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        build-args: |
+          SCOPE=${{ matrix.app }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Deploy to Cloud Run
+      id: deploy
+      uses: google-github-actions/deploy-cloudrun@v2
+      with:
+        service: botflow-${{ matrix.app }}
+        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/botflow-${{ matrix.app }}:${{ github.ref_name }}-${{ github.sha }}
+        region: us-east1
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        flags: |
+          --allow-unauthenticated
+          --port=3000
+        env_vars: |
+          NODE_ENV=production
+
+    - name: Show deployment info
+      run: |
+        echo "🚀 Deploy completed successfully!"
+        echo "📱 App: ${{ matrix.app }}"
+        echo "🖼️  Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/botflow-${{ matrix.app }}:${{ github.ref_name }}-${{ github.sha }}"
+        echo "🌐 URL: ${{ steps.deploy.outputs.url }}"
