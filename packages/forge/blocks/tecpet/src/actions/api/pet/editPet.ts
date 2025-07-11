@@ -1,7 +1,7 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const editPet = createAction({
   auth,
@@ -69,9 +69,9 @@ export const editPet = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({ pets }) => (pets ? [pets] : []),
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
@@ -79,20 +79,34 @@ export const editPet = createAction({
         );
 
         const body = {
-          weight: options.petWeight ? parseFloat(options.petWeight) : null,
-          genre: options.petGender ? options.petGender === 'Macho' ? 'MALE' : 'FEMALE' : null,
+          weight: options.petWeight ? Number(options.petWeight) : null,
+          genre: options.petGender
+            ? options.petGender === "Macho"
+              ? "MALE"
+              : "FEMALE"
+            : null,
           birthDate: options.petBirthDate ? options.petBirthDate : null,
           hair: options.petHair ? options.petHair : null,
           size: options.petSize ? options.petSize : null,
-        }
-        const editedPet = await tecpetSdk.pet.edit(options.petId, body, options.shopId);
+        };
+        const editedPet = await tecpetSdk.pet.edit(
+          options.petId,
+          body,
+          options.shopId,
+        );
 
         if (editedPet) {
-          variables.set([{id: options.editedPetWeight, value: editedPet.weight}]);
-          variables.set([{id: options.editedPetGender, value: editedPet.genre}]);
-          variables.set([{id: options.editedPetBirthDate, value: editedPet.birthDate}]);
-          variables.set([{id: options.editedPetSize, value: editedPet.size}]);
-          variables.set([{id: options.editedPetHair, value: editedPet.hair}]);
+          variables.set([
+            { id: options.editedPetWeight, value: editedPet.weight },
+          ]);
+          variables.set([
+            { id: options.editedPetGender, value: editedPet.genre },
+          ]);
+          variables.set([
+            { id: options.editedPetBirthDate, value: editedPet.birthDate },
+          ]);
+          variables.set([{ id: options.editedPetSize, value: editedPet.size }]);
+          variables.set([{ id: options.editedPetHair, value: editedPet.hair }]);
         }
       } catch (error) {
         console.error(error);

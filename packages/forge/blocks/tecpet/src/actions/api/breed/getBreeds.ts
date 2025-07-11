@@ -1,5 +1,6 @@
 import { createAction, option } from "@typebot.io/forge";
 import { TecpetSDK } from "tecpet-sdk";
+import type { PaBreedResponse } from "../../../../../tecpet-sdk/dist/domain/breed/dto/pa.get-breed.dto";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { getSimilarBreeds } from "../../../helpers/utils";
@@ -45,7 +46,16 @@ export const getBreeds = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({ breeds }) => (breeds ? [breeds] : []),
+  getSetVariableIds: ({ breeds, breedsIds, breedsNames, petBreed }) => {
+    const variables = [];
+
+    if (breeds) variables.push(breeds);
+    if (breedsIds) variables.push(breedsIds);
+    if (breedsNames) variables.push(breedsNames);
+    if (petBreed) variables.push(petBreed);
+
+    return variables;
+  },
   run: {
     server: async ({ credentials, options, variables, logs }) => {
       try {
@@ -55,12 +65,12 @@ export const getBreeds = createAction({
         );
         const specieId = options?.specie ?? "";
         const shopId = Number(options.shopId);
-        const breedName = options.name
-        const breeds = await tecpetSdk.breed.list(
+        const breedName = options.name ?? "";
+        const breeds: PaBreedResponse[] = (await tecpetSdk.breed.list(
           specieId,
           "",
-          shopId
-        );
+          shopId,
+        )) as PaBreedResponse[];
 
         if (breeds && breeds.length > 0) {
           const similarBreeds = getSimilarBreeds(breedName, breeds);
@@ -70,15 +80,24 @@ export const getBreeds = createAction({
           }
 
           if (options.breedsIds) {
-            variables.set([{ id: options.breedsIds, value: similarBreeds.map(b => b.id) }]);
+            variables.set([
+              { id: options.breedsIds, value: similarBreeds.map((b) => b.id) },
+            ]);
           }
 
           if (options.breedsNames) {
-            variables.set([{ id: options.breedsNames, value: similarBreeds.map(b => b.name) }]);
+            variables.set([
+              {
+                id: options.breedsNames,
+                value: similarBreeds.map((b) => b.name),
+              },
+            ]);
           }
 
           if (similarBreeds.length === 1) {
-            variables.set([{ id: options.petBreed, value: similarBreeds[0].id }]);
+            variables.set([
+              { id: options.petBreed as string, value: similarBreeds[0].id },
+            ]);
           }
         }
       } catch (error) {

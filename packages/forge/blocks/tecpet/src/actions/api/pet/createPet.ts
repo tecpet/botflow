@@ -1,5 +1,11 @@
 import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
+import {
+  type BillingItemType,
+  type GenderType,
+  type PaPetResponse,
+  TecpetSDK,
+} from "tecpet-sdk";
+import type { PaCreatePetInput } from "../../../../../tecpet-sdk/dist/domain/pet/dto/pa.create-pet.dto";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
@@ -8,13 +14,14 @@ export const createPet = createAction({
   baseOptions,
   name: "Criar novo Pet",
   options: option.object({
-    clientId: option.string.layout({
+    clientId: option.number.layout({
       label: "Cliente",
       isRequired: true,
       helperText: "Id do cliente",
     }),
     name: option.string.layout({
       label: "Nome",
+      defaultValue: "",
       isRequired: true,
       helperText: "Nome do Pet",
     }),
@@ -64,33 +71,44 @@ export const createPet = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pet}) => (pet ? [pet] : []),
+  getSetVariableIds: ({ pet, petId, petName }) => {
+    const variables = [];
+
+    if (pet) variables.push(pet);
+    if (petId) variables.push(petId);
+    if (petName) variables.push(petName);
+
+    return variables;
+  },
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const petInput = {
+        const petInput: PaCreatePetInput = {
           clientId: Number(options?.clientId),
-          name: options?.name,
-          specieId: options?.specieId,
+          name: options?.name as string,
+          specieId: options?.specieId ?? "",
           breedId: Number(options?.breedId),
-          genre: options?.gender ?? "MALE",
-          size: options?.size,
-          hair: options?.hair,
-          birthDate: new Date(options.birthDate) ?? "",
+          genre: (options?.gender ?? "MALE") as GenderType,
+          size: options?.size as BillingItemType,
+          hair: options?.hair as BillingItemType,
+          birthDate: new Date(options.birthDate ?? ""),
         };
-        const pet = await tecpetSdk.pet.create(petInput);
+
+        const pet: PaPetResponse = (await tecpetSdk.pet.create(
+          petInput,
+        )) as PaPetResponse;
+
         if (pet) {
-          variables.set([{id: options.pet, value: pet}]);
-          variables.set([{id: options.petId, value: pet.id}]);
-          variables.set([{id: options.petName, value: pet.name}]);
+          variables.set([{ id: options.pet as string, value: pet }]);
+          variables.set([{ id: options.petId as string, value: pet.id }]);
+          variables.set([{ id: options.petName as string, value: pet.name }]);
         }
       } catch (error) {
         console.error(error);
-
       }
     },
   },

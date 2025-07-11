@@ -1,7 +1,7 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { type PaChatbotSettingsResponse, TecpetSDK } from "tecpet-sdk";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const getConfigurations = createAction({
   auth,
@@ -64,7 +64,18 @@ export const getConfigurations = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({configurations, menu, menuTitles, menuIds, menuDescriptions, newClientMessage, registeredClientMessage, aiEnabled, aiPersonality, voiceResponseEnabled }) => {
+  getSetVariableIds: ({
+    configurations,
+    menu,
+    menuTitles,
+    menuIds,
+    menuDescriptions,
+    newClientMessage,
+    registeredClientMessage,
+    aiEnabled,
+    aiPersonality,
+    voiceResponseEnabled,
+  }) => {
     const variables = [];
     if (configurations) variables.push(configurations);
     if (menu) variables.push(menu);
@@ -73,42 +84,60 @@ export const getConfigurations = createAction({
     if (menuDescriptions) variables.push(menuDescriptions);
     if (newClientMessage) variables.push(newClientMessage);
     if (registeredClientMessage) variables.push(registeredClientMessage);
-    if (aiEnabled) variables.push(aiEnabled)
-    if (aiPersonality) variables.push(aiPersonality)
-    if (voiceResponseEnabled) variables.push(voiceResponseEnabled)
+    if (aiEnabled) variables.push(aiEnabled);
+    if (aiPersonality) variables.push(aiPersonality);
+    if (voiceResponseEnabled) variables.push(voiceResponseEnabled);
     return variables;
   },
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
         if (options.shopId) {
           const tecpetSdk = new TecpetSDK(
             credentials.baseUrl ?? tecpetDefaultBaseUrl,
             credentials.apiKey,
           );
-          const result = await tecpetSdk.chatbot.getByShop(
-            options.shopId,
-          );
+          const result: PaChatbotSettingsResponse =
+            (await tecpetSdk.chatbot.getByShop(
+              options.shopId,
+            )) as PaChatbotSettingsResponse;
           if (result) {
-            
             const variablesToSet = [
-              {id: options.configurations, value: result},
-              {id: options.menu, value: result.chatbotActions.filter(a => a.enabled)},
-              {id: options.menuTitles, value: result.chatbotActions.filter(a => a.enabled).map(a => a.name)},
-              {id: options.menuIds, value: result.chatbotActions.filter(a => a.enabled).map(a => a.chatbotFlux.name)},
+              { id: options.configurations, value: result },
+              {
+                id: options.menu,
+                value: result.chatbotActions.filter((a) => a.enabled),
+              },
+              {
+                id: options.menuTitles,
+                value: result.chatbotActions
+                  .filter((a) => a.enabled)
+                  .map((a) => a.name),
+              },
+              {
+                id: options.menuIds,
+                value: result.chatbotActions
+                  .filter((a) => a.enabled)
+                  .map((a) => a.id),
+              },
               {
                 id: options.menuDescriptions,
-                value: result.chatbotActions.filter(a => a.enabled).map(a => a.description)
+                value: result.chatbotActions
+                  .filter((a) => a.enabled)
+                  .map((a) => a.description),
               },
-              {id: options.newClientMessage, value: result.newClientMessage},
-              {id: options.aiEnabled, value: result.aiEnabled},
-              {id: options.aiPersonality, value: result.aiPersonality},
-              {id: options.voiceResponseEnabled, value: result.voiceResponseEnabled}
+              { id: options.newClientMessage, value: result.newClientMessage },
+              { id: options.aiEnabled, value: result.aiEnabled },
+              { id: options.aiPersonality, value: result.aiPersonality },
+              {
+                id: options.voiceResponseEnabled,
+                value: result.voiceResponseEnabled,
+              },
             ];
 
-            variablesToSet.forEach(({id, value}) => {
+            variablesToSet.forEach(({ id, value }) => {
               if (id !== undefined) {
-                variables.set([{id, value}]);
+                variables.set([{ id, value }]);
               }
             });
           }

@@ -50,8 +50,13 @@ export const buildSelectedFlux = createAction({
           throw new Error('Formato inesperado em "Menu"');
         }
         
+        console.log('ID selecionado',selectedId);
+        
+        
+        const selected = menuArray.find((action: any) => action.id === selectedId);
+        
+        console.log(selected);
 
-        const selected = menuArray.find(({id}) => id === selectedId);
 
         variables.set([{id: options.selectedMenuSettings, value: selected}]);
 

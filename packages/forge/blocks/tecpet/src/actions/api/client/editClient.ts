@@ -1,19 +1,20 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { type PaClientResponse, TecpetSDK } from "tecpet-sdk";
+import type { PaEditClientInput } from "../../../../../tecpet-sdk/dist/domain/client/dto/pa.edit-client.dto";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const editClient = createAction({
   auth,
   baseOptions,
   name: "Editar um cliente",
   options: option.object({
-    shopId: option.string.layout({
+    shopId: option.number.layout({
       label: "Id da loja",
       isRequired: true,
       helperText: "Id da loja",
     }),
-    clientId: option.string.layout({
+    clientId: option.number.layout({
       label: "Id do cliente",
       isRequired: true,
       helperText: "Id do cliente",
@@ -49,26 +50,54 @@ export const editClient = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({
+    editedClientName,
+    editedClientCpf,
+    editedClientBirthDate,
+  }) => {
+    const variables = [];
+
+    if (editedClientName) variables.push(editedClientName);
+    if (editedClientCpf) variables.push(editedClientCpf);
+    if (editedClientBirthDate) variables.push(editedClientBirthDate);
+
+    return variables;
+  },
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
 
-        const body = {
-          name: options.clientName ? options.clientName : null,
-          cpf: options.clientCpf ? options.clientCpf : null,
-          birthDate: options.clientBirthDate ? options.clientBirthDate : null,
-        }
-        const editedClient = await tecpetSdk.client.edit(options.clientId, body, options.shopId);
+        const body: PaEditClientInput = {
+          name: options.clientName ?? "",
+          cpf: options.clientCpf ?? "",
+          birthDate: options.clientBirthDate ?? "",
+        };
+        const editedClient: PaClientResponse = await tecpetSdk.client.edit(
+          Number(options.clientId),
+          body,
+          Number(options.shopId),
+        );
 
         if (editedClient) {
-          variables.set([{id: options.editedClientName, value: editedClient.name}]);
-          variables.set([{id: options.editedClientCpf, value: editedClient.cpf}]);
-          variables.set([{id: options.editedClientBirthDate, value: editedClient.birthDate}]);
+          variables.set([
+            {
+              id: options.editedClientName as string,
+              value: editedClient.name,
+            },
+          ]);
+          variables.set([
+            { id: options.editedClientCpf as string, value: editedClient.cpf },
+          ]);
+          variables.set([
+            {
+              id: options.editedClientBirthDate as string,
+              value: editedClient.birthDate,
+            },
+          ]);
         }
       } catch (error) {
         console.error(error);

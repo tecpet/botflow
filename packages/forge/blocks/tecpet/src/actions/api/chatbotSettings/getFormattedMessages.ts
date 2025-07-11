@@ -1,5 +1,6 @@
 import { createAction, option } from "@typebot.io/forge";
 import { TecpetSDK } from "tecpet-sdk";
+import type { GetChatbotFormattedMessagesInput } from "../../../../../tecpet-sdk/dist/domain/chatbot/dto/get-chatbot-formatted-messages.dto";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
@@ -13,7 +14,7 @@ export const getFormattedMessages = createAction({
       isRequired: true,
       helperText: "Id da loja",
     }),
-    message: option.number.layout({
+    message: option.string.layout({
       label: "Mensagem a ser subsituida",
       isRequired: true,
       helperText: "Id da loja",
@@ -49,33 +50,36 @@ export const getFormattedMessages = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({configurations}) =>
-    configurations ? [configurations] : [],
+  getSetVariableIds: ({ updatedMessage }) => {
+    const variables = [];
+    if (updatedMessage) variables.push(updatedMessage);
+    return variables;
+  },
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const body = {
+        const body: GetChatbotFormattedMessagesInput = {
           ids: {
-            clientId: options.clientId || null,
-            petId: options.petId || null,
-            invoiceId: options.invoiceId || null,
-            serviceId: options.serviceId || null,
-            bookingId: options.bookingId || null,
+            clientId: options.clientId,
+            petId: options.petId,
+            invoiceId: options.invoiceId,
+            serviceId: options.serviceId,
+            bookingId: options.bookingId,
           },
-          messages: [
-            {text: options.message ?? ''}
-          ]
-        }
+          messages: [{ text: options.message ?? "" }],
+        };
         const result = await tecpetSdk.chatbot.getFormattedMessage(
           body,
-          options.shopId,
+          options.shopId as number,
         );
         if (result && result.length > 0) {
-          variables.set([{id: options.updatedMessage, value: result[0].message}]);
+          variables.set([
+            { id: options.updatedMessage as string, value: result[0].message },
+          ]);
         }
       } catch (error) {
         console.error(error);

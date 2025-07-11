@@ -1,19 +1,21 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import type { PaComboPricingResponse } from "../../../../../tecpet-sdk/dist/domain/combo/dto/pa.get-combo-pricing.dto";
+import type { ShopSegment } from "../../../../../tecpet-sdk/dist/domain/segment/enum/segment.enum";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const getCombos = createAction({
   auth,
   baseOptions,
   name: "Buscar Combos com Preço da Loja",
   options: option.object({
-    shopId: option.string.layout({
+    shopId: option.number.layout({
       label: "Loja",
       isRequired: true,
       helperText: "Id da loja",
     }),
-    petId: option.string.layout({
+    petId: option.number.layout({
       label: "Id do Pet",
       isRequired: true,
       helperText: "Id do pet",
@@ -34,17 +36,30 @@ export const getCombos = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({ combos, combosIds }) => {
+    const variables = [];
+
+    if (combos) variables.push(combos);
+    if (combosIds) variables.push(combosIds);
+
+    return variables;
+  },
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const combos = await tecpetSdk.combo.pricing(options.petId, options.segmentType, options?.shopId);
-        variables.set([{id: options.combos, value: combos}]);
-        variables.set([{id: options.combosIds, value: combos.map(c => c.id)}]);
+        const combos: PaComboPricingResponse[] = (await tecpetSdk.combo.pricing(
+          Number(options.petId),
+          options.segmentType as ShopSegment,
+          Number(options?.shopId),
+        )) as PaComboPricingResponse[];
+        variables.set([{ id: options.combos as string, value: combos }]);
+        variables.set([
+          { id: options.combosIds as string, value: combos.map((c) => c.id) },
+        ]);
       } catch (error) {
         console.error(error);
       }
