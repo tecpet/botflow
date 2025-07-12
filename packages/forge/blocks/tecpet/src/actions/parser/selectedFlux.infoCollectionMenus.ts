@@ -196,17 +196,114 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       inputType: "variableDropdown",
     }),
   }),
+  getSetVariableIds: ({
+    additionalSelectionEnabled,
+    additionalSelectionMessage,
+    clientCpfEnabled,
+    clientCpfMessage,
+    confirmClientNameEnabled,
+    confirmClientNameMessage,
+    guidanceMessage,
+    petBirthEnabled,
+    petBirthMessage,
+    petGenderEnabled,
+    petGenderMessage,
+    petInfoPetBreedEnabled,
+    petInfoPetBreedMessage,
+    petInfoPetFurEnabled,
+    petInfoPetFurMessage,
+    petInfoPetNameEnabled,
+    petInfoPetNameMessage,
+    petInfoPetSizeEnabled,
+    petInfoPetSizeMessage,
+    petInfoPetSizeMode,
+    petInfoPetSpecieEnabled,
+    petInfoPetSpecieMessage,
+    petWeightEnabled,
+    petWeightMessage,
+    professionalSelectionEnabled,
+    professionalSelectionMessage,
+    promotionSelectionEnabled,
+    selectedMenuConfigurations,
+    serviceSelectionEnabled,
+    serviceSelectionMessage,
+    serviceSelectionValueMode,
+    takeAndBringEnabled,
+    takeAndBringMessage,
+    takeAndBringMinAdvanceHours,
+    timeSelectionBehaviorBehavior,
+    timeSelectionBehaviorMessage,
+    timeSelectionBehaviorMinAdvanceHours,
+    timeSelectionBehaviorTimeDisplayMode,
+  }) => {
+    const variables = [];
+
+    if (additionalSelectionEnabled) variables.push(additionalSelectionEnabled);
+    if (additionalSelectionMessage) variables.push(additionalSelectionMessage);
+    if (clientCpfEnabled) variables.push(clientCpfEnabled);
+    if (clientCpfMessage) variables.push(clientCpfMessage);
+    if (confirmClientNameEnabled) variables.push(confirmClientNameEnabled);
+    if (confirmClientNameMessage) variables.push(confirmClientNameMessage);
+    if (guidanceMessage) variables.push(guidanceMessage);
+    if (petBirthEnabled) variables.push(petBirthEnabled);
+    if (petBirthMessage) variables.push(petBirthMessage);
+    if (petGenderEnabled) variables.push(petGenderEnabled);
+    if (petGenderMessage) variables.push(petGenderMessage);
+    if (petInfoPetBreedEnabled) variables.push(petInfoPetBreedEnabled);
+    if (petInfoPetBreedMessage) variables.push(petInfoPetBreedMessage);
+    if (petInfoPetFurEnabled) variables.push(petInfoPetFurEnabled);
+    if (petInfoPetFurMessage) variables.push(petInfoPetFurMessage);
+    if (petInfoPetNameEnabled) variables.push(petInfoPetNameEnabled);
+    if (petInfoPetNameMessage) variables.push(petInfoPetNameMessage);
+    if (petInfoPetSizeEnabled) variables.push(petInfoPetSizeEnabled);
+    if (petInfoPetSizeMessage) variables.push(petInfoPetSizeMessage);
+    if (petInfoPetSizeMode) variables.push(petInfoPetSizeMode);
+    if (petInfoPetSpecieEnabled) variables.push(petInfoPetSpecieEnabled);
+    if (petInfoPetSpecieMessage) variables.push(petInfoPetSpecieMessage);
+    if (petWeightEnabled) variables.push(petWeightEnabled);
+    if (petWeightMessage) variables.push(petWeightMessage);
+    if (professionalSelectionEnabled)
+      variables.push(professionalSelectionEnabled);
+    if (professionalSelectionMessage)
+      variables.push(professionalSelectionMessage);
+    if (promotionSelectionEnabled) variables.push(promotionSelectionEnabled);
+    if (selectedMenuConfigurations) variables.push(selectedMenuConfigurations);
+    if (serviceSelectionEnabled) variables.push(serviceSelectionEnabled);
+    if (serviceSelectionMessage) variables.push(serviceSelectionMessage);
+    if (serviceSelectionValueMode) variables.push(serviceSelectionValueMode);
+    if (takeAndBringEnabled) variables.push(takeAndBringEnabled);
+    if (takeAndBringMessage) variables.push(takeAndBringMessage);
+    if (takeAndBringMinAdvanceHours)
+      variables.push(takeAndBringMinAdvanceHours);
+    if (timeSelectionBehaviorBehavior)
+      variables.push(timeSelectionBehaviorBehavior);
+    if (timeSelectionBehaviorMessage)
+      variables.push(timeSelectionBehaviorMessage);
+    if (timeSelectionBehaviorMinAdvanceHours)
+      variables.push(timeSelectionBehaviorMinAdvanceHours);
+    if (timeSelectionBehaviorTimeDisplayMode)
+      variables.push(timeSelectionBehaviorTimeDisplayMode);
+
+    return variables;
+  },
   run: {
-    server: async ({options, variables, logs}) => {
+    server: async ({ options, variables, logs }) => {
       try {
-        const setVar = (id: string, value: any) => variables.set([{id, value}]);
+        const setVar = (id: string, value: any) =>
+          variables.set([{ id, value }]);
         const selectedMenuConfig =
           typeof options.selectedMenuConfigurations === "string"
             ? JSON.parse(options.selectedMenuConfigurations)
             : (options.selectedMenuConfigurations as any);
 
-        const {petInfo, serviceSelection, timeSelection, takeAndBring, guidance, extraInfo} =
-          selectedMenuConfig.infoCollectionMenus;
+        const {
+          petInfo,
+          serviceSelection,
+          timeSelection,
+          takeAndBring,
+          guidance,
+          extraInfo,
+        } = selectedMenuConfig.infoCollectionMenus;
 
         /* ---- Pet Info ---- */
         [
@@ -224,40 +321,86 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
         ].forEach(([id, value]) => setVar(id as string, value));
 
         /* ---- Service Selection ---- */
-        
-        
+
         [
-          [options.serviceSelectionEnabled, Boolean(serviceSelection.service.enabled)],
-          [options.serviceSelectionMessage, serviceSelection.service.message ?? ""],
-          [options.serviceSelectionValueMode, serviceSelection.showServiceValues.priceDisplayMode],
-          [options.additionalSelectionEnabled, Boolean(serviceSelection.serviceAddons.enabled)],
-          [options.additionalSelectionMessage, serviceSelection.serviceAddons.message ?? ""],
-          [options.professionalSelectionEnabled, Boolean(serviceSelection.serviceProfessionalChoice.enabled)],
-          [options.professionalSelectionMessage, serviceSelection.serviceProfessionalChoice.message ?? ""],
-          [options.promotionSelectionEnabled, Boolean(serviceSelection.showServicePromotions.enabled)],
+          [
+            options.serviceSelectionEnabled,
+            Boolean(serviceSelection.service.enabled),
+          ],
+          [
+            options.serviceSelectionMessage,
+            serviceSelection.service.message ?? "",
+          ],
+          [
+            options.serviceSelectionValueMode,
+            serviceSelection.showServiceValues.priceDisplayMode,
+          ],
+          [
+            options.additionalSelectionEnabled,
+            Boolean(serviceSelection.serviceAddons.enabled),
+          ],
+          [
+            options.additionalSelectionMessage,
+            serviceSelection.serviceAddons.message ?? "",
+          ],
+          [
+            options.professionalSelectionEnabled,
+            Boolean(serviceSelection.serviceProfessionalChoice.enabled),
+          ],
+          [
+            options.professionalSelectionMessage,
+            serviceSelection.serviceProfessionalChoice.message ?? "",
+          ],
+          [
+            options.promotionSelectionEnabled,
+            Boolean(serviceSelection.showServicePromotions.enabled),
+          ],
         ].forEach(([id, value]) => setVar(id as string, value));
-        
+
         /* ---- Time Selection ---- */
         [
-          [options.timeSelectionBehaviorMessage, timeSelection.timeSelectionBehavior.message],
-          [options.timeSelectionBehaviorMinAdvanceHours, timeSelection.timeSelectionBehavior.minAdvanceHours],
-          [options.timeSelectionBehaviorBehavior, timeSelection.timeSelectionBehavior.behavior],
-          [options.timeSelectionBehaviorTimeDisplayMode, timeSelection.timeSelectionBehavior.timeDisplayMode],
+          [
+            options.timeSelectionBehaviorMessage,
+            timeSelection.timeSelectionBehavior.message,
+          ],
+          [
+            options.timeSelectionBehaviorMinAdvanceHours,
+            timeSelection.timeSelectionBehavior.minAdvanceHours,
+          ],
+          [
+            options.timeSelectionBehaviorBehavior,
+            timeSelection.timeSelectionBehavior.behavior,
+          ],
+          [
+            options.timeSelectionBehaviorTimeDisplayMode,
+            timeSelection.timeSelectionBehavior.timeDisplayMode,
+          ],
         ].forEach(([id, value]) => setVar(id as string, value));
 
         const allowTakeAndBring = takeAndBring.allowTakeAndBring;
         [
           [options.takeAndBringEnabled, Boolean(allowTakeAndBring.enabled)],
           [options.takeAndBringMessage, allowTakeAndBring.message ?? ""],
-          [options.takeAndBringMinAdvanceHours, allowTakeAndBring.minAdvanceHours ?? ""],
+          [
+            options.takeAndBringMinAdvanceHours,
+            allowTakeAndBring.minAdvanceHours ?? "",
+          ],
         ].forEach(([id, value]) => setVar(id as string, value));
 
-
-        setVar(options?.guidanceMessage as string, guidance?.guidanceMessage?.message ?? "");
+        setVar(
+          options?.guidanceMessage as string,
+          guidance?.guidanceMessage?.message ?? "",
+        );
 
         [
-          [options.confirmClientNameEnabled, Boolean(extraInfo.confirmClientName.enabled)],
-          [options.confirmClientNameMessage, extraInfo.confirmClientName.message ?? ""],
+          [
+            options.confirmClientNameEnabled,
+            Boolean(extraInfo.confirmClientName.enabled),
+          ],
+          [
+            options.confirmClientNameMessage,
+            extraInfo.confirmClientName.message ?? "",
+          ],
           [options.clientCpfEnabled, Boolean(extraInfo.clientCpf.enabled)],
           [options.clientCpfMessage, extraInfo.clientCpf.message ?? ""],
           [options.petGenderEnabled, Boolean(extraInfo.petGender.enabled)],
@@ -267,10 +410,9 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
           [options.petWeightEnabled, Boolean(extraInfo.petWeight.enabled)],
           [options.petWeightMessage, extraInfo.petWeight.message ?? ""],
         ].forEach(([id, value]) => setVar(id as string, value));
-
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
-    }
+    },
   },
 });

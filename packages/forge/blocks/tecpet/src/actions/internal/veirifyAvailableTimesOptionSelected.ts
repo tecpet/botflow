@@ -14,37 +14,38 @@ export const verifyAvailableTimesOptionSelected = createAction({
       label: "Escolher outras datas disponiveis",
       isRequired: true,
       helperText: "Mostrar outras datas",
-      inputType: 'variableDropdown'
+      inputType: "variableDropdown",
     }),
-    
   }),
-  getSetVariableIds: ({selectedTime,showOtherDates}) => {
-      const variables = []
+  getSetVariableIds: ({ selectedTime, showOtherDates }) => {
+    const variables = [];
 
-      if(selectedTime) variables.push(selectedTime)
-      if(showOtherDates) variables.push(showOtherDates)
+    if (selectedTime) variables.push(selectedTime);
+    if (showOtherDates) variables.push(showOtherDates);
 
-      return variables
-  }  ,
+    return variables;
+  },
   run: {
-    server: async ({options, variables, logs}) => {
+    server: async ({ options, variables, logs }) => {
       try {
         let showOtherDates = false;
 
-        const selectedTime = JSON.parse(options.selectedTime ?? "");
+        console.log(options.selectedTime);
 
-        if(!selectedTime.id) {
-          showOtherDates = true
+        const rawSelectedTime = options.selectedTime;
+
+        const selectedTime = JSON.parse(rawSelectedTime ?? "");
+
+        if (!selectedTime.id) {
+          showOtherDates = true;
         }
 
         variables.set([
-          {id: options.showOtherDates as string, value: showOtherDates },
+          { id: options.showOtherDates as string, value: showOtherDates },
         ]);
-
       } catch (error) {
-       console.error(error)
+        console.error(error);
       }
-    }
-    ,
+    },
   },
 });

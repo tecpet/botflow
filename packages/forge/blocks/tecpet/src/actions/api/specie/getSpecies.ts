@@ -1,14 +1,15 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import { createAction, option } from "@typebot.io/forge";
+import { TecpetSDK } from "tecpet-sdk";
+import type { PaSpecieResponse } from "../../../../../tecpet-sdk/dist/domain/specie/dto/pa.get-specie.dto";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const getSpecies = createAction({
   auth,
   baseOptions,
   name: "Buscar Espécies da Loja",
   options: option.object({
-    shopId: option.string.layout({
+    shopId: option.number.layout({
       label: "Loja",
       isRequired: true,
       helperText: "Id da loja",
@@ -29,22 +30,44 @@ export const getSpecies = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({ species, speciesIds, speciesNames }) => {
+    const variables: string[] = [];
+
+    if (species) variables.push(species);
+
+    if (speciesIds) variables.push(speciesIds);
+
+    if (speciesNames) variables.push(speciesNames);
+
+    return variables;
+  },
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
-        const species = await tecpetSdk.specie.list(options?.shopId);
+        const species: PaSpecieResponse[] = (await tecpetSdk.specie.list(
+          Number(options?.shopId),
+        )) as PaSpecieResponse[];
         if (species) {
-            variables.set([{id: options.species, value: species}]);
-            variables.set([{id: options.speciesIds, value: species.map(s => s.id)}]);
-            variables.set([{id: options.speciesNames, value: species.map(s => s.name)}]);
+          variables.set([{ id: options.species as string, value: species }]);
+          variables.set([
+            {
+              id: options.speciesIds as string,
+              value: species.map((s) => s.id),
+            },
+          ]);
+          variables.set([
+            {
+              id: options.speciesNames as string,
+              value: species.map((s) => s.name),
+            },
+          ]);
         }
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     },
   },

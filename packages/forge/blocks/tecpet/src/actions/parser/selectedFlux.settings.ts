@@ -47,23 +47,54 @@ export const parseSelectedFluxSettings = createAction({
     }),
   }),
   run: {
-    server: async ({options, variables, logs}) => {
+    server: async ({ options, variables, logs }) => {
       try {
         const selectedMenuConfig =
-        typeof options.selectedMenuConfigurations === 'string'
-        ? JSON.parse(options.selectedMenuConfigurations)
-        : options.selectedMenuConfigurations as any;
-        
+          typeof options.selectedMenuConfigurations === "string"
+            ? JSON.parse(options.selectedMenuConfigurations)
+            : (options.selectedMenuConfigurations as any);
 
-        variables.set([{id: options.fluxId as string, value: selectedMenuConfig.id ?? ''}]);
-        variables.set([{id: options.fluxTypebotId as string, value: selectedMenuConfig.chatbotFlux.id ?? ''}]);
-        variables.set([{id: options.fluxName as string, value: selectedMenuConfig.name ?? ''}]);
-        variables.set([{id: options.fluxType as string, value: selectedMenuConfig.type ?? ''}]);
-        variables.set([{id: options.fluxMode as string, value: selectedMenuConfig.mode ?? ''}]);
-        variables.set([{id: options.schedulePermission as string, value: selectedMenuConfig.schedulePermission ?? ''}]);
-        variables.set([{id: options.conclusionMessage as string, value: selectedMenuConfig.conclusionMessage ?? ''}]);
+        variables.set([
+          { id: options.fluxId as string, value: selectedMenuConfig.id ?? "" },
+        ]);
+        variables.set([
+          {
+            id: options.fluxTypebotId as string,
+            value: selectedMenuConfig.chatbotFlux.id ?? "",
+          },
+        ]);
+        variables.set([
+          {
+            id: options.fluxName as string,
+            value: selectedMenuConfig.name ?? "",
+          },
+        ]);
+        variables.set([
+          {
+            id: options.fluxType as string,
+            value: selectedMenuConfig.type ?? "",
+          },
+        ]);
+        variables.set([
+          {
+            id: options.fluxMode as string,
+            value: selectedMenuConfig.mode ?? "",
+          },
+        ]);
+        variables.set([
+          {
+            id: options.schedulePermission as string,
+            value: selectedMenuConfig.schedulePermission ?? "",
+          },
+        ]);
+        variables.set([
+          {
+            id: options.conclusionMessage as string,
+            value: selectedMenuConfig.conclusionMessage ?? "",
+          },
+        ]);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     },
   },

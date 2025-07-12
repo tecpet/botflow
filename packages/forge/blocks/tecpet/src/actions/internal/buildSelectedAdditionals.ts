@@ -1,7 +1,6 @@
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
 
-
 export interface IAdditionals {
   id: string;
   name: string;
@@ -12,7 +11,7 @@ export const buildSelectedAdditionals = createAction({
   baseOptions,
   name: "Construir array de adicionais selecionados",
   options: option.object({
-    selectedAdditional: option.string.layout({
+    selectedAdditional: option.number.layout({
       label: "Adicional selecionado",
       isRequired: true,
       helperText: "Adicional selecionado",
@@ -56,57 +55,91 @@ export const buildSelectedAdditionals = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-
   }),
-  getSetVariableIds: ({additionalArray,selectedAdditional,selectedAdditionalsArray,updateSelectedAdditionalsArray,updatedAdditionalOptions,updatedAdditionalOptionsDescriptions,updatedAdditionalOptionsIds,updatedAdditionalOptionsNames}) => 
-    {
-      const variables = []
-      if(additionalArray) variables.push(additionalArray)
-      if(selectedAdditional) variables.push(selectedAdditional)
-      if(selectedAdditionalsArray) variables.push(selectedAdditionalsArray)
-      if(updateSelectedAdditionalsArray) variables.push(updateSelectedAdditionalsArray)
-      if(updatedAdditionalOptions) variables.push(updatedAdditionalOptions)
-      if(updatedAdditionalOptionsDescriptions) variables.push(updatedAdditionalOptionsDescriptions)
-      if(updatedAdditionalOptionsIds) variables.push(updatedAdditionalOptionsIds)
-      if(updatedAdditionalOptionsNames) variables.push(updatedAdditionalOptionsNames)
+  getSetVariableIds: ({
+    updateSelectedAdditionalsArray,
+    updatedAdditionalOptions,
+    updatedAdditionalOptionsDescriptions,
+    updatedAdditionalOptionsIds,
+    updatedAdditionalOptionsNames,
+  }) => {
+    const variables = [];
 
-      return variables
-    },
+    if (updateSelectedAdditionalsArray)
+      variables.push(updateSelectedAdditionalsArray);
+    if (updatedAdditionalOptions) variables.push(updatedAdditionalOptions);
+    if (updatedAdditionalOptionsDescriptions)
+      variables.push(updatedAdditionalOptionsDescriptions);
+    if (updatedAdditionalOptionsIds)
+      variables.push(updatedAdditionalOptionsIds);
+    if (updatedAdditionalOptionsNames)
+      variables.push(updatedAdditionalOptionsNames);
+
+    return variables;
+  },
   run: {
-    server: async ({options, variables, logs}) => {
+    server: async ({ options, variables }) => {
       try {
+        const selectedAdditionalId: number = Number(options.selectedAdditional);
 
-       const selectedAdditionalId: string = options.selectedAdditional as string;
+        const loadAdditionals: IAdditionals[] = JSON.parse(
+          options.additionalArray ?? "[]",
+        );
 
-       const loadAdditionals: IAdditionals[] = JSON.parse(options.additionalArray ?? "[]");
+        const additionals = loadAdditionals.map((item) =>
+          typeof item === "string" ? JSON.parse(item) : item,
+        );
 
-       const additionals = loadAdditionals.map(item =>
-            typeof item === "string" ? JSON.parse(item) : item
-       );
+        const selectedAdditionals = JSON.parse(
+          options.selectedAdditionalsArray ?? "[]",
+        );
 
-        const selectedAdditionals = JSON.parse(options.selectedAdditionalsArray ?? "[]") ;
+        let withoutDuplicates: number[] = [];
 
-        let withoutDuplicates: string[] = [];
-
-        if(selectedAdditionals && selectedAdditionals.length > 0){
-           withoutDuplicates = [...selectedAdditionals]; 
+        if (selectedAdditionals && selectedAdditionals.length > 0) {
+          withoutDuplicates = [...selectedAdditionals];
         }
 
         withoutDuplicates.push(selectedAdditionalId);
-        
-        const selectedItem = additionals.find(item => item.id == selectedAdditionalId); 
 
-        const updatedAdditionalArray = additionals.filter(item => item.id !== selectedItem.id);
+        const selectedItem = additionals.find(
+          (item) => item.id === selectedAdditionalId,
+        );
 
-        variables.set([{id: options.updateSelectedAdditionalsArray as string, value: withoutDuplicates},]);
-        variables.set([{id: options.updatedAdditionalOptions as string, value: updatedAdditionalArray}]);
-        variables.set([{id: options.updatedAdditionalOptionsIds as string, value: updatedAdditionalArray.map(s => s.id)}]);
-        variables.set([{id: options.updatedAdditionalOptionsNames as string, value: updatedAdditionalArray.map(s => s.name)}]);
-        variables.set([{
-          id: options.updatedAdditionalOptionsDescriptions as string,
-          value: updatedAdditionalArray.map(s => s.description)
-        }]);
-        
+        const updatedAdditionalArray = additionals.filter(
+          (item) => item.id !== selectedItem.id,
+        );
+
+        variables.set([
+          {
+            id: options.updateSelectedAdditionalsArray as string,
+            value: withoutDuplicates,
+          },
+        ]);
+        variables.set([
+          {
+            id: options.updatedAdditionalOptions as string,
+            value: updatedAdditionalArray,
+          },
+        ]);
+        variables.set([
+          {
+            id: options.updatedAdditionalOptionsIds as string,
+            value: updatedAdditionalArray.map((s) => s.id),
+          },
+        ]);
+        variables.set([
+          {
+            id: options.updatedAdditionalOptionsNames as string,
+            value: updatedAdditionalArray.map((s) => s.name),
+          },
+        ]);
+        variables.set([
+          {
+            id: options.updatedAdditionalOptionsDescriptions as string,
+            value: updatedAdditionalArray.map((s) => s.description),
+          },
+        ]);
       } catch (error) {
         console.error(error);
       }

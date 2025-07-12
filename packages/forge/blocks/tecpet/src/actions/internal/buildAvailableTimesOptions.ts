@@ -11,9 +11,11 @@ export const buildAvailableTimesOptions = createAction({
       helperText: "Horários disponiveis para hoje e amanhã",
     }),
     timeSelectionBehaviorMinAdvanceHours: option.string.layout({
-      label: "Comportamento do seletor de horários - Tempo mínimo de antecedência",
+      label:
+        "Comportamento do seletor de horários - Tempo mínimo de antecedência",
       isRequired: true,
-      helperText: "Tempo mínimo de antecedência para selecionar horários disponiveis. Exemplo: 2 horas",
+      helperText:
+        "Tempo mínimo de antecedência para selecionar horários disponiveis. Exemplo: 2 horas",
     }),
     timeSelectionBehaviorBehavior: option.string.layout({
       label: "Comportamento do seletor de horários - Comportamento",
@@ -41,27 +43,59 @@ export const buildAvailableTimesOptions = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
-  run: {
-    server: async ({options, variables, logs}) => {
-      try {
-        const availableTimesRaw = typeof options.availableTimes === 'string' ? JSON.parse(options.availableTimes) : options.availableTimes as any;
+  getSetVariableIds: ({
+    availableTimesIds,
+    availableTimesStartAndStop,
+    availableTimesDates,
+  }) => {
+    const variables: Array<string> = [];
 
-        const availableTimes = availableTimesRaw.map(item => typeof item === 'string' ? JSON.parse(item) : item);
+    if (availableTimesIds) variables.push(availableTimesIds);
+
+    if (availableTimesStartAndStop) variables.push(availableTimesStartAndStop);
+
+    if (availableTimesDates) variables.push(availableTimesDates);
+
+    return variables;
+  },
+  run: {
+    server: async ({ options, variables }) => {
+      try {
+        const availableTimesRaw: {
+          id: string | boolean;
+          startStop: string;
+          dateBR: string;
+        }[] = JSON.parse(options.availableTimes as string) ?? [];
+
+        const availableTimes = availableTimesRaw.map((item) =>
+          typeof item === "string" ? JSON.parse(item) : item,
+        );
 
         // TODO: remove and format available times according to config...
 
-        availableTimes.push({id: false, startStop: 'PREFIRO OUTRA DATA', dateBR: ''});
+        availableTimes.push({
+          id: false,
+          startStop: "PREFIRO OUTRA DATA",
+          dateBR: "",
+        });
 
         variables.set([
-          {id: options.availableTimesIds as string, value: availableTimes.map(t => t.id)},
-          {id: options.availableTimesStartAndStop as string, value: availableTimes.map(t => t.startStop)},
-          {id: options.availableTimesDates as string, value: availableTimes.map(t => t.dateBR)}
+          {
+            id: options.availableTimesIds as string,
+            value: availableTimes.map((t) => t.id),
+          },
+          {
+            id: options.availableTimesStartAndStop as string,
+            value: availableTimes.map((t) => t.startStop),
+          },
+          {
+            id: options.availableTimesDates as string,
+            value: availableTimes.map((t) => t.dateBR),
+          },
         ]);
       } catch (error) {
-       console.error(error)
+        console.error(error);
       }
-    }
-    ,
+    },
   },
 });
