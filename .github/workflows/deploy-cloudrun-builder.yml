@@ -1,0 +1,207 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ master ]
+
+env:
+  PROJECT_ID: botflow-builder
+  REGION: us-west1
+  SERVICE_NAME: botflow-builder
+  REPOSITORY: us-west1-docker.pkg.dev/tecpet-cloud/botflow
+  IMAGE_NAME: botflow-builder
+  SCOPE: builder
+
+jobs:
+  deploy:
+    name: Build, Release e Deploy
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: 🔄 Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🧠 Configurar Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 🔍 Verificar se há mudanças desde a última tag
+        id: check-changes
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            CHANGES=$(git log "$LAST_TAG"..HEAD --oneline | wc -l)
+            if [ "$CHANGES" -eq 0 ]; then
+              echo "No changes since last tag. Skipping release."
+              echo "skip=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+          echo "skip=false" >> $GITHUB_OUTPUT
+
+      - name: 🆙 Incrementar versão (patch)
+        if: steps.check-changes.outputs.skip == 'false'
+        run: |
+          # Verificar se já existe alguma versão
+          CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
+          echo "📦 Versão atual: $CURRENT_VERSION"
+          
+          if [ "$CURRENT_VERSION" = "0.0.0" ]; then
+            # Primeira versão
+            NEW_VERSION="0.0.1"
+            npm version $NEW_VERSION --no-git-tag-version
+          else
+            # Incrementar patch
+            yarn version --patch --no-git-tag-version
+            NEW_VERSION=$(node -p "require('./package.json').version")
+          fi
+          
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "🚀 Nova versão: $NEW_VERSION"
+
+      - name: 📜 Gerar changelog com commits desde última tag
+        if: steps.check-changes.outputs.skip == 'false'
+        id: changelog
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "📦 Última  tag: $LAST_TAG"
+          
+          if [ -z "$LAST_TAG" ]; then
+            echo "🎉 Release inicial" > changelog.md
+            git log --pretty=format:"- %s (%h)" --no-merges >> changelog.md
+          else
+            echo "🚀 Alterações desde $LAST_TAG:" > changelog.md
+            git log "$LAST_TAG"..HEAD --pretty=format:"- %s (%h)" --no-merges >> changelog.md
+          fi
+          
+          # Verificar se há conteúdo no changelog
+          if [ ! -s changelog.md ]; then
+            echo "- Melhorias e correções diversas" > changelog.md
+          fi
+
+      - name: 🏷️ Commit e criar tag
+        if: steps.check-changes.outputs.skip == 'false'
+        run: |
+          # Commit da nova versão
+          git add package.json
+          git commit -m "chore: release v${{ env.NEW_VERSION }}"
+          TAG_NAME="v${{ env.NEW_VERSION }}"
+          
+          # Verificar se a tag já existe e deletá-la se necessário
+          if git tag -l | grep -q "^$TAG_NAME$"; then
+            echo "⚠️ Tag $TAG_NAME já existe. Deletando tag local..."
+            git tag -d "$TAG_NAME"
+          
+            # Verificar se existe no remoto e deletar se necessário
+            if git ls-remote --tags origin | grep -q "refs/tags/$TAG_NAME$"; then
+              echo "⚠️ Tag $TAG_NAME existe no remoto. Deletando..."
+              git push origin :refs/tags/"$TAG_NAME"
+            fi
+          fi
+          
+          git tag "$TAG_NAME"
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+          echo "✅ Tag $TAG_NAME criada"
+
+      - name: 🔐 Autenticar no Google Cloud
+        if: steps.check-changes.outputs.skip == 'false'
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          token_format: access_token
+
+      - name: 🛠️ Configurar Docker Buildx
+        if: steps.check-changes.outputs.skip == 'false'
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🐳 Configurar Docker para Artifact Registry
+        if: steps.check-changes.outputs.skip == 'false'
+        uses: docker/login-action@v3
+        with:
+          registry: us-west1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - name: 🏗️ Build e push da imagem Docker
+        if: steps.check-changes.outputs.skip == 'false'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          build-args: |
+            SCOPE=${{ env.SCOPE }}
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:cache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:cache,mode=max
+          tags: |
+            ${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }}
+            ${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: 🚀 Deploy no Cloud Run
+        if: steps.check-changes.outputs.skip == 'false'
+        run: |
+          echo "🚀 Fazendo deploy no Cloud Run..."
+          IMAGE_URI="${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }}"
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image=$IMAGE_URI \
+            --region=${{ env.REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --port=8181 \
+            --update-env-vars="NODE_ENV=production,PROD=true" \
+            --memory=1Gi \
+            --cpu=1 \
+            --max-instances=10 \
+            --min-instances=0 \
+            --concurrency=100 \
+            --timeout=300
+          
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "✅ Deploy realizado com sucesso!"
+
+      - name: 📤 Push da branch e tags
+        if: steps.check-changes.outputs.skip == 'false'
+        run: |
+          # Push da branch e tags
+          git push origin main --follow-tags
+          echo "✅ Tag ${{ env.TAG_NAME }} enviada para o remoto"
+
+      - name: 🌐 Obter URL do Cloud Run
+        if: steps.check-changes.outputs.skip == 'false'
+        id: url
+        run: |
+          URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: 🚀 Criar release no GitHub
+        if: steps.check-changes.outputs.skip == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: 🎉 Release ${{ env.TAG_NAME }}
+          body_path: changelog.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📋 Resumo do deployment
+        if: steps.check-changes.outputs.skip == 'false'
+        run: |
+          echo "🎉 Deploy realizado com sucesso!"
+          echo "📦 Versão: ${{ env.NEW_VERSION }}"
+          echo "🐳 Imagem: ${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }}"
+          echo "🌐 URL: ${{ steps.url.outputs.url }}"
+          echo "📝 Release: https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG_NAME }}"
