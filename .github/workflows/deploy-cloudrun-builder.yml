@@ -33,7 +33,6 @@ jobs:
           node-version: '22'
 
       - name: 🧰 Setup Bun
-        if: steps.check-changes.outputs.skip == 'false'
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
