@@ -1,10 +1,10 @@
-import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
-import type { ShopSegment } from "../../../../../tecpet-sdk/dist/domain/segment/enum/segment.enum";
 import type {
   PaGetServicePricingResponse,
   ServiceCategoryType,
-} from "../../../../../tecpet-sdk/dist/domain/service/dto/pa.get-service-pricing.dto";
+  ShopSegment,
+} from "@tec.pet/tecpet-sdk";
+import { TecpetSDK } from "@tec.pet/tecpet-sdk";
+import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 

@@ -1,6 +1,6 @@
+import type { PaBreedResponse } from "@tec.pet/tecpet-sdk";
+import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
-import type { PaBreedResponse } from "../../../../../tecpet-sdk/dist/domain/breed/dto/pa.get-breed.dto";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { getSimilarBreeds } from "../../../helpers/utils";

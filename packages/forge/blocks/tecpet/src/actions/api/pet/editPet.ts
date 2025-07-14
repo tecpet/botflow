@@ -1,11 +1,11 @@
-import { createAction, option } from "@typebot.io/forge";
+import type { PaEditPetInput } from "@tec.pet/tecpet-sdk";
 import {
   type BillingItemType,
   type GenderType,
   type PaPetResponse,
   TecpetSDK,
-} from "tecpet-sdk";
-import type { PaEditPetInput } from "../../../../../tecpet-sdk/dist/domain/pet/dto/pa.edit-pet.dto";
+} from "@tec.pet/tecpet-sdk";
+import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 

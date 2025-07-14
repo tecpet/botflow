@@ -1,7 +1,6 @@
+import type { PaCreateBookingInput, ShopSegment } from "@tec.pet/tecpet-sdk";
+import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
-import type { PaCreateBookingInput } from "../../../../../tecpet-sdk/dist/domain/booking/dto/pa.create-booking.dto";
-import type { ShopSegment } from "../../../../../tecpet-sdk/dist/domain/segment/enum/segment.enum";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { parseIds } from "../../../helpers/utils";

@@ -1,6 +1,6 @@
+import type { PaEditClientInput } from "@tec.pet/tecpet-sdk";
+import { type PaClientResponse, TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { type PaClientResponse, TecpetSDK } from "tecpet-sdk";
-import type { PaEditClientInput } from "../../../../../tecpet-sdk/dist/domain/client/dto/pa.edit-client.dto";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 

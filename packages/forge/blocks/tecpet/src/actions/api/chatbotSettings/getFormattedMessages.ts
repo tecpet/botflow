@@ -1,6 +1,6 @@
+import type { GetChatbotFormattedMessagesInput } from "@tec.pet/tecpet-sdk";
+import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
-import type { GetChatbotFormattedMessagesInput } from "../../../../../tecpet-sdk/dist/domain/chatbot/dto/get-chatbot-formatted-messages.dto";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 

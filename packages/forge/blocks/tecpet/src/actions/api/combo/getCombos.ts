@@ -1,7 +1,6 @@
+import type { PaComboPricingResponse, ShopSegment } from "@tec.pet/tecpet-sdk";
+import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
-import type { PaComboPricingResponse } from "../../../../../tecpet-sdk/dist/domain/combo/dto/pa.get-combo-pricing.dto";
-import type { ShopSegment } from "../../../../../tecpet-sdk/dist/domain/segment/enum/segment.enum";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 

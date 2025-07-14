@@ -1,7 +1,6 @@
+import type { PaBillingResponse, ShopSegment } from "@tec.pet/tecpet-sdk";
+import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
-import type { PaBillingResponse } from "../../../../../tecpet-sdk/dist/domain/billingMethod/dto/pa.get-billing-methods.dto";
-import type { ShopSegment } from "../../../../../tecpet-sdk/dist/domain/segment/enum/segment.enum";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 

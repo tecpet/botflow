@@ -1,5 +1,5 @@
+import { type PaClientSummaryResponse, TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { type PaClientSummaryResponse, TecpetSDK } from "tecpet-sdk";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 

@@ -1,6 +1,6 @@
+import type { PaExtractTokenResponse } from "@tec.pet/tecpet-sdk";
+import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
-import type { PaExtractTokenResponse } from "../../../../../tecpet-sdk/dist/domain/token/dto/pa.extract-token.dto";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 

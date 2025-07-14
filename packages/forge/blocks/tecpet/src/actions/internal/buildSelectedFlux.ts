@@ -1,5 +1,5 @@
+import type { ChatbotActionJson } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import type { ChatbotActionJson } from "tecpet-sdk";
 import { baseOptions } from "../../constants";
 
 export const buildSelectedFlux = createAction({
