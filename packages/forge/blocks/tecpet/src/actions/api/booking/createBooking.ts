@@ -1,15 +1,16 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
-import {parseIds} from "../../../helpers/utils";
+import type { PaCreateBookingInput, ShopSegment } from "@tec.pet/tecpet-sdk";
+import { TecpetSDK } from "@tec.pet/tecpet-sdk";
+import { createAction, option } from "@typebot.io/forge";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { parseIds } from "../../../helpers/utils";
 
 export const createBooking = createAction({
   auth,
   baseOptions,
   name: "Criar um agendamento",
   options: option.object({
-    shopId: option.string.layout({
+    shopId: option.number.layout({
       label: "Id da loja",
       isRequired: true,
       helperText: "Id da loja",
@@ -24,7 +25,7 @@ export const createBooking = createAction({
       isRequired: true,
       helperText: "Ids dos combos disponiveis",
     }),
-    petId: option.string.layout({
+    petId: option.number.layout({
       label: "Id do Pet",
       isRequired: true,
       helperText: "Id do pet",
@@ -60,9 +61,16 @@ export const createBooking = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({ booking, bookingId }) => {
+    const variables = [];
+
+    if (booking) variables.push(booking);
+    if (bookingId) variables.push(bookingId);
+
+    return variables;
+  },
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
@@ -77,20 +85,29 @@ export const createBooking = createAction({
         const combos = comboIds.includes(selectedId) ? [selectedId] : [];
 
         const additionalsRaw = options.selectedAdditionals ?? "[]";
-        (typeof additionalsRaw === "string" ? JSON.parse(additionalsRaw) : additionalsRaw)
-          .forEach((id: string | number) => services.push(Number(id)));
+        (typeof additionalsRaw === "string"
+          ? JSON.parse(additionalsRaw)
+          : additionalsRaw
+        ).forEach((id: string | number) => services.push(Number(id)));
 
-        const body = {
-          timeId: options.selectedTimeOption,
-          petId: options.petId,
+        const body: PaCreateBookingInput = {
+          timeId: options.selectedTimeOption ?? "",
+          petId: Number(options.petId),
           servicesId: services,
           combosId: combos,
-          segment: options.segmentType,
-        }
-        const createdBooking = await tecpetSdk.booking.create(body, options.shopId);
+          segment: options.segmentType as ShopSegment,
+        };
+        const createdBooking = await tecpetSdk.booking.create(
+          body,
+          Number(options.shopId),
+        );
         if (createdBooking) {
-          variables.set([{id: options.booking, value: createdBooking}]);
-          variables.set([{id: options.bookingId, value: createdBooking.id}]);
+          variables.set([
+            { id: options.booking as string, value: createdBooking },
+          ]);
+          variables.set([
+            { id: options.bookingId as string, value: createdBooking.id },
+          ]);
         }
       } catch (error) {
         console.error(error);

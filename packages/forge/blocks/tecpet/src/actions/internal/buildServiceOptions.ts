@@ -63,63 +63,128 @@ export const buildServiceOptions = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({
+    serviceOptions,
+    serviceOptionsDescriptions,
+    serviceOptionsIds,
+    serviceOptionsNames,
+    additionalOptions,
+    additionalOptionsDescriptions,
+    additionalOptionsIds,
+    additionalOptionsNames,
+  }) => {
+    const variables = [];
+
+    if (serviceOptions) variables.push(serviceOptions);
+    if (serviceOptionsDescriptions) variables.push(serviceOptionsDescriptions);
+    if (serviceOptionsIds) variables.push(serviceOptionsIds);
+    if (serviceOptionsNames) variables.push(serviceOptionsNames);
+    if (additionalOptions) variables.push(additionalOptions);
+    if (additionalOptionsDescriptions)
+      variables.push(additionalOptionsDescriptions);
+    if (additionalOptionsIds) variables.push(additionalOptionsIds);
+    if (additionalOptionsNames) variables.push(additionalOptionsNames);
+
+    return variables;
+  },
   run: {
-    server: async ({options, variables, logs}) => {
+    server: async ({ options, variables }) => {
       try {
-        const buildDescription = (entity) => {
-          let finalDescription = '';
-          const price = entity.price ? `${formatAsCurrency(entity.price)}\n` : '';
-          const description = entity.description ? entity.description : '';
+        const buildDescription = (entity: any) => {
+          let finalDescription = "";
+          const price = entity.price
+            ? `${formatAsCurrency(entity.price)}\n`
+            : "";
+
+          const description = entity.description ? entity.description : "";
+
           switch (serviceSelectionValueMode) {
-            case 'SHOW_FROM':
+            case "SHOW_FROM":
               finalDescription = `A partir de: R$${price}${description} `;
               break;
-            case  'SHOW':
+            case "SHOW":
               finalDescription = `R$${price}${description} `;
-              break
+              break;
             default:
-              break
+              break;
           }
           return finalDescription;
-        }
-        const combosRaw = typeof options.combos === 'string' ? JSON.parse(options.combos) : options.combos as any;
-        const categoriesAndServicesRaw = typeof options.categoriesAndServices === 'string' ? JSON.parse(options.categoriesAndServices) : options.categoriesAndServices as any;
+        };
+
+        const combosRaw =
+          typeof options.combos === "string"
+            ? JSON.parse(options.combos)
+            : (options.combos as any);
+        const categoriesAndServicesRaw =
+          typeof options.categoriesAndServices === "string"
+            ? JSON.parse(options.categoriesAndServices)
+            : (options.categoriesAndServices as any);
         const combos = combosRaw.map(JSON.parse);
         const categoriesAndServices = categoriesAndServicesRaw.map(JSON.parse);
         const serviceSelectionValueMode = options.serviceSelectionValueMode;
         const serviceOptions = [];
         const additionalOptions = [];
+
         for (const combo of combos) {
           combo.description = buildDescription(combo);
           serviceOptions.push(combo);
-        } 
-
+        }
 
         for (const category of categoriesAndServices) {
           for (const service of category.services) {
             service.description = buildDescription(service);
-            category.type === 'ADDITIONAL' ? additionalOptions.push(service) : serviceOptions.push(service);
+            category.type === "ADDITIONAL"
+              ? additionalOptions.push(service)
+              : serviceOptions.push(service);
           }
         }
 
-        variables.set([{id: options.serviceOptions, value: serviceOptions}]);
-        variables.set([{id: options.serviceOptionsIds, value: serviceOptions.map(s => s.id)}]);
-        variables.set([{id: options.serviceOptionsNames, value: serviceOptions.map(s => s.name)}]);
-        variables.set([{id: options.serviceOptionsDescriptions, value: serviceOptions.map(s => s.description)}]);
+        variables.set([
+          { id: options.serviceOptions as string, value: serviceOptions },
+        ]);
+        variables.set([
+          {
+            id: options.serviceOptionsIds as string,
+            value: serviceOptions.map((s) => s.id),
+          },
+        ]);
+        variables.set([
+          {
+            id: options.serviceOptionsNames as string,
+            value: serviceOptions.map((s) => s.name),
+          },
+        ]);
+        variables.set([
+          {
+            id: options.serviceOptionsDescriptions as string,
+            value: serviceOptions.map((s) => s.description),
+          },
+        ]);
 
-        variables.set([{id: options.additionalOptions, value: additionalOptions}]);
-        variables.set([{id: options.additionalOptionsIds, value: additionalOptions.map(s => s.id)}]);
-        variables.set([{id: options.additionalOptionsNames, value: additionalOptions.map(s => s.name)}]);
-        variables.set([{
-          id: options.additionalOptionsDescriptions,
-          value: additionalOptions.map(s => s.description)
-        }]);
-
+        variables.set([
+          { id: options.additionalOptions as string, value: additionalOptions },
+        ]);
+        variables.set([
+          {
+            id: options.additionalOptionsIds as string,
+            value: additionalOptions.map((s) => s.id),
+          },
+        ]);
+        variables.set([
+          {
+            id: options.additionalOptionsNames as string,
+            value: additionalOptions.map((s) => s.name),
+          },
+        ]);
+        variables.set([
+          {
+            id: options.additionalOptionsDescriptions as string,
+            value: additionalOptions.map((s) => s.description),
+          },
+        ]);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
-    }
-    ,
+    },
   },
 });

@@ -1,19 +1,25 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import type { PaEditPetInput } from "@tec.pet/tecpet-sdk";
+import {
+  type BillingItemType,
+  type GenderType,
+  type PaPetResponse,
+  TecpetSDK,
+} from "@tec.pet/tecpet-sdk";
+import { createAction, option } from "@typebot.io/forge";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const editPet = createAction({
   auth,
   baseOptions,
   name: "Editar um pet",
   options: option.object({
-    shopId: option.string.layout({
+    shopId: option.number.layout({
       label: "Id da loja",
       isRequired: true,
       helperText: "Id da loja",
     }),
-    petId: option.string.layout({
+    petId: option.number.layout({
       label: "Id do pet",
       isRequired: true,
       helperText: "Id do pet",
@@ -69,30 +75,64 @@ export const editPet = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({
+    editedPetBirthDate,
+    editedPetGender,
+    editedPetHair,
+    editedPetSize,
+    editedPetWeight,
+  }) => {
+    const variables = [];
+
+    if (editedPetBirthDate) variables.push(editedPetBirthDate);
+    if (editedPetGender) variables.push(editedPetGender);
+    if (editedPetHair) variables.push(editedPetHair);
+    if (editedPetSize) variables.push(editedPetSize);
+    if (editedPetWeight) variables.push(editedPetWeight);
+
+    return variables;
+  },
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
 
-        const body = {
-          weight: options.petWeight ? parseFloat(options.petWeight) : null,
-          genre: options.petGender ? options.petGender === 'Macho' ? 'MALE' : 'FEMALE' : null,
-          birthDate: options.petBirthDate ? options.petBirthDate : null,
-          hair: options.petHair ? options.petHair : null,
-          size: options.petSize ? options.petSize : null,
-        }
-        const editedPet = await tecpetSdk.pet.edit(options.petId, body, options.shopId);
+        const body: PaEditPetInput = {
+          weigth: Number(options.petWeight),
+          genre: (options.petGender === "Macho"
+            ? "MALE"
+            : "FEMALE") as GenderType,
+          birthDate: options.petBirthDate ?? "",
+          hair: options.petHair as BillingItemType,
+          size: options.petSize as BillingItemType,
+        };
+        const editedPet: PaPetResponse = (await tecpetSdk.pet.edit(
+          Number(options.petId),
+          body,
+        )) as PaPetResponse;
 
         if (editedPet) {
-          variables.set([{id: options.editedPetWeight, value: editedPet.weight}]);
-          variables.set([{id: options.editedPetGender, value: editedPet.genre}]);
-          variables.set([{id: options.editedPetBirthDate, value: editedPet.birthDate}]);
-          variables.set([{id: options.editedPetSize, value: editedPet.size}]);
-          variables.set([{id: options.editedPetHair, value: editedPet.hair}]);
+          variables.set([
+            { id: options.editedPetWeight as string, value: editedPet.weigth },
+          ]);
+          variables.set([
+            { id: options.editedPetGender as string, value: editedPet.genre },
+          ]);
+          variables.set([
+            {
+              id: options.editedPetBirthDate as string,
+              value: editedPet.birthDate,
+            },
+          ]);
+          variables.set([
+            { id: options.editedPetSize as string, value: editedPet.size },
+          ]);
+          variables.set([
+            { id: options.editedPetHair as string, value: editedPet.hair },
+          ]);
         }
       } catch (error) {
         console.error(error);

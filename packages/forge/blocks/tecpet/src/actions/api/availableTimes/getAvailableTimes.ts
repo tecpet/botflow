@@ -1,5 +1,10 @@
+import type {
+  PaGetAvailableTimesResponse,
+  PaGetAvailableTimesTimesBody,
+  ShopSegment,
+} from "@tec.pet/tecpet-sdk";
+import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { formatBRDate, formatISODate, parseIds } from "../../../helpers/utils";
@@ -9,7 +14,7 @@ export const getAvailableTimes = createAction({
   baseOptions,
   name: "Buscar opções de horário",
   options: option.object({
-    shopId: option.string.layout({
+    shopId: option.number.layout({
       label: "Id da loja",
       isRequired: true,
       helperText: "Id da loja",
@@ -24,7 +29,7 @@ export const getAvailableTimes = createAction({
       isRequired: true,
       helperText: "Id dos serviços disponiveis",
     }),
-    petId: option.string.layout({
+    petId: option.number.layout({
       label: "Id do Pet",
       isRequired: true,
       helperText: "Id do pet",
@@ -54,15 +59,44 @@ export const getAvailableTimes = createAction({
       isRequired: true,
       helperText: "Selecionado outras datas",
     }),
+    getAdditionalDays: option.string.layout({
+      label: "Quantidade de dias adicionais",
+      isRequired: true,
+      defaultValue: "0",
+      helperText: "Buscar quantidade de dias atuais",
+    }),
+    inputAdditionalDays: option.string.layout({
+      label: "Input de dias adicionais",
+      helperText: "Dias para adicionar",
+      inputType: "variableDropdown",
+    }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({ availableTimes, inputAdditionalDays }) => {
+    const variables = [];
+
+    if (availableTimes) variables.push(availableTimes);
+
+    if (inputAdditionalDays) variables.push(inputAdditionalDays);
+
+    return variables;
+  },
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
+
+        const rawAdditionalDays = options.getAdditionalDays;
+
+        let additionalDays = rawAdditionalDays ? Number(rawAdditionalDays) : 0;
+
+        const showOtherDates = JSON.parse(options.showOtherDates ?? "false");
+
+        if (showOtherDates) {
+          additionalDays += 2;
+        }
 
         const serviceIds = parseIds(options.servicesIds);
         const comboIds = parseIds(options.combosIds);
@@ -72,41 +106,57 @@ export const getAvailableTimes = createAction({
         const combos = comboIds.includes(selectedId) ? [selectedId] : [];
 
         const additionalsRaw = options.selectedAdditionals ?? "[]";
-        (typeof additionalsRaw === "string" ? JSON.parse(additionalsRaw) : additionalsRaw)
-          .forEach((id: string | number) => services.push(Number(id)));
+        (typeof additionalsRaw === "string"
+          ? JSON.parse(additionalsRaw)
+          : additionalsRaw
+        ).forEach((id: string | number) => services.push(Number(id)));
 
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        const searchDates = [formatISODate(today), formatISODate(tomorrow)];
-
-        type TimeItem = ReturnType<typeof tecpetSdk.availableTimes.list>[number] & {
-          dateISO: string;           // 2025-06-11
-          dateBR: string;           // 11/06/2025
-          startStop: string;         // 08:00 - 10:00
+        type TimeItem = PaGetAvailableTimesResponse & {
+          dateISO: string; // 2025-06-11
+          dateBR: string; // 11/06/2025
+          startStop: string; // 08:00 - 10:00
         };
 
-        const all: TimeItem[] = [];
+        const MAX_ATTEMPTS = 10;
+        let all: TimeItem[] = [];
 
-        for (const dateISO of searchDates) {
-          const body = {
-            date: dateISO,
-            combos,
-            services,
-            petId: options.petId,
-            segment: options.segmentType,
-          };
+        while (additionalDays < MAX_ATTEMPTS) {
+          const today = new Date();
 
-          const times = await tecpetSdk.availableTimes.list(body, options.shopId);
+          if (showOtherDates) today.setDate(today.getDate() + additionalDays);
 
-          times?.forEach((t: any) =>
-            all.push({
-              ...t,
-              dateISO,
-              dateBR: formatBRDate(dateISO),
-              startStop: `${t.start} - ${t.stop}`,
-            }),
-          );
+          const tomorrow = new Date(today);
+          tomorrow.setDate(today.getDate() + 1);
+
+          const searchDates = [formatISODate(today), formatISODate(tomorrow)];
+
+          all = [];
+
+          for (const dateISO of searchDates) {
+            const body: PaGetAvailableTimesTimesBody = {
+              date: dateISO,
+              combos,
+              services,
+              petId: Number(options.petId),
+              segment: options.segmentType as ShopSegment,
+            };
+
+            const times = await tecpetSdk.availableTimes.list(
+              body,
+              Number(options.shopId),
+            );
+            times?.forEach((t: any) =>
+              all.push({
+                ...t,
+                dateISO,
+                dateBR: formatBRDate(dateISO),
+                startStop: `${t.start} - ${t.stop}`,
+              }),
+            );
+          }
+          // Se achou horários, sai do loop
+          if (all.length > 0) break;
+          additionalDays++;
         }
 
         all.sort((a, b) =>
@@ -115,7 +165,10 @@ export const getAvailableTimes = createAction({
             : a.dateISO.localeCompare(b.dateISO),
         );
 
-        variables.set([{id: options.availableTimes, value: all}]);
+        variables.set([
+          { id: options.inputAdditionalDays as string, value: additionalDays },
+        ]);
+        variables.set([{ id: options.availableTimes as string, value: all }]);
       } catch (error) {
         console.error(error);
       }

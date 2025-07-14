@@ -1,3 +1,4 @@
+import type { ChatbotActionJson } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
 
@@ -21,37 +22,40 @@ export const buildSelectedFlux = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({ menu, selectedFluxId, selectedMenuSettings }) => {
+    const variables = [];
+    if (menu) variables.push(menu);
+
+    if (selectedFluxId) variables.push(selectedFluxId);
+
+    if (selectedMenuSettings) variables.push(selectedMenuSettings);
+
+    return variables;
+  },
   run: {
-    server: async ({options, variables, logs}) => {
+    server: async ({ options, variables }) => {
       try {
-        
         const rawMenu = options.menu;
         const selectedId = options.selectedFluxId;
-        
-        let menuArray;
-        
-        if (typeof rawMenu === 'string') {
-          const menuStrings = JSON.parse(rawMenu);
-          menuArray = menuStrings.map(item =>
-            typeof item === 'string' ? JSON.parse(item) : item
-          );
-        } else if (Array.isArray(rawMenu)) {
-          menuArray = rawMenu.map(item =>
-            typeof item === 'string' ? JSON.parse(item) : item
-          );
-        } else {
-          throw new Error('Formato inesperado em "Menu"');
-        }
-        
 
-        const selected = menuArray.find(({id}) => id === selectedId);
+        let menuArray: ChatbotActionJson[] = [];
 
-        variables.set([{id: options.selectedMenuSettings, value: selected}]);
+        const menuStrings: ChatbotActionJson[] = JSON.parse(rawMenu as string);
 
+        menuArray = menuStrings.map((item) =>
+          typeof item === "string" ? JSON.parse(item) : item,
+        );
+
+        const selected = menuArray.find(
+          (action: any) => action.id === selectedId,
+        );
+
+        variables.set([
+          { id: options.selectedMenuSettings as string, value: selected },
+        ]);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
-    }
+    },
   },
 });

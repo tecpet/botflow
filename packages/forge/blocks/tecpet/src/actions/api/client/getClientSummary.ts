@@ -1,7 +1,7 @@
-import {createAction, option} from "@typebot.io/forge";
-import {TecpetSDK} from "tecpet-sdk";
-import {auth} from "../../../auth";
-import {baseOptions, tecpetDefaultBaseUrl} from "../../../constants";
+import { type PaClientSummaryResponse, TecpetSDK } from "@tec.pet/tecpet-sdk";
+import { createAction, option } from "@typebot.io/forge";
+import { auth } from "../../../auth";
+import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
 export const getClientSummary = createAction({
   auth,
@@ -22,9 +22,15 @@ export const getClientSummary = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({client}) => (client ? [client] : []),
+  getSetVariableIds: ({ client }) => {
+    const variables = [];
+
+    if (client) variables.push(client);
+
+    return variables;
+  },
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
         if (!options.clientId || !options.shopId) {
           return;
@@ -34,13 +40,14 @@ export const getClientSummary = createAction({
           credentials.apiKey,
         );
 
-        const response = await tecpetSdk.client.summary(
-          options.clientId,
-          options.shopId,
-        );
+        const response: PaClientSummaryResponse =
+          (await tecpetSdk.client.summary(
+            options.clientId,
+            options.shopId,
+          )) as PaClientSummaryResponse;
 
         if (response && options.client) {
-          variables.set([{id: options.client, value: response}]);
+          variables.set([{ id: options.client as string, value: response }]);
         }
       } catch (error) {
         console.error(error);

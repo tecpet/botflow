@@ -1,5 +1,10 @@
+import type {
+  PaGetServicePricingResponse,
+  ServiceCategoryType,
+  ShopSegment,
+} from "@tec.pet/tecpet-sdk";
+import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { TecpetSDK } from "tecpet-sdk";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
@@ -8,12 +13,12 @@ export const getCategoriesAndServices = createAction({
   baseOptions,
   name: "Buscar serviçis com Preço da Loja",
   options: option.object({
-    shopId: option.string.layout({
+    shopId: option.number.layout({
       label: "Loja",
       isRequired: true,
       helperText: "Id da loja",
     }),
-    petId: option.string.layout({
+    petId: option.number.layout({
       label: "Id do Pet",
       isRequired: true,
       helperText: "Id do pet",
@@ -34,28 +39,41 @@ export const getCategoriesAndServices = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({pets}) => (pets ? [pets] : []),
+  getSetVariableIds: ({ categoriesAndServices, servicesIds }) => {
+    const variables = [];
+
+    if (categoriesAndServices) variables.push(categoriesAndServices);
+    if (servicesIds) variables.push(servicesIds);
+
+    return variables;
+  },
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
 
-
-        const categories = await tecpetSdk.service.pricing(options.petId, options.segmentType, ['BATH','ADDITIONAL'], options?.shopId);
-
+        const categories: PaGetServicePricingResponse[] =
+          (await tecpetSdk.service.pricing(
+            Number(options.petId),
+            options.segmentType as ShopSegment,
+            ["BATH", "ADDITIONAL"] as ServiceCategoryType[],
+            Number(options?.shopId),
+          )) as PaGetServicePricingResponse[];
 
         if (categories && categories.length > 0) {
-          const servicesIds = categories.flatMap(category =>
-            category.services.map(service => service.id)
+          const servicesIds = categories.flatMap((category) =>
+            category.services.map((service) => service.id),
           );
 
-
-
-          variables.set([{id: options.categoriesAndServices, value: categories}]);
-          variables.set([{id: options.servicesIds, value: servicesIds}]);
+          variables.set([
+            { id: options.categoriesAndServices as string, value: categories },
+          ]);
+          variables.set([
+            { id: options.servicesIds as string, value: servicesIds },
+          ]);
         }
       } catch (error) {
         console.error(error);
