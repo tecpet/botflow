@@ -54,6 +54,6 @@
     "isolated-vm",
     "prisma",
     "sharp",
-    "tecpet-sdk"
+    "@tec.pet/tecpet-sdk"
   ]
 }

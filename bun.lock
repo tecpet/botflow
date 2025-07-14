@@ -1383,6 +1383,7 @@
     "@prisma/client",
     "@swc/core",
     "@prisma/engines",
+    "@tec.pet/tecpet-sdk",
     "prisma",
     "@sentry/cli",
   ],
