@@ -13,7 +13,14 @@ export const sendEmail = (
     },
   });
 
-  console.log('sendEmail', JSON.stringify(props, null, 2));
+  console.log('sendEmail', JSON.stringify({
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
+    auth: {
+      user: env.SMTP_USERNAME,
+      pass: env.SMTP_PASSWORD,
+    },
+  }, null, 2));
 
   return transporter.sendMail({
     from: env.NEXT_PUBLIC_SMTP_FROM,
