@@ -13,6 +13,8 @@ export const sendEmail = (
     },
   });
 
+  console.log('sendEmail', JSON.stringify(props, null, 2));
+
   return transporter.sendMail({
     from: env.NEXT_PUBLIC_SMTP_FROM,
     ...props,

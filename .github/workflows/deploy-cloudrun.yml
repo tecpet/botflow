@@ -127,17 +127,7 @@ jobs:
           IMAGE_URI="${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }}"
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=$IMAGE_URI \
-            --region=${{ env.REGION }} \
-            --platform=managed \
-            --allow-unauthenticated \
-            --port=3000 \
-            --update-env-vars="NODE_ENV=production,PROD=true" \
-            --memory=1Gi \
-            --cpu=1 \
-            --max-instances=10 \
-            --min-instances=0 \
-            --concurrency=100 \
-            --timeout=300
+            --region=${{ env.REGION }}
           
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
           echo "✅ Deploy realizado com sucesso!"
