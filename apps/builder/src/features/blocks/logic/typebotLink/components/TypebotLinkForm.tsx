@@ -44,7 +44,7 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
     if (id) {
       onOptionsChange({ ...options, variableId: id });
     }
-  }
+  };
 
   const updateFluxByVariable = (fluxByVariable: boolean) =>
     onOptionsChange({
