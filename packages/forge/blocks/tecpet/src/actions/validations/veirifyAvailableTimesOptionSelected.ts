@@ -34,9 +34,9 @@ export const verifyAvailableTimesOptionSelected = createAction({
 
         const rawSelectedTime = options.selectedTime;
 
-        const selectedTime = JSON.parse(rawSelectedTime ?? "");
+        const selectedTime = JSON.parse(rawSelectedTime as string);
 
-        if (!selectedTime.id) {
+        if (!selectedTime) {
           showOtherDates = true;
         }
 

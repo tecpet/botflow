@@ -87,6 +87,9 @@ export const createPet = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
+
+        console.log("ID RAÇA", options.breedId);
+
         const petInput: PaCreatePetInput = {
           clientId: Number(options?.clientId),
           name: options?.name as string,

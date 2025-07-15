@@ -20,9 +20,10 @@ import { buildAvailableTimesOptions } from "./actions/internal/buildAvailableTim
 import { buildSelectedAdditionals } from "./actions/internal/buildSelectedAdditionals";
 import { buildSelectedFlux } from "./actions/internal/buildSelectedFlux";
 import { buildServiceOptions } from "./actions/internal/buildServiceOptions";
-import { verifyAvailableTimesOptionSelected } from "./actions/internal/veirifyAvailableTimesOptionSelected";
 import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedFlux.infoCollectionMenus";
 import { parseSelectedFluxSettings } from "./actions/parser/selectedFlux.settings";
+import { verifyAvailableTimesOptionSelected } from "./actions/validations/veirifyAvailableTimesOptionSelected";
+import { verifySimilarBreedOptionSelected } from "./actions/validations/verifySimilarBreedOptionSelected";
 import { auth } from "./auth";
 import { TecpetLogo } from "./logo";
 
@@ -33,20 +34,13 @@ const buildActions = [
   buildServiceOptions,
   buildSelectedAdditionals,
   buildAvailableTimesOptions,
-  verifyAvailableTimesOptionSelected
-]
+  verifyAvailableTimesOptionSelected,
+  verifySimilarBreedOptionSelected,
+];
 
-const clientActions = [
-  getClient,
-  editClient,
-  getClientSummary,
-]
+const clientActions = [getClient, editClient, getClientSummary];
 
-const petActions = [
-  getPets,
-  createPet,
-  editPet,
-]
+const petActions = [getPets, createPet, editPet];
 
 const apiActions = [
   extractToken,
@@ -62,15 +56,12 @@ const apiActions = [
   getFormattedMessages,
   ...clientActions,
   ...petActions,
-]
+];
 export const tecpetBlock = createBlock({
   id: "tecpet",
   name: "tecpet",
   tags: [],
   LightLogo: TecpetLogo,
   auth,
-  actions: [
-    ...buildActions,
-    ...apiActions,
-  ],
+  actions: [...buildActions, ...apiActions],
 });
