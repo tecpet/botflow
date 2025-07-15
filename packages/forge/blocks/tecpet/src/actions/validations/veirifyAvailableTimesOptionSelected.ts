@@ -30,11 +30,9 @@ export const verifyAvailableTimesOptionSelected = createAction({
       try {
         let showOtherDates = false;
 
-        console.log(options.selectedTime);
-
         const rawSelectedTime = options.selectedTime;
 
-        const selectedTime = JSON.parse(rawSelectedTime as string);
+        const selectedTime = rawSelectedTime as string;
 
         if (!selectedTime) {
           showOtherDates = true;
