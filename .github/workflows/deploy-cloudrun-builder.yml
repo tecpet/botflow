@@ -32,8 +32,6 @@ jobs:
         with:
           node-version: '22'
 
-
-
       - name: 🧠 Configurar Git
         run: |
           git config user.name "github-actions[bot]"
@@ -119,7 +117,7 @@ jobs:
             --region=${{ env.REGION }} \
             --platform=managed \
             --allow-unauthenticated \
-            --port=8181 \
+            --port=3000 \
             --update-env-vars="NODE_ENV=production,PROD=true" \
             --memory=1Gi \
             --cpu=1 \
@@ -130,8 +128,6 @@ jobs:
           
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
           echo "✅ Deploy realizado com sucesso!"
-
-
 
       - name: 🌐 Obter URL do Cloud Run
         if: steps.check-changes.outputs.skip == 'false'
