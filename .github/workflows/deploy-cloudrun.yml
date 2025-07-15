@@ -7,21 +7,27 @@ on:
 env:
   PROJECT_ID: botflow-builder
   REGION: us-west1
-  SERVICE_NAME: botflow-builder
   REPOSITORY: us-west1-docker.pkg.dev/tecpet-cloud/botflow
-  IMAGE_NAME: botflow-builder
-  SCOPE: builder
 
 jobs:
   deploy:
-    name: Build, Release e Deploy
+    name: Build, Release e Deploy (${{ matrix.scope }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scope: [builder, viewer]
 
     permissions:
       contents: write
       id-token: write
 
     steps:
+      - name: 🔧 Configurar variáveis do scope
+        run: |
+          echo "SERVICE_NAME=botflow-${{ matrix.scope }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=botflow-${{ matrix.scope }}" >> $GITHUB_ENV
+          echo "SCOPE=${{ matrix.scope }}" >> $GITHUB_ENV
+
       - name: 🔄 Checkout do repositório
         uses: actions/checkout@v4
         with:
@@ -52,7 +58,7 @@ jobs:
           echo "skip=false" >> $GITHUB_OUTPUT
 
       - name: 🚀 Bump version e criar tag
-        if: steps.check-changes.outputs.skip == 'false'
+        if: steps.check-changes.outputs.skip == 'false' && matrix.scope == 'builder'
         run: |
           npm version patch
           NEW_VERSION=$(node -p "require('./package.json').version")
@@ -61,8 +67,15 @@ jobs:
           git push origin master --follow-tags
           echo "🚀 Nova versão: $NEW_VERSION"
 
+      - name: 🔍 Obter versão atual
+        if: steps.check-changes.outputs.skip == 'false' && matrix.scope == 'viewer'
+        run: |
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "TAG_NAME=v$NEW_VERSION" >> $GITHUB_ENV
+
       - name: 📜 Gerar changelog simples
-        if: steps.check-changes.outputs.skip == 'false'
+        if: steps.check-changes.outputs.skip == 'false' && matrix.scope == 'builder'
         run: |
           echo "🚀 Nova versão v${{ env.NEW_VERSION }}" > changelog.md
           echo "" >> changelog.md
@@ -137,7 +150,7 @@ jobs:
           echo "url=$URL" >> $GITHUB_OUTPUT
 
       - name: 🚀 Criar release no GitHub
-        if: steps.check-changes.outputs.skip == 'false'
+        if: steps.check-changes.outputs.skip == 'false' && matrix.scope == 'builder'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG_NAME }}
@@ -151,8 +164,11 @@ jobs:
       - name: 📋 Resumo do deployment
         if: steps.check-changes.outputs.skip == 'false'
         run: |
-          echo "🎉 Deploy realizado com sucesso!"
+          echo "🎉 Deploy do ${{ matrix.scope }} realizado com sucesso!"
           echo "📦 Versão: ${{ env.NEW_VERSION }}"
+          echo "🔧 Scope: ${{ matrix.scope }}"
           echo "🐳 Imagem: ${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }}"
           echo "🌐 URL: ${{ steps.url.outputs.url }}"
-          echo "📝 Release: https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG_NAME }}"
+          if [ "${{ matrix.scope }}" == "builder" ]; then
+            echo "📝 Release: https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG_NAME }}"
+          fi
