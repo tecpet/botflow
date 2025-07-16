@@ -10,11 +10,6 @@ export const verifySimilarBreedOptionSelected = createAction({
       isRequired: true,
       helperText: "Raça selecionado",
     }),
-    petSRD: option.string.layout({
-      label: "SRD - Sem raça definida",
-      placeholder: "Selecione",
-      helperText: "SRD padrão da loja",
-    }),
     petBreed: option.string.layout({
       label: "Raça do Pet",
       placeholder: "Selecione",
@@ -41,10 +36,6 @@ export const verifySimilarBreedOptionSelected = createAction({
       try {
         let showOtherBreeds = false;
 
-        const rawPetSRD = options.petSRD;
-
-        const petSRD = rawPetSRD;
-
         const rawSelectedBreed = options.selectedBreed;
 
         const selectedBreed = JSON.parse(rawSelectedBreed as string);
@@ -54,7 +45,7 @@ export const verifySimilarBreedOptionSelected = createAction({
         }
 
         if (showOtherBreeds) {
-          variables.set([{ id: options.petBreed as string, value: petSRD }]);
+          variables.set([{ id: options.petBreed as string, value: null }]);
         }
 
         variables.set([
