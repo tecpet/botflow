@@ -1,9 +1,22 @@
+import type {
+  PaServiceCategoryResponse,
+  PaServicePricingResponse,
+} from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
 import { formatAsCurrency } from "../../helpers/utils";
 
+export interface ServiceOptionType {
+  id: number;
+  name: string;
+  price: number;
+  description: string;
+  type: "COMBO" | "SERVICE";
+  category: PaServiceCategoryResponse;
+  services: PaServicePricingResponse[];
+}
+
 export const buildServiceOptions = createAction({
-  // auth,
   baseOptions,
   name: "Construir opções de serviço",
   options: option.object({
@@ -119,23 +132,39 @@ export const buildServiceOptions = createAction({
           typeof options.categoriesAndServices === "string"
             ? JSON.parse(options.categoriesAndServices)
             : (options.categoriesAndServices as any);
+
         const combos = combosRaw.map(JSON.parse);
+
         const categoriesAndServices = categoriesAndServicesRaw.map(JSON.parse);
+
         const serviceSelectionValueMode = options.serviceSelectionValueMode;
-        const serviceOptions = [];
+
+        const serviceOptions: ServiceOptionType[] = [];
         const additionalOptions = [];
 
         for (const combo of combos) {
           combo.description = buildDescription(combo);
-          serviceOptions.push(combo);
+          serviceOptions.push({
+            ...combo,
+            type: "COMBO",
+            services: combo.services,
+          });
         }
 
         for (const category of categoriesAndServices) {
           for (const service of category.services) {
             service.description = buildDescription(service);
             category.type === "ADDITIONAL"
-              ? additionalOptions.push(service)
-              : serviceOptions.push(service);
+              ? additionalOptions.push({
+                  ...service,
+                  type: "SERVICE",
+                  category: service.serviceCategory,
+                })
+              : serviceOptions.push({
+                  ...service,
+                  type: "SERVICE",
+                  category: service.serviceCategory,
+                });
           }
         }
 
@@ -145,7 +174,7 @@ export const buildServiceOptions = createAction({
         variables.set([
           {
             id: options.serviceOptionsIds as string,
-            value: serviceOptions.map((s) => s.id),
+            value: serviceOptions.map((s) => s),
           },
         ]);
         variables.set([

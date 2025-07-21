@@ -1,9 +1,14 @@
-import type { PaCreateBookingInput, ShopSegment } from "@tec.pet/tecpet-sdk";
+import type {
+  PaCreateBookingInput,
+  PaEmployeeIndication,
+  ShopSegment,
+} from "@tec.pet/tecpet-sdk";
 import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { parseIds } from "../../../helpers/utils";
+import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
 export const createBooking = createAction({
   auth,
@@ -19,6 +24,10 @@ export const createBooking = createAction({
       label: "Ids dos serviços disponiveis",
       isRequired: true,
       helperText: "Ids dos serviços disponiveis",
+    }),
+    employeeIndications: option.string.layout({
+      label: "Funcionários indicados para o serviço",
+      isRequired: true,
     }),
     combosIds: option.string.layout({
       label: "Ids dos combos disponiveis",
@@ -77,9 +86,23 @@ export const createBooking = createAction({
           credentials.apiKey,
         );
 
+        const parsedSelectedService: ServiceOptionType = JSON.parse(
+          options.selectedServices as string,
+        );
+
+        const parsedEmployeeIndications: string[] = JSON.parse(
+          options.employeeIndications as string,
+        );
+
+        const employeesIndications: PaEmployeeIndication[] =
+          parsedEmployeeIndications.map((item) =>
+            typeof item === "string" ? JSON.parse(item) : item,
+          );
+
         const serviceIds = parseIds(options.servicesIds);
         const comboIds = parseIds(options.combosIds);
-        const selectedId = Number(options.selectedServices);
+
+        const selectedId = Number(parsedSelectedService.id);
 
         const services = serviceIds.includes(selectedId) ? [selectedId] : [];
         const combos = comboIds.includes(selectedId) ? [selectedId] : [];
@@ -94,6 +117,7 @@ export const createBooking = createAction({
           timeId: options.selectedTimeOption ?? "",
           petId: Number(options.petId),
           servicesId: services,
+          employeeIndication: employeesIndications,
           combosId: combos,
           segment: options.segmentType as ShopSegment,
         };
