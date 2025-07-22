@@ -15,9 +15,10 @@ export const buildEmployeeOptions = createAction({
       isRequired: true,
       helperText: "Valor da seleção funcionário",
     }),
-    employeeServiceIndications: option.string.layout({
-      label: "Serviços para indicação de funcionário",
+    employeeServiceCategoriesIndication: option.string.layout({
+      label: "Categorias de serviço",
       isRequired: true,
+      helperText: "Categorias de serviço para atribuir funcionário",
     }),
     employeeNames: option.string.layout({
       label: "Titulo das opções de funcionário",
@@ -37,8 +38,16 @@ export const buildEmployeeOptions = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({}) => {
+  getSetVariableIds: ({
+    serviceIndicationName,
+    employeeNames,
+    employeeValues,
+  }) => {
     const variables: Array<string> = [];
+
+    if (serviceIndicationName) variables.push(serviceIndicationName);
+    if (employeeNames) variables.push(employeeNames);
+    if (employeeValues) variables.push(employeeValues);
 
     return variables;
   },
@@ -53,13 +62,14 @@ export const buildEmployeeOptions = createAction({
           typeof item === "string" ? JSON.parse(item) : item,
         );
 
-        const parsedServices: string[] = JSON.parse(
-          options.employeeServiceIndications as string,
+        const parsedServiceCategories: string[] = JSON.parse(
+          options.employeeServiceCategoriesIndication as string,
         );
 
-        const services: EmployeeServiceIndicationOption[] = parsedServices.map(
-          (item) => (typeof item === "string" ? JSON.parse(item) : item),
-        );
+        const servicesCategories: EmployeeServiceIndicationOption[] =
+          parsedServiceCategories.map((item) =>
+            typeof item === "string" ? JSON.parse(item) : item,
+          );
 
         const employeeIndications: Array<
           PaEmployeeIndication & { name?: string }
@@ -67,7 +77,7 @@ export const buildEmployeeOptions = createAction({
 
         employees.forEach((employee) => {
           const category = employee.categories.find(
-            (category) => services[0].category === category.type,
+            (category) => servicesCategories[0].category === category.type,
           );
 
           if (category) {
@@ -92,7 +102,7 @@ export const buildEmployeeOptions = createAction({
           },
           {
             id: options.serviceIndicationName as string,
-            value: services[0].name,
+            value: servicesCategories[0].name,
           },
         ]);
       } catch (error) {

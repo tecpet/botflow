@@ -62,7 +62,7 @@ export const buildAvailableTimesOptions = createAction({
     server: async ({ options, variables }) => {
       try {
         const availableTimesRaw: {
-          id: string | boolean;
+          id: string;
           startStop: string;
           dateBR: string;
         }[] = JSON.parse(options.availableTimes as string) ?? [];
@@ -74,7 +74,7 @@ export const buildAvailableTimesOptions = createAction({
         // TODO: remove and format available times according to config...
 
         availableTimes.push({
-          id: false,
+          id: "OTHER",
           startStop: "PREFIRO OUTRA DATA",
           dateBR: "",
         });

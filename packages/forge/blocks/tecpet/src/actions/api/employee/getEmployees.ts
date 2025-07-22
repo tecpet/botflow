@@ -10,10 +10,19 @@ import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
 export interface EmployeeServiceIndicationOption {
-  id: number;
   name: string;
   category: ServiceCategoryType;
 }
+
+export const serviceCategoryLabel = {
+  ["BATH"]: "Banho",
+  ["GROOM"]: "Tosa",
+  ["CLINIC"]: "Clinica",
+  ["DAY_CARE"]: "Creche",
+  ["HOTEL"]: "Hotel",
+  ["ADDITIONAL"]: "Adicional",
+  ["CUSTOM"]: "Customizado",
+};
 
 export const getEmployess = createAction({
   auth,
@@ -31,10 +40,10 @@ export const getEmployess = createAction({
       helperText: "Valor da seleção funcionário",
       inputType: "variableDropdown",
     }),
-    employeeServices: option.string.layout({
-      label: "Serviços para cada funcionário",
+    employeeServiceCategories: option.string.layout({
+      label: "Categorias de serviço",
       isRequired: true,
-      helperText: "Serviços para cada funcionário",
+      helperText: "Categorias de serviço para atribuir funcionário",
       inputType: "variableDropdown",
     }),
     shopId: option.number.layout({
@@ -63,18 +72,22 @@ export const getEmployess = createAction({
 
         let servicesCategoriesIds: number[] = [];
 
-        let employeeIndicationServices: EmployeeServiceIndicationOption[] = [];
+        const employeeServiceCategoriesIndication: EmployeeServiceIndicationOption[] =
+          [];
 
         if (selectedService.type === "COMBO") {
-          employeeIndicationServices = selectedService.services.map(
-            (service) => {
-              return {
-                id: service.id,
-                name: service.name,
+          selectedService.services.forEach((service) => {
+            const foundCategory = employeeServiceCategoriesIndication.find(
+              (serviceCategory) =>
+                service.serviceCategory.type === serviceCategory.category,
+            );
+            if (!foundCategory) {
+              employeeServiceCategoriesIndication.push({
+                name: serviceCategoryLabel[service.serviceCategory.type],
                 category: service.serviceCategory.type,
-              };
-            },
-          );
+              });
+            }
+          });
 
           servicesCategoriesIds = [
             ...new Set(
@@ -86,9 +99,8 @@ export const getEmployess = createAction({
         }
 
         if (selectedService.type === "SERVICE") {
-          employeeIndicationServices.push({
-            id: selectedService.id,
-            name: selectedService.name,
+          employeeServiceCategoriesIndication.push({
+            name: serviceCategoryLabel[selectedService.category.type],
             category: selectedService.category.type,
           });
 
@@ -110,8 +122,8 @@ export const getEmployess = createAction({
 
         variables.set([
           {
-            id: options.employeeServices as string,
-            value: employeeIndicationServices,
+            id: options.employeeServiceCategories as string,
+            value: employeeServiceCategoriesIndication,
           },
         ]);
 
