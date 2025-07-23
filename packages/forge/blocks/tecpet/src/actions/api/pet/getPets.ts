@@ -8,6 +8,12 @@ export const getPets = createAction({
   baseOptions,
   name: "Buscar Pets do Cliente",
   options: option.object({
+    scheduleToAnotherPet: option.string.layout({
+      label: "Agendar para outro pet",
+    }),
+    petId: option.number.layout({
+      label: "ID do pet",
+    }),
     clientId: option.number.layout({
       label: "Cliente",
       isRequired: true,
@@ -15,11 +21,6 @@ export const getPets = createAction({
     }),
     pets: option.string.layout({
       label: "Pets",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
-    petsIds: option.string.layout({
-      label: "Pets Ids",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -34,11 +35,10 @@ export const getPets = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({ pets, petsIds, petsDescriptions, petsNames }) => {
+  getSetVariableIds: ({ pets, petsDescriptions, petsNames }) => {
     const variables = [];
 
     if (pets) variables.push(pets);
-    if (petsIds) variables.push(petsIds);
     if (petsDescriptions) variables.push(petsDescriptions);
     if (petsNames) variables.push(petsNames);
 
@@ -52,32 +52,37 @@ export const getPets = createAction({
           credentials.apiKey,
         );
 
-        let pets: Partial<PaPetResponse>[] = (await tecpetSdk.pet.getByClient(
-          Number(options?.clientId),
-        )) as PaPetResponse[];
+        let petsResponse: Partial<PaPetResponse>[] =
+          (await tecpetSdk.pet.getByClient(
+            Number(options?.clientId),
+          )) as PaPetResponse[];
 
-        if (pets) {
-          if (pets.length > 0) {
-            pets.push({ id: "new" as string, name: "Cadastrar novo pet" });
-            variables.set([{ id: options.pets as string, value: pets }]);
-            const petsIds = pets.map((p) => p.id);
-            const petsNames = pets.map((p) => p.name);
-            const petsDescriptions = pets.map((p) =>
-              p.breedName ? p.breedName : "",
-            );
+        if (petsResponse) {
+          if (petsResponse.length > 0) {
+            petsResponse.push({
+              id: "new" as string,
+              name: "Cadastrar novo pet",
+            });
 
-            variables.set([{ id: options.petsIds as string, value: petsIds }]);
             variables.set([
-              { id: options.petsNames as string, value: petsNames },
+              { id: options.pets as string, value: petsResponse.map((p) => p) },
+            ]);
+            variables.set([
+              {
+                id: options.petsNames as string,
+                value: petsResponse.map((p) => p.name),
+              },
             ]);
             variables.set([
               {
                 id: options.petsDescriptions as string,
-                value: petsDescriptions,
+                value: petsResponse.map((p) =>
+                  p.breedName ? p.breedName : "",
+                ),
               },
             ]);
           } else {
-            pets = [];
+            petsResponse = [];
           }
         }
       } catch (error) {
