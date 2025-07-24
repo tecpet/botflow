@@ -81,6 +81,8 @@ export const createBooking = createAction({
   run: {
     server: async ({ credentials, options, variables, logs }) => {
       try {
+        const rawEmployeeIndications = options.employeeIndications;
+
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
@@ -90,9 +92,9 @@ export const createBooking = createAction({
           options.selectedServices as string,
         );
 
-        const parsedEmployeeIndications: string[] = JSON.parse(
-          options.employeeIndications as string,
-        );
+        const parsedEmployeeIndications: string[] = rawEmployeeIndications
+          ? JSON.parse(options.employeeIndications as string)
+          : [];
 
         const employeesIndications: PaEmployeeIndication[] =
           parsedEmployeeIndications.map((item) =>

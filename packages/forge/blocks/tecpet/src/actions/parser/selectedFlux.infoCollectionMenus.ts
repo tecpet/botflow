@@ -51,8 +51,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    petInfoPetFurMode: option.string.layout({
-      label: "Pelo do pet - Modo Exibição",
+    petInfoPetSizeMode: option.string.layout({
+      label: "Porte do pet - Modo Exibição",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -224,7 +224,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     petInfoPetNameMessage,
     petInfoPetSizeEnabled,
     petInfoPetSizeMessage,
-    petInfoPetFurMode,
+    petInfoPetSizeMode,
     petInfoPetSpecieEnabled,
     petInfoPetSpecieMessage,
     petWeightEnabled,
@@ -264,7 +264,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     if (petInfoPetNameMessage) variables.push(petInfoPetNameMessage);
     if (petInfoPetSizeEnabled) variables.push(petInfoPetSizeEnabled);
     if (petInfoPetSizeMessage) variables.push(petInfoPetSizeMessage);
-    if (petInfoPetFurMode) variables.push(petInfoPetFurMode);
+    if (petInfoPetSizeMode) variables.push(petInfoPetSizeMode);
     if (petInfoPetSpecieEnabled) variables.push(petInfoPetSpecieEnabled);
     if (petInfoPetSpecieMessage) variables.push(petInfoPetSpecieMessage);
     if (petWeightEnabled) variables.push(petWeightEnabled);
@@ -326,7 +326,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
           [options.petInfoPetBreedMessage, petInfo?.petBreed.message ?? ""],
           [options.petInfoPetSizeEnabled, Boolean(petInfo?.petSize.enabled)],
           [options.petInfoPetSizeMessage, petInfo?.petSize.message ?? ""],
-          [options.petInfoPetFurMode, petInfo?.petFur?.sizeDisplayMode ?? ""],
+          [options.petInfoPetSizeMode, petInfo?.petSize?.sizeDisplayMode ?? ""],
           [options.petInfoPetFurEnabled, Boolean(petInfo?.petFur.enabled)],
           [options.petInfoPetFurMessage, petInfo?.petFur.message ?? ""],
         ];

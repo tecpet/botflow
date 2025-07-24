@@ -11,8 +11,8 @@ export const getPets = createAction({
     scheduleToAnotherPet: option.string.layout({
       label: "Agendar para outro pet",
     }),
-    petId: option.number.layout({
-      label: "ID do pet",
+    petsWithBooking: option.string.layout({
+      label: "IDS de pet com agendamento",
     }),
     clientId: option.number.layout({
       label: "Cliente",
@@ -47,18 +47,36 @@ export const getPets = createAction({
   run: {
     server: async ({ credentials, options, variables }) => {
       try {
+        const scheduleToAnotherPet = JSON.parse(
+          options.scheduleToAnotherPet as string,
+        );
+
+        const rawPetsWithBooking = options.petsWithBooking;
+
+        const petsWithBooking: string[] | null = rawPetsWithBooking
+          ? JSON.parse(rawPetsWithBooking)
+          : null;
+
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
 
         let petsResponse: Partial<PaPetResponse>[] =
-          (await tecpetSdk.pet.getByClient(
-            Number(options?.clientId),
-          )) as PaPetResponse[];
+          await tecpetSdk.pet.getByClient(Number(options?.clientId));
 
         if (petsResponse) {
           if (petsResponse.length > 0) {
+            if (scheduleToAnotherPet && petsWithBooking) {
+              petsWithBooking.forEach((petId) => {
+                const petIndex = petsResponse.findIndex(
+                  (pet) => pet.id === Number(petId),
+                );
+
+                petsResponse.splice(petIndex, 1);
+              });
+            }
+
             petsResponse.push({
               id: "new" as string,
               name: "Cadastrar novo pet",
