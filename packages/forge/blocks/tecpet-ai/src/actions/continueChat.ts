@@ -45,7 +45,7 @@ export const continueChat = createAction({
         console.log(response)
 
         if (options.saveResponseInVariableId) {
-          variables.set([{id: options.saveResponseInVariableId, value: response.url}]);
+          variables.set([{id: options.saveResponseInVariableId, value: response.response}]);
         }
       } catch (error) {
         if (error instanceof HTTPError)

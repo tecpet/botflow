@@ -49,7 +49,7 @@ export const textToSpeech = createAction({
           })
           .json<any>();
         if (options.saveTextInVariableId) {
-          variables.set([{id: options.saveTextInVariableId, value: response.text}]);
+          variables.set([{id: options.saveTextInVariableId, value: response.url}]);
         }
       } catch (error) {
         if (error instanceof HTTPError)
