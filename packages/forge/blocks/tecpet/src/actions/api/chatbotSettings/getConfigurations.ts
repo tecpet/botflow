@@ -63,6 +63,11 @@ export const getConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    voiceGenre: option.string.layout({
+      label: "Gênero da voz",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     configurations,
@@ -132,6 +137,10 @@ export const getConfigurations = createAction({
               {
                 id: options.voiceResponseEnabled,
                 value: result.voiceResponseEnabled,
+              },
+              {
+                id: options.voiceGenre,
+                value: result.aiVoice,
               },
             ];
 
