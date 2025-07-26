@@ -80,6 +80,7 @@ export const getConfigurations = createAction({
     aiEnabled,
     aiPersonality,
     voiceResponseEnabled,
+    voiceGenre,
   }) => {
     const variables = [];
     if (configurations) variables.push(configurations);
@@ -92,6 +93,7 @@ export const getConfigurations = createAction({
     if (aiEnabled) variables.push(aiEnabled);
     if (aiPersonality) variables.push(aiPersonality);
     if (voiceResponseEnabled) variables.push(voiceResponseEnabled);
+    if (voiceGenre) variables.push(voiceGenre);
     return variables;
   },
   run: {
