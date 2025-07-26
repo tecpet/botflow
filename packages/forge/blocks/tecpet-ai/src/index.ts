@@ -4,6 +4,7 @@ import {TecpetLogo} from "./logo";
 import {startChat} from "./actions/startChat";
 import {continueChat} from "./actions/continueChat";
 import {speechToText} from "./actions/speechToText";
+import {textToSpeech} from "./actions/textToSpeech";
 
 export const tecpetAiBlock = createBlock({
   id: "tecpet-ai",
@@ -11,5 +12,5 @@ export const tecpetAiBlock = createBlock({
   tags: [],
   LightLogo: TecpetLogo,
   auth,
-  actions: [startChat, continueChat, speechToText],
+  actions: [startChat, continueChat, speechToText, textToSpeech],
 });
