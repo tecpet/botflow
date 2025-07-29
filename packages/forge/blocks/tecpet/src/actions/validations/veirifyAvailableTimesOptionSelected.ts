@@ -34,8 +34,6 @@ export const verifyAvailableTimesOptionSelected = createAction({
 
         const selectedTimeId = rawSelectedTimeId;
 
-        console.log("Tempo selecionado", rawSelectedTimeId);
-
         if (selectedTimeId === "OTHER") {
           showOtherDates = true;
         }
