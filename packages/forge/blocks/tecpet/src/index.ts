@@ -25,6 +25,8 @@ import { buildServiceOptions } from "./actions/internal/buildServiceOptions";
 import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedFlux.infoCollectionMenus";
 import { parseSelectedFluxSettings } from "./actions/parser/selectedFlux.settings";
 import { verifyAvailableTimesOptionSelected } from "./actions/validations/veirifyAvailableTimesOptionSelected";
+import { verifyInputedCpfText } from "./actions/validations/verifyInputedCpf";
+import { verifyInputedDateText } from "./actions/validations/verifyInputedDateText";
 import { verifySimilarBreedOptionSelected } from "./actions/validations/verifySimilarBreedOptionSelected";
 import { auth } from "./auth";
 import { TecpetLogo } from "./logo";
@@ -37,7 +39,12 @@ const buildActions = [
   buildSelectedAdditionals,
   buildAvailableTimesOptions,
   buildEmployeeOptions,
+];
+
+const validations = [
+  verifyInputedDateText,
   verifyAvailableTimesOptionSelected,
+  verifyInputedCpfText,
   verifySimilarBreedOptionSelected,
 ];
 
@@ -60,6 +67,7 @@ const apiActions = [
   getFormattedMessages,
   ...clientActions,
   ...petActions,
+  ...validations,
 ];
 export const tecpetBlock = createBlock({
   id: "tecpet",
@@ -67,5 +75,5 @@ export const tecpetBlock = createBlock({
   tags: [],
   LightLogo: TecpetLogo,
   auth,
-  actions: [...buildActions, ...apiActions],
+  actions: [...apiActions, ...buildActions],
 });
