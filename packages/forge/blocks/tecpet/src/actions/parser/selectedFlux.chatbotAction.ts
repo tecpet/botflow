@@ -203,6 +203,12 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+
+    sendingInfoItems: option.string.layout({
+      label: "Informações para cliente",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     additionalSelectionEnabled,
@@ -311,6 +317,17 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
           guidance,
           extraInfo,
         } = chatbotActionConfig.infoCollectionMenus;
+
+        /* ----- Sending Info ----- */
+
+        const sendingInfoVariable = chatbotActionConfig.sendingInfoItems;
+
+        variables.set([
+          {
+            id: options.sendingInfoItems as string,
+            value: sendingInfoVariable,
+          },
+        ]);
 
         /* ---- Pet Info ---- */
 

@@ -22,7 +22,8 @@ import { buildEmployeeOptions } from "./actions/internal/buildEmployeeOptions";
 import { buildSelectedAdditionals } from "./actions/internal/buildSelectedAdditionals";
 import { buildSelectedFlux } from "./actions/internal/buildSelectedFlux";
 import { buildServiceOptions } from "./actions/internal/buildServiceOptions";
-import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedFlux.infoCollectionMenus";
+import { showSendingInfoItems } from "./actions/internal/showSendingInfoItems";
+import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedFlux.chatbotAction";
 import { parseSelectedFluxSettings } from "./actions/parser/selectedFlux.settings";
 import { verifyAvailableTimesOptionSelected } from "./actions/validations/veirifyAvailableTimesOptionSelected";
 import { verifyInputedCpfText } from "./actions/validations/verifyInputedCpf";
@@ -39,6 +40,7 @@ const buildActions = [
   buildSelectedAdditionals,
   buildAvailableTimesOptions,
   buildEmployeeOptions,
+  showSendingInfoItems,
 ];
 
 const validations = [
