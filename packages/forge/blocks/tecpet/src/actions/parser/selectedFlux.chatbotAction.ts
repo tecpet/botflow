@@ -209,6 +209,12 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+
+    showSendingInfo: option.string.layout({
+      label: "Mostrar informações para cliente",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     additionalSelectionEnabled,
@@ -235,6 +241,10 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     petInfoPetSpecieMessage,
     petWeightEnabled,
     petWeightMessage,
+    scheduleToAnotherPetEnabled,
+    scheduleToAnotherPetMessage,
+    sendingInfoItems,
+    showSendingInfo,
     professionalSelectionEnabled,
     professionalSelectionMessage,
     promotionSelectionEnabled,
@@ -295,6 +305,12 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       variables.push(timeSelectionBehaviorMinAdvanceHours);
     if (timeSelectionBehaviorTimeDisplayMode)
       variables.push(timeSelectionBehaviorTimeDisplayMode);
+    if (scheduleToAnotherPetEnabled)
+      variables.push(scheduleToAnotherPetEnabled);
+    if (scheduleToAnotherPetMessage)
+      variables.push(scheduleToAnotherPetMessage);
+    if (sendingInfoItems) variables.push(sendingInfoItems);
+    if (showSendingInfo) variables.push(showSendingInfo);
 
     return variables;
   },
@@ -321,6 +337,13 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
         /* ----- Sending Info ----- */
 
         const sendingInfoVariable = chatbotActionConfig.sendingInfoItems;
+
+        variables.set([
+          {
+            id: options.showSendingInfo as string,
+            value: chatbotActionConfig.showSendingInfo,
+          },
+        ]);
 
         variables.set([
           {
