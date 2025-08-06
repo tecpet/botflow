@@ -5,7 +5,7 @@ export const verifyAvailableTimesOptionSelected = createAction({
   baseOptions,
   name: "Verificar opção de horario selecionada",
   options: option.object({
-    selectedTime: option.string.layout({
+    selectedTimeId: option.string.layout({
       label: "Opção de horário selecionada",
       isRequired: true,
       helperText: "Horário selecionado",
@@ -17,10 +17,10 @@ export const verifyAvailableTimesOptionSelected = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({ selectedTime, showOtherDates }) => {
+  getSetVariableIds: ({ selectedTimeId, showOtherDates }) => {
     const variables = [];
 
-    if (selectedTime) variables.push(selectedTime);
+    if (selectedTimeId) variables.push(selectedTimeId);
     if (showOtherDates) variables.push(showOtherDates);
 
     return variables;
@@ -30,13 +30,11 @@ export const verifyAvailableTimesOptionSelected = createAction({
       try {
         let showOtherDates = false;
 
-        console.log(options.selectedTime);
+        const rawSelectedTimeId = options.selectedTimeId;
 
-        const rawSelectedTime = options.selectedTime;
+        const selectedTimeId = rawSelectedTimeId;
 
-        const selectedTime = JSON.parse(rawSelectedTime ?? "");
-
-        if (!selectedTime.id) {
+        if (selectedTimeId === "OTHER") {
           showOtherDates = true;
         }
 

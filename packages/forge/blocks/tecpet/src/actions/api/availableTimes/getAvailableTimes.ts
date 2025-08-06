@@ -8,6 +8,7 @@ import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { formatBRDate, formatISODate, parseIds } from "../../../helpers/utils";
+import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
 export const getAvailableTimes = createAction({
   auth,
@@ -89,6 +90,9 @@ export const getAvailableTimes = createAction({
         );
 
         const rawAdditionalDays = options.getAdditionalDays;
+        const parsedSelectedService: ServiceOptionType = JSON.parse(
+          options.selectedServices as string,
+        );
 
         let additionalDays = rawAdditionalDays ? Number(rawAdditionalDays) : 0;
 
@@ -100,7 +104,8 @@ export const getAvailableTimes = createAction({
 
         const serviceIds = parseIds(options.servicesIds);
         const comboIds = parseIds(options.combosIds);
-        const selectedId = Number(options.selectedServices);
+
+        const selectedId = Number(parsedSelectedService.id);
 
         const services = serviceIds.includes(selectedId) ? [selectedId] : [];
         const combos = comboIds.includes(selectedId) ? [selectedId] : [];
