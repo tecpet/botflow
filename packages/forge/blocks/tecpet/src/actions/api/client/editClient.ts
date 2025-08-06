@@ -66,6 +66,8 @@ export const editClient = createAction({
   run: {
     server: async ({ credentials, options, variables, logs }) => {
       try {
+        const rawBirthDate = options.clientBirthDate;
+
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
@@ -74,8 +76,12 @@ export const editClient = createAction({
         const body: PaEditClientInput = {
           name: options.clientName ?? "",
           cpf: options.clientCpf ?? "",
-          birthDate: options.clientBirthDate ?? "",
         };
+
+        rawBirthDate
+          ? (body["birthDate"] = rawBirthDate)
+          : (body.birthDate = undefined);
+
         const editedClient: PaClientResponse = await tecpetSdk.client.edit(
           Number(options.clientId),
           body,

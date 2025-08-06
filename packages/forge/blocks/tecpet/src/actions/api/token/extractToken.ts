@@ -55,8 +55,7 @@ export const extractToken = createAction({
           }
         }
       } catch (e) {
-        console.log("Could not extract token");
-        return;
+        console.log(e);
       }
     },
   },
