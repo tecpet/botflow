@@ -1,9 +1,9 @@
-import type {
-  PaCreateBookingInput,
-  PaEmployeeIndication,
-  ShopSegment,
+import {
+  type PaCreateBookingInput,
+  type PaEmployeeIndication,
+  type ShopSegment,
+  TecpetSDK,
 } from "@tec.pet/tecpet-sdk";
-import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
