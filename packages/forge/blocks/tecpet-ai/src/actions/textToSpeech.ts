@@ -45,7 +45,7 @@ export const textToSpeech = createAction({
               text: options.text,
               voiceType: options?.voiceType,
             },
-            timeout: 60000,
+            timeout: 10 * 60000,
           })
           .json<any>();
         if (options.saveTextInVariableId) {
