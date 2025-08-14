@@ -7,7 +7,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
   name: "Construir configurações do fluxo - Info Collection",
   options: option.object({
     selectedMenuConfigurations: option.string.layout({
-      label: "Configurações do menu selecionado",
+      label: "Menu de ação selecionado",
       isRequired: true,
       helperText: "Configurações",
     }),

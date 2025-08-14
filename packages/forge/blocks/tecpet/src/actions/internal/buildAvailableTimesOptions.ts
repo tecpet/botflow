@@ -1,5 +1,6 @@
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import type { AvailableTimeType } from "../api/availableTimes/getAvailableTimes";
 
 export const buildAvailableTimesOptions = createAction({
   baseOptions,
@@ -27,7 +28,7 @@ export const buildAvailableTimesOptions = createAction({
       isRequired: true,
       helperText: "Modo de exibição. Exemplo: de 30 em 30 min",
     }),
-    availableTimesIds: option.string.layout({
+    availableTimesValues: option.string.layout({
       label: "Array de horarios disponiveis ids",
       placeholder: "Selecione",
       inputType: "variableDropdown",
@@ -44,13 +45,13 @@ export const buildAvailableTimesOptions = createAction({
     }),
   }),
   getSetVariableIds: ({
-    availableTimesIds,
+    availableTimesValues,
     availableTimesStartAndStop,
     availableTimesDates,
   }) => {
     const variables: Array<string> = [];
 
-    if (availableTimesIds) variables.push(availableTimesIds);
+    if (availableTimesValues) variables.push(availableTimesValues);
 
     if (availableTimesStartAndStop) variables.push(availableTimesStartAndStop);
 
@@ -61,17 +62,12 @@ export const buildAvailableTimesOptions = createAction({
   run: {
     server: async ({ options, variables }) => {
       try {
-        const availableTimesRaw: {
-          id: string;
-          startStop: string;
-          dateBR: string;
-        }[] = JSON.parse(options.availableTimes as string) ?? [];
+        const availableTimesRaw: AvailableTimeType[] =
+          JSON.parse(options.availableTimes as string) ?? [];
 
         const availableTimes = availableTimesRaw.map((item) =>
           typeof item === "string" ? JSON.parse(item) : item,
         );
-
-        // TODO: remove and format available times according to config...
 
         availableTimes.push({
           id: "OTHER",
@@ -81,8 +77,8 @@ export const buildAvailableTimesOptions = createAction({
 
         variables.set([
           {
-            id: options.availableTimesIds as string,
-            value: availableTimes.map((t) => t.id),
+            id: options.availableTimesValues as string,
+            value: availableTimes.map((t) => t),
           },
           {
             id: options.availableTimesStartAndStop as string,

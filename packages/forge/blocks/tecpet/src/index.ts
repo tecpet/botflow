@@ -20,12 +20,13 @@ import { extractToken } from "./actions/api/token/extractToken";
 import { buildAvailableTimesOptions } from "./actions/internal/buildAvailableTimesOptions";
 import { buildEmployeeOptions } from "./actions/internal/buildEmployeeOptions";
 import { buildSelectedAdditionals } from "./actions/internal/buildSelectedAdditionals";
-import { buildSelectedFlux } from "./actions/internal/buildSelectedFlux";
 import { buildServiceOptions } from "./actions/internal/buildServiceOptions";
 import { showSendingInfoItems } from "./actions/internal/showSendingInfoItems";
 import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedFlux.chatbotAction";
 import { parseSelectedFluxSettings } from "./actions/parser/selectedFlux.settings";
 import { verifyAvailableTimesOptionSelected } from "./actions/validations/veirifyAvailableTimesOptionSelected";
+import { verifyBookingGuard } from "./actions/validations/verifyBookingGuard";
+import { verifyInitialMessageToTrigger } from "./actions/validations/verifyInitialMessageToTrigger";
 import { verifyInputedCpfText } from "./actions/validations/verifyInputedCpf";
 import { verifyInputedDateText } from "./actions/validations/verifyInputedDateText";
 import { verifySimilarBreedOptionSelected } from "./actions/validations/verifySimilarBreedOptionSelected";
@@ -35,7 +36,6 @@ import { TecpetLogo } from "./logo";
 const buildActions = [
   parseSelectedFluxSettings,
   parseSelectedFluxInfoCollectionMenus,
-  buildSelectedFlux,
   buildServiceOptions,
   buildSelectedAdditionals,
   buildAvailableTimesOptions,
@@ -47,6 +47,8 @@ const validations = [
   verifyInputedDateText,
   verifyAvailableTimesOptionSelected,
   verifyInputedCpfText,
+  verifyBookingGuard,
+  verifyInitialMessageToTrigger,
   verifySimilarBreedOptionSelected,
 ];
 
