@@ -11,7 +11,7 @@ import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 export const getCategoriesAndServices = createAction({
   auth,
   baseOptions,
-  name: "Buscar serviçis com Preço da Loja",
+  name: "Buscar serviços com Preço da Loja",
   options: option.object({
     shopId: option.number.layout({
       label: "Loja",
@@ -55,11 +55,29 @@ export const getCategoriesAndServices = createAction({
           credentials.apiKey,
         );
 
+        const segmentType = options.segmentType as ShopSegment;
+
+        let serviceCategoryTypes: ServiceCategoryType[] = [];
+
+        if (options.segmentType === "PET_SHOP") {
+          serviceCategoryTypes = [
+            "BATH",
+            "ADDITIONAL",
+          ] as ServiceCategoryType[];
+        }
+
+        if (options.segmentType === "CLINIC") {
+          serviceCategoryTypes = [
+            "CLINIC",
+            "ADDITIONAL",
+          ] as ServiceCategoryType[];
+        }
+
         const categories: PaGetServicePricingResponse[] =
           (await tecpetSdk.service.pricing(
             Number(options.petId),
-            options.segmentType as ShopSegment,
-            ["BATH", "ADDITIONAL"] as ServiceCategoryType[],
+            segmentType,
+            serviceCategoryTypes,
             Number(options?.shopId),
           )) as PaGetServicePricingResponse[];
 

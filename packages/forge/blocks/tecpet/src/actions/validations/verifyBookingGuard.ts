@@ -92,12 +92,13 @@ export const verifyBookingGuard = createAction({
 
         const services = serviceIds.includes(selectedId) ? [selectedId] : [];
 
+        console.log("SERVIÇOS", serviceIds);
         const body: PaGetBookingGuardValidationBody = {
           petId: Number(options.petId),
           servicesId: services,
           date: selectedTimeOption.dateISO,
           segmentType: options.segmentType as ShopSegment,
-          guardScopes: [BookingGuardScopeEnum.BOT],
+          guardScopes: [BookingGuardScopeEnum.BOT, BookingGuardScopeEnum.BOTH],
         };
 
         const bookingGuardValidation = await tecpetSdk.bookingGuard.validation(
@@ -115,7 +116,7 @@ export const verifyBookingGuard = createAction({
         variables.set([
           {
             id: options.bookingGuardMessage as string,
-            value: bookingGuardValidation?.guard.description,
+            value: bookingGuardValidation?.guard?.description ?? "",
           },
         ]);
       } catch (error) {

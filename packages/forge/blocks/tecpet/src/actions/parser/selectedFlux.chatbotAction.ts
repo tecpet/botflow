@@ -355,20 +355,32 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
         /* ---- Pet Info ---- */
 
         const petInfoVariables = [
-          [options.petInfoPetNameEnabled, Boolean(petInfo?.petName.enabled)],
-          [options.petInfoPetNameMessage, petInfo?.petName.message ?? ""],
+          [
+            options.petInfoPetNameEnabled,
+            Boolean(petInfo?.petName?.enabled ?? false),
+          ],
+          [options.petInfoPetNameMessage, petInfo?.petName?.message ?? ""],
           [
             options.petInfoPetSpecieEnabled,
-            Boolean(petInfo?.petSpecie.enabled),
+            Boolean(petInfo?.petSpecie?.enabled ?? false),
           ],
-          [options.petInfoPetSpecieMessage, petInfo?.petSpecie.message ?? ""],
-          [options.petInfoPetBreedEnabled, Boolean(petInfo?.petBreed.enabled)],
-          [options.petInfoPetBreedMessage, petInfo?.petBreed.message ?? ""],
-          [options.petInfoPetSizeEnabled, Boolean(petInfo?.petSize.enabled)],
-          [options.petInfoPetSizeMessage, petInfo?.petSize.message ?? ""],
+          [options.petInfoPetSpecieMessage, petInfo?.petSpecie?.message ?? ""],
+          [
+            options.petInfoPetBreedEnabled,
+            Boolean(petInfo?.petBreed?.enabled ?? false),
+          ],
+          [options.petInfoPetBreedMessage, petInfo?.petBreed?.message ?? ""],
+          [
+            options.petInfoPetSizeEnabled,
+            Boolean(petInfo?.petSize?.enabled ?? false),
+          ],
+          [options.petInfoPetSizeMessage, petInfo?.petSize?.message ?? ""],
           [options.petInfoPetSizeMode, petInfo?.petSize?.sizeDisplayMode ?? ""],
-          [options.petInfoPetFurEnabled, Boolean(petInfo?.petFur.enabled)],
-          [options.petInfoPetFurMessage, petInfo?.petFur.message ?? ""],
+          [
+            options.petInfoPetFurEnabled,
+            Boolean(petInfo?.petFur?.enabled ?? false),
+          ],
+          [options.petInfoPetFurMessage, petInfo?.petFur?.message ?? ""],
         ];
 
         petInfoVariables.forEach(([id, value]) => setVar(id as string, value));
@@ -378,27 +390,29 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
         const serviceSelectionVariables = [
           [
             options.serviceSelectionMessage,
-            serviceSelection?.service.message ?? "",
+            serviceSelection?.service?.message ?? "",
           ],
           [
             options.serviceSelectionValueMode,
-            serviceSelection?.showServiceValues.priceDisplayMode,
+            serviceSelection?.showServiceValues?.priceDisplayMode ?? "",
           ],
           [
             options.additionalSelectionEnabled,
-            Boolean(serviceSelection?.serviceAddons.enabled),
+            Boolean(serviceSelection?.serviceAddons?.enabled ?? false),
           ],
           [
             options.additionalSelectionMessage,
-            serviceSelection?.serviceAddons.message ?? "",
+            serviceSelection?.serviceAddons?.message ?? "",
           ],
           [
             options.professionalSelectionEnabled,
-            Boolean(serviceSelection?.serviceProfessionalChoice.enabled),
+            Boolean(
+              serviceSelection?.serviceProfessionalChoice?.enabled ?? false,
+            ),
           ],
           [
             options.promotionSelectionEnabled,
-            Boolean(serviceSelection?.showServicePromotions.enabled),
+            Boolean(serviceSelection?.showServicePromotions?.enabled ?? false),
           ],
         ];
 
@@ -410,19 +424,19 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
         const timeSelectionVariables = [
           [
             options.timeSelectionBehaviorMessage,
-            timeSelection?.timeSelectionBehavior.message,
+            timeSelection?.timeSelectionBehavior?.message ?? "",
           ],
           [
             options.timeSelectionBehaviorMinAdvanceHours,
-            timeSelection?.timeSelectionBehavior.minAdvanceHours,
+            timeSelection?.timeSelectionBehavior?.minAdvanceHours ?? null,
           ],
           [
             options.timeSelectionBehaviorBehavior,
-            timeSelection?.timeSelectionBehavior.behavior,
+            timeSelection?.timeSelectionBehavior.behavior ?? "",
           ],
           [
             options.timeSelectionBehaviorTimeDisplayMode,
-            timeSelection?.timeSelectionBehavior.timeDisplayMode,
+            timeSelection?.timeSelectionBehavior?.timeDisplayMode ?? "",
           ],
         ];
 
@@ -433,15 +447,15 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
         const takeAndBringVariables = [
           [
             options.takeAndBringEnabled,
-            Boolean(takeAndBring?.allowTakeAndBring.enabled),
+            Boolean(takeAndBring?.allowTakeAndBring?.enabled ?? false),
           ],
           [
             options.takeAndBringMessage,
-            takeAndBring?.allowTakeAndBring.message ?? "",
+            takeAndBring?.allowTakeAndBring?.message ?? "",
           ],
           [
             options.takeAndBringMinAdvanceHours,
-            takeAndBring?.allowTakeAndBring.minAdvanceHours ?? "",
+            takeAndBring?.allowTakeAndBring?.minAdvanceHours ?? "",
           ],
         ];
 
@@ -457,27 +471,39 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
         const extraInfoVariables = [
           [
             options.confirmClientNameEnabled,
-            Boolean(extraInfo?.confirmClientName.enabled),
+            Boolean(extraInfo?.confirmClientName?.enabled ?? false),
           ],
           [
             options.confirmClientNameMessage,
-            extraInfo?.confirmClientName.message ?? "",
+            extraInfo?.confirmClientName?.message ?? "",
           ],
-          [options.clientCpfEnabled, Boolean(extraInfo?.clientCpf.enabled)],
+          [
+            options.clientCpfEnabled,
+            Boolean(extraInfo?.clientCpf?.enabled ?? false),
+          ],
           [options.clientCpfMessage, extraInfo?.clientCpf.message ?? ""],
-          [options.petGenderEnabled, Boolean(extraInfo?.petGender.enabled)],
+          [
+            options.petGenderEnabled,
+            Boolean(extraInfo?.petGender?.enabled ?? false),
+          ],
           [options.petGenderMessage, extraInfo?.petGender.message ?? ""],
-          [options.petBirthEnabled, Boolean(extraInfo?.petBirthDate.enabled)],
+          [
+            options.petBirthEnabled,
+            Boolean(extraInfo?.petBirthDate?.enabled ?? false),
+          ],
           [options.petBirthMessage, extraInfo?.petBirthDate.message ?? ""],
-          [options.petWeightEnabled, Boolean(extraInfo?.petWeight.enabled)],
+          [
+            options.petWeightEnabled,
+            Boolean(extraInfo?.petWeight?.enabled ?? false),
+          ],
           [options.petWeightMessage, extraInfo?.petWeight.message ?? ""],
           [
             options.scheduleToAnotherPetEnabled,
-            extraInfo?.scheduleToAnotherPet.enabled ?? "",
+            extraInfo?.scheduleToAnotherPet?.enabled ?? false,
           ],
           [
             options.scheduleToAnotherPetMessage,
-            extraInfo?.scheduleToAnotherPet.message ?? "",
+            extraInfo?.scheduleToAnotherPet?.message ?? "",
           ],
         ];
 
