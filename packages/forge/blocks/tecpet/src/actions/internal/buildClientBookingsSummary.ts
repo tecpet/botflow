@@ -60,7 +60,7 @@ export const buildClientBookingsSummary = createAction({
           );
 
         const filteredBookings = bookings.filter(
-          (booking) => booking.petId === pet.id,
+          (booking) => booking.petId === pet.id && booking.status !== "REMOVED",
         );
 
         filteredBookings.forEach((booking) => {
