@@ -215,6 +215,17 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+
+    allowCancel: option.string.layout({
+      label: "Cancelar agendamento",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    allowChangeDateAndTime: option.string.layout({
+      label: "Mudar data e horário do agendamento",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     additionalSelectionEnabled,
@@ -258,6 +269,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     timeSelectionBehaviorMessage,
     timeSelectionBehaviorMinAdvanceHours,
     timeSelectionBehaviorTimeDisplayMode,
+    allowCancel,
+    allowChangeDateAndTime,
   }) => {
     const variables = [];
 
@@ -311,6 +324,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       variables.push(scheduleToAnotherPetMessage);
     if (sendingInfoItems) variables.push(sendingInfoItems);
     if (showSendingInfo) variables.push(showSendingInfo);
+    if (allowCancel) variables.push(allowCancel);
+    if (allowChangeDateAndTime) variables.push(allowChangeDateAndTime);
 
     return variables;
   },
@@ -331,6 +346,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
           timeSelection,
           takeAndBring,
           guidance,
+          editBooking,
           extraInfo,
         } = chatbotActionConfig.infoCollectionMenus;
 
@@ -349,6 +365,22 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
           {
             id: options.sendingInfoItems as string,
             value: sendingInfoVariable,
+          },
+        ]);
+
+        /* ----- Edit booking ----- */
+
+        variables.set([
+          {
+            id: options.allowCancel as string,
+            value: editBooking?.allowCancel,
+          },
+        ]);
+
+        variables.set([
+          {
+            id: options.allowChangeDateAndTime as string,
+            value: editBooking?.allowChangeDateAndTime,
           },
         ]);
 

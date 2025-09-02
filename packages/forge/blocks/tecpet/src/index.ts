@@ -1,6 +1,7 @@
 import { createBlock } from "@typebot.io/forge";
 import { getAvailableTimes } from "./actions/api/availableTimes/getAvailableTimes";
 import { getBillingMethods } from "./actions/api/billingMethod/getBillingMethods";
+import { cancelBooking } from "./actions/api/booking/cancelBooking";
 import { createBooking } from "./actions/api/booking/createBooking";
 import { getBreeds } from "./actions/api/breed/getBreeds";
 import { getConfigurations } from "./actions/api/chatbotSettings/getConfigurations";
@@ -18,6 +19,7 @@ import { getShopConfigurations } from "./actions/api/shop/getShopConfigurations"
 import { getSpecies } from "./actions/api/specie/getSpecies";
 import { extractToken } from "./actions/api/token/extractToken";
 import { buildAvailableTimesOptions } from "./actions/internal/buildAvailableTimesOptions";
+import { buildClientBookingsSummary } from "./actions/internal/buildClientBookingsSummary";
 import { buildClientPetsSummary } from "./actions/internal/buildClientPetsSummary";
 import { buildEmployeeOptions } from "./actions/internal/buildEmployeeOptions";
 import { buildSelectedAdditionals } from "./actions/internal/buildSelectedAdditionals";
@@ -42,6 +44,7 @@ const buildActions = [
   buildAvailableTimesOptions,
   buildEmployeeOptions,
   showSendingInfoItems,
+  buildClientBookingsSummary,
   buildClientPetsSummary,
 ];
 
@@ -58,6 +61,8 @@ const clientActions = [getClient, editClient, getClientSummary];
 
 const petActions = [getPets, createPet, editPet];
 
+const bookingActions = [createBooking, cancelBooking];
+
 const apiActions = [
   extractToken,
   getConfigurations,
@@ -69,10 +74,10 @@ const apiActions = [
   getEmployess,
   getCategoriesAndServices,
   getAvailableTimes,
-  createBooking,
   getFormattedMessages,
   ...clientActions,
   ...petActions,
+  ...bookingActions,
   ...validations,
 ];
 export const tecpetBlock = createBlock({
