@@ -1,8 +1,8 @@
-import {createAction, option} from "@typebot.io/forge";
-import {baseOptions} from "../constants";
-import {auth} from "../auth";
-import ky, {HTTPError} from "ky";
-import {parseUnknownError} from "@typebot.io/lib/parseUnknownError";
+import { createAction, option } from "@typebot.io/forge";
+import { parseUnknownError } from "@typebot.io/lib/parseUnknownError";
+import ky, { HTTPError } from "ky";
+import { auth } from "../auth";
+import { baseOptions } from "../constants";
 
 export const speechToText = createAction({
   auth,
@@ -24,12 +24,11 @@ export const speechToText = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({saveTextInVariableId}) =>
+  getSetVariableIds: ({ saveTextInVariableId }) =>
     saveTextInVariableId ? [saveTextInVariableId] : [],
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
-        console.log(options)
         const response = await ky
           .post(`${credentials.baseUrl}/speechToText`, {
             headers: {
@@ -43,7 +42,9 @@ export const speechToText = createAction({
           })
           .json<any>();
         if (options.saveTextInVariableId) {
-          variables.set([{id: options.saveTextInVariableId, value: response.text}]);
+          variables.set([
+            { id: options.saveTextInVariableId, value: response.text },
+          ]);
         }
       } catch (error) {
         if (error instanceof HTTPError)

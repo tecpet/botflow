@@ -21,5 +21,6 @@ export const forgedBlockIds = [
   "deepseek",
   "tecpet",
   "tecpet-ai",
+  "tecpet-gateway",
   "blink",
 ] as const satisfies readonly ForgedBlock["type"][];

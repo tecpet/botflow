@@ -1,11 +1,11 @@
 import type {
   PaGetAvailableTimesResponse,
   PaGetAvailableTimesTimesBody,
+  PaGetBookingResponse,
   ShopSegment,
 } from "@tec.pet/tecpet-sdk";
 import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import type { PaGetBookingResponse } from "../../../../../tecpet-sdk/dist/domain/booking/dto/pa.get-booking.dto";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { formatBRDate, formatISODate } from "../../../helpers/utils";
@@ -106,7 +106,7 @@ export const getRescheduleAvailableTimes = createAction({
               combos: [],
               services,
               petId: Number(booking.petId),
-              segment: booking.segment.type as ShopSegment,
+              segment: booking.segmentType as ShopSegment,
             };
 
             const times = await tecpetSdk.availableTimes.list(

@@ -1,6 +1,5 @@
-import type { PaPetResponse } from "@tec.pet/tecpet-sdk";
+import type { PaGetBookingResponse, PaPetResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import type { PaGetBookingResponse } from "../../../../tecpet-sdk/dist/domain/booking/dto/pa.get-booking.dto";
 import { baseOptions } from "../../constants";
 
 export const buildClientBookingsSummary = createAction({
@@ -54,22 +53,39 @@ export const buildClientBookingsSummary = createAction({
           ? JSON.parse(rawClientBookings)
           : null;
 
-        const bookings: Array<PaGetBookingResponse & { bookingName?: string }> =
-          clientBookingsParsed.map((item) =>
-            typeof item === "string" ? JSON.parse(item) : item,
-          );
+        const bookings: Array<
+          PaGetBookingResponse & {
+            bookingDescription?: string;
+            backToMenu?: boolean;
+          }
+        > = clientBookingsParsed.map((item) =>
+          typeof item === "string" ? JSON.parse(item) : item,
+        );
 
-        const filteredBookings = bookings.filter(
+        const filteredBookings: Array<
+          Partial<
+            PaGetBookingResponse & {
+              bookingDescription?: string;
+              backToMenu?: boolean;
+            }
+          >
+        > = bookings.filter(
           (booking) => booking.petId === pet.id && booking.status !== "REMOVED",
         );
 
         filteredBookings.forEach((booking) => {
-          let bookingName = "";
-          booking.services.forEach((service) => {
-            bookingName += " " + service.name;
+          let bookingDescription = "";
+          booking.services?.forEach((service) => {
+            bookingDescription += " " + service.name;
           });
 
-          booking["bookingName"] = bookingName;
+          booking["bookingDescription"] = bookingDescription;
+        });
+
+        filteredBookings.push({
+          backToMenu: true,
+          start: "",
+          stop: "",
         });
 
         variables.set([
@@ -80,14 +96,20 @@ export const buildClientBookingsSummary = createAction({
         ]);
         variables.set([
           {
-            id: options.bookingsName as string,
-            value: filteredBookings.map((b) => b.bookingName),
+            id: options.bookingsDescription as string,
+            value: filteredBookings.map((b) => b.bookingDescription ?? ""),
           },
         ]);
         variables.set([
           {
-            id: options.bookingsDescription as string,
-            value: filteredBookings.map((b) => `${b.start}-${b.stop}`),
+            id: options.bookingsName as string,
+            value: filteredBookings.map((b) => {
+              if (!b.backToMenu) {
+                return `${b.start}-${b.stop}`;
+              } else {
+                return "VOLTAR AO MENU INICIAL";
+              }
+            }),
           },
         ]);
       } catch (error) {

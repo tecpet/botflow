@@ -1,6 +1,9 @@
-import { BookingStatus, TecpetSDK } from "@tec.pet/tecpet-sdk";
+import {
+  BookingStatus,
+  type PaGetBookingResponse,
+  TecpetSDK,
+} from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import type { PaGetBookingResponse } from "../../../../../tecpet-sdk/dist/domain/booking/dto/pa.get-booking.dto";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 

@@ -1,6 +1,9 @@
-import { type PaRescheduleBookingInput, TecpetSDK } from "@tec.pet/tecpet-sdk";
+import {
+  type PaGetBookingResponse,
+  type PaRescheduleBookingInput,
+  TecpetSDK,
+} from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import type { PaGetBookingResponse } from "../../../../../tecpet-sdk/dist/domain/booking/dto/pa.get-booking.dto";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import type { AvailableTimeType } from "../availableTimes/getAvailableTimes";
