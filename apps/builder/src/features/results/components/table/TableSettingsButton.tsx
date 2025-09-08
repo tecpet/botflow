@@ -4,23 +4,14 @@ import {
   ListIcon,
   MoreHorizontalIcon,
 } from "@/components/icons";
-import {
-  Button,
-  HStack,
-  IconButton,
-  Popover,
-  PopoverBody,
-  PopoverContent,
-  PopoverTrigger,
-  Portal,
-  Stack,
-  Text,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { useOpenControls } from "@/hooks/useOpenControls";
+import { HStack, Text } from "@chakra-ui/react";
 import type { ResultHeaderCell } from "@typebot.io/results/schemas/results";
+import { Button } from "@typebot.io/ui/components/Button";
+import { Popover } from "@typebot.io/ui/components/Popover";
 import React, { useState } from "react";
 import { ColumnSettings } from "./ColumnSettings";
-import { ExportAllResultsModal } from "./ExportAllResultsModal";
+import { ExportAllResultsDialog } from "./ExportAllResultsDialog";
 
 type Props = {
   resultHeader: ResultHeaderCell[];
@@ -31,24 +22,33 @@ type Props = {
 };
 
 export const TableSettingsButton = (props: Props) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const controls = useOpenControls();
+  const exportAllDialogControls = useOpenControls();
+
   return (
     <>
-      <Popover isLazy placement="bottom-end">
-        <PopoverTrigger>
-          <IconButton
-            size="sm"
+      <Popover.Root {...controls}>
+        <Popover.Trigger>
+          <Button
+            variant="secondary"
+            size="icon"
             aria-label="Open table settings"
-            icon={<MoreHorizontalIcon />}
+            className="size-8"
+          >
+            <MoreHorizontalIcon />
+          </Button>
+        </Popover.Trigger>
+        <Popover.Popup className="w-[300px] p-0" side="bottom" align="end">
+          <TableSettingsMenu
+            {...props}
+            onExportAllClick={exportAllDialogControls.onOpen}
           />
-        </PopoverTrigger>
-        <Portal>
-          <PopoverContent w="300px">
-            <TableSettingsMenu {...props} onExportAllClick={onOpen} />
-          </PopoverContent>
-        </Portal>
-      </Popover>
-      <ExportAllResultsModal onClose={onClose} isOpen={isOpen} />
+        </Popover.Popup>
+      </Popover.Root>
+      <ExportAllResultsDialog
+        onClose={exportAllDialogControls.onClose}
+        isOpen={exportAllDialogControls.isOpen}
+      />
     </>
   );
 };
@@ -68,7 +68,7 @@ const TableSettingsMenu = ({
   switch (selectedMenu) {
     case "columnSettings":
       return (
-        <PopoverBody as={Stack} spacing="4" p="4" maxH="450px" overflowY="auto">
+        <div className="p-4">
           <ColumnSettings
             resultHeader={resultHeader}
             columnVisibility={columnVisibility}
@@ -76,16 +76,15 @@ const TableSettingsMenu = ({
             columnOrder={columnOrder}
             onColumnOrderChange={onColumnOrderChange}
           />
-        </PopoverBody>
+        </div>
       );
     default:
       return (
-        <PopoverBody as={Stack} p="0" spacing="0">
+        <div className="flex flex-col">
           <Button
             onClick={() => setSelectedMenu("columnSettings")}
             variant="ghost"
-            borderBottomRadius={0}
-            justifyContent="space-between"
+            className="rounded-b-none justify-between"
           >
             <HStack>
               <ListIcon />
@@ -94,19 +93,17 @@ const TableSettingsMenu = ({
 
             <ChevronRightIcon color="gray.400" />
           </Button>
-          noOfLines={1}
           <Button
             onClick={onExportAllClick}
             variant="ghost"
-            borderTopRadius={0}
-            justifyContent="space-between"
+            className="rounded-t-none justify-between"
           >
             <HStack>
               <DownloadIcon />
               <Text>Export all</Text>
             </HStack>
           </Button>
-        </PopoverBody>
+        </div>
       );
   }
 };

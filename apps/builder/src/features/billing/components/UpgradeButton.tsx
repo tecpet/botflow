@@ -1,9 +1,10 @@
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
-import { Button, type ButtonProps, useDisclosure } from "@chakra-ui/react";
+import { useDisclosure } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { isNotDefined } from "@typebot.io/lib/utils";
+import { Button, type ButtonProps } from "@typebot.io/ui/components/Button";
 import React from "react";
-import { ChangePlanModal } from "./ChangePlanModal";
+import { ChangePlanDialog } from "./ChangePlanDialog";
 
 type Props = {
   limitReachedType?: string;
@@ -19,19 +20,21 @@ export const UpgradeButton = ({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { workspace } = useWorkspace();
   return (
-    <Button
-      colorScheme="orange"
-      {...props}
-      isLoading={isNotDefined(workspace)}
-      onClick={onOpen}
-    >
-      {props.children ?? t("upgrade")}
-      <ChangePlanModal
+    <>
+      <Button
+        variant="secondary"
+        {...props}
+        disabled={isNotDefined(workspace)}
+        onClick={onOpen}
+      >
+        {props.children ?? t("upgrade")}
+      </Button>
+      <ChangePlanDialog
         isOpen={isOpen}
         onClose={onClose}
         type={limitReachedType}
         excludedPlans={excludedPlans}
       />
-    </Button>
+    </>
   );
 };

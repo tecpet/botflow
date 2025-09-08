@@ -70,7 +70,11 @@ export const resumeWhatsAppFlow = async ({
   });
   if (!credentials) throw new WhatsAppError("Could not find credentials");
 
-  if (phoneNumberId && credentials.phoneNumberId !== phoneNumberId)
+  if (
+    phoneNumberId &&
+    credentials.provider === "meta" &&
+    credentials.phoneNumberId !== phoneNumberId
+  )
     throw new WhatsAppError("Credentials point to another phone ID", {
       credentialsPhoneNumberId: credentials.phoneNumberId,
       receivedPhoneNumberId: phoneNumberId,
@@ -93,15 +97,13 @@ export const resumeWhatsAppFlow = async ({
     isDefined(session.state.expiryTimeout) &&
     session?.updatedAt.getTime() + session.state.expiryTimeout < Date.now();
 
-  if (aggregationResponse.status === "treat as unique message") {
-    if (session?.isReplying && callFrom !== "webhook") {
-      if (!isSessionExpired) throw new WhatsAppError("Is in reply state");
-    } else {
-      await setIsReplyingInChatSession({
-        existingSessionId: session?.id,
-        newSessionId: sessionId,
-      });
-    }
+  if (!isSessionExpired && session?.isReplying && callFrom !== "webhook")
+    throw new WhatsAppError("Is in reply state");
+  else if (aggregationResponse.status === "treat as unique message") {
+    await setIsReplyingInChatSession({
+      existingSessionId: session?.id,
+      newSessionId: sessionId,
+    });
   }
 
   const currentTypebot = session?.state.typebotsQueue[0].typebot;
@@ -112,7 +114,7 @@ export const resumeWhatsAppFlow = async ({
   const reply = await convertWhatsAppMessageToTypebotMessage({
     messages: aggregationResponse.incomingMessages,
     workspaceId,
-    accessToken: credentials?.systemUserAccessToken,
+    credentials,
     typebotId: currentTypebot?.id,
     resultId: session?.state.typebotsQueue[0].resultId,
     block,
@@ -166,19 +168,20 @@ export const resumeWhatsAppFlow = async ({
 const convertWhatsAppMessageToTypebotMessage = async ({
   messages,
   workspaceId,
-  accessToken,
+  credentials,
   typebotId,
   resultId,
   block,
 }: {
   messages: WhatsAppIncomingMessage[];
   workspaceId?: string;
-  accessToken: string;
+  credentials: WhatsAppCredentials["data"];
   typebotId?: string;
   resultId?: string;
   block?: Block;
 }): Promise<Message | undefined> => {
   let text = "";
+  let replyId: string | undefined;
   const attachedFileUrls: string[] = [];
   for (const message of messages) {
     switch (message.type) {
@@ -194,15 +197,20 @@ const convertWhatsAppMessageToTypebotMessage = async ({
       }
       case "interactive": {
         switch (message.interactive.type) {
-          case "button_reply":
+          case "button_reply": {
+            replyId = message.interactive.button_reply.id;
             if (text !== "")
-              text += `\n\n${message.interactive.button_reply.id}`;
-            else text = message.interactive.button_reply.id;
+              text += `\n\n${message.interactive.button_reply.title}`;
+            else text = message.interactive.button_reply.title;
             break;
-          case "list_reply":
-            if (text !== "") text += `\n\n${message.interactive.list_reply.id}`;
-            else text = message.interactive.list_reply.id;
+          }
+          case "list_reply": {
+            replyId = message.interactive.list_reply.id;
+            if (text !== "")
+              text += `\n\n${message.interactive.list_reply.title}`;
+            else text = message.interactive.list_reply.title;
             break;
+          }
         }
         break;
       }
@@ -258,7 +266,7 @@ const convertWhatsAppMessageToTypebotMessage = async ({
         } else {
           const { file, mimeType } = await downloadMedia({
             mediaId,
-            systemUserAccessToken: accessToken,
+            credentials,
           });
           const extension = extensionFromMimeType[mimeType];
           const url = await uploadFileToBucket({
@@ -310,6 +318,7 @@ const convertWhatsAppMessageToTypebotMessage = async ({
     type: "text",
     text,
     attachedFileUrls,
+    metadata: { replyId },
   };
 };
 
@@ -329,6 +338,7 @@ const getWhatsAppCredentials = async ({
     )
       return;
     return {
+      provider: "meta",
       systemUserAccessToken: env.META_SYSTEM_USER_TOKEN,
       phoneNumberId: env.WHATSAPP_PREVIEW_FROM_PHONE_NUMBER_ID,
     };
@@ -342,10 +352,7 @@ const getWhatsAppCredentials = async ({
     credentials.data,
     credentials.iv,
   )) as WhatsAppCredentials["data"];
-  return {
-    systemUserAccessToken: data.systemUserAccessToken,
-    phoneNumberId: data.phoneNumberId,
-  };
+  return data;
 };
 
 const aggregateParallelMediaMessagesIfRedisEnabled = async ({

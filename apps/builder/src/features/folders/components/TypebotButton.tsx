@@ -1,6 +1,6 @@
-import { ConfirmModal } from "@/components/ConfirmModal";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EmojiOrImageIcon } from "@/components/EmojiOrImageIcon";
-import { GripIcon } from "@/components/icons";
+import { GripIcon, MoreVerticalIcon } from "@/components/icons";
 import type { TypebotInDashboard } from "@/features/dashboard/types";
 import {
   type NodePosition,
@@ -8,29 +8,20 @@ import {
 } from "@/features/graph/providers/GraphDndProvider";
 import { duplicateName } from "@/features/typebot/helpers/duplicateName";
 import { isMobile } from "@/helpers/isMobile";
+import { useOpenControls } from "@/hooks/useOpenControls";
 import { trpc, trpcClient } from "@/lib/queryClient";
 import { toast } from "@/lib/toast";
-import {
-  Alert,
-  AlertIcon,
-  Button,
-  Flex,
-  IconButton,
-  MenuItem,
-  Stack,
-  Tag,
-  Text,
-  VStack,
-  WrapItem,
-  useColorModeValue,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { Alert, AlertIcon, Tag, Text, VStack } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { T, useTranslate } from "@tolgee/react";
+import { Button } from "@typebot.io/ui/components/Button";
+import { buttonVariants } from "@typebot.io/ui/components/Button";
+import { Menu } from "@typebot.io/ui/components/Menu";
+import { LayoutBottomIcon } from "@typebot.io/ui/icons/LayoutBottomIcon";
+import { cn } from "@typebot.io/ui/lib/cn";
 import { useRouter } from "next/router";
 import React, { memo } from "react";
 import { useDebounce } from "use-debounce";
-import { MoreButton } from "./MoreButton";
 
 type Props = {
   typebot: TypebotInDashboard;
@@ -50,12 +41,8 @@ const TypebotButton = ({
   const { t } = useTranslate();
   const router = useRouter();
   const [draggedTypebotDebounced] = useDebounce(draggedTypebot, 200);
-  const {
-    isOpen: isDeleteOpen,
-    onOpen: onDeleteOpen,
-    onClose: onDeleteClose,
-  } = useDisclosure();
-  const buttonRef = React.useRef<HTMLDivElement>(null);
+  const deleteDialogControls = useOpenControls();
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
 
   useDragDistance({
     ref: buttonRef,
@@ -65,9 +52,6 @@ const TypebotButton = ({
 
   const { mutate: importTypebot } = useMutation(
     trpc.typebot.importTypebot.mutationOptions({
-      onError: (error) => {
-        toast({ description: error.message });
-      },
       onSuccess: ({ typebot }) => {
         router.push(`/typebots/${typebot.id}/edit`);
       },
@@ -76,9 +60,6 @@ const TypebotButton = ({
 
   const { mutate: deleteTypebot } = useMutation(
     trpc.typebot.deleteTypebot.mutationOptions({
-      onError: (error) => {
-        toast({ description: error.message });
-      },
       onSuccess: () => {
         onTypebotUpdated();
       },
@@ -87,9 +68,6 @@ const TypebotButton = ({
 
   const { mutate: unpublishTypebot } = useMutation(
     trpc.typebot.unpublishTypebot.mutationOptions({
-      onError: (error) => {
-        toast({ description: error.message });
-      },
       onSuccess: () => {
         onTypebotUpdated();
       },
@@ -130,7 +108,7 @@ const TypebotButton = ({
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onDeleteOpen();
+    deleteDialogControls.onOpen();
   };
 
   const handleUnpublishClick = async (e: React.MouseEvent) => {
@@ -140,104 +118,103 @@ const TypebotButton = ({
   };
 
   return (
-    <Button
-      ref={buttonRef}
-      as={WrapItem}
-      onClick={handleTypebotClick}
-      display="flex"
-      flexDir="column"
-      variant="outline"
-      w="225px"
-      h="270px"
-      rounded="lg"
-      whiteSpace="normal"
-      opacity={draggedTypebot ? 0.3 : 1}
-      cursor="pointer"
-      bgColor={useColorModeValue("white", "gray.900")}
-    >
-      {typebot.publishedTypebotId && (
-        <Tag
-          colorScheme="orange"
-          variant="solid"
-          rounded="full"
-          pos="absolute"
-          top="27px"
-          size="sm"
-        >
-          {t("folders.typebotButton.live")}
-        </Tag>
-      )}
-      {!isReadOnly && (
-        <>
-          <IconButton
-            icon={<GripIcon />}
-            pos="absolute"
-            top="20px"
-            left="20px"
-            aria-label="Drag"
-            cursor="grab"
-            variant="ghost"
+    <>
+      <div
+        role="button"
+        onClick={handleTypebotClick}
+        className={cn(
+          buttonVariants({
+            variant: "outline-secondary",
+            iconStyle: "none",
+            size: "lg",
+          }),
+          "flex-col w-[225px] h-[270px] rounded-lg whitespace-normal bg-gray-1 relative",
+          draggedTypebot && "opacity-30",
+        )}
+      >
+        {typebot.publishedTypebotId && (
+          <Tag
             colorScheme="orange"
-            size="sm"
-          />
-          <MoreButton
+            variant="solid"
+            rounded="full"
             pos="absolute"
-            top="20px"
-            right="20px"
-            aria-label={t("folders.typebotButton.showMoreOptions")}
+            top="27px"
+            size="sm"
           >
-            {typebot.publishedTypebotId && (
-              <MenuItem onClick={handleUnpublishClick}>
-                {t("folders.typebotButton.unpublish")}
-              </MenuItem>
-            )}
-            <MenuItem onClick={handleDuplicateClick}>
-              {t("folders.typebotButton.duplicate")}
-            </MenuItem>
-            <MenuItem color="red.400" onClick={handleDeleteClick}>
-              {t("folders.typebotButton.delete")}
-            </MenuItem>
-          </MoreButton>
-        </>
-      )}
-      <VStack spacing="4">
-        <Flex
-          rounded="full"
-          justifyContent="center"
-          alignItems="center"
-          fontSize={"4xl"}
-        >
-          {<EmojiOrImageIcon icon={typebot.icon} boxSize={"35px"} />}
-        </Flex>
-        <Text textAlign="center" noOfLines={4} maxW="180px">
-          {typebot.name}
-        </Text>
-      </VStack>
+            {t("folders.typebotButton.live")}
+          </Tag>
+        )}
+        {!isReadOnly && (
+          <>
+            <Button
+              ref={buttonRef}
+              className="absolute top-5 left-5 size-8 cursor-grab"
+              aria-label="Drag"
+              variant="ghost"
+              size="icon"
+            >
+              <GripIcon />
+            </Button>
+            <Menu.Root>
+              <Menu.TriggerButton
+                aria-label={t("folders.typebotButton.showMoreOptions")}
+                data-testid="more-button"
+                onClick={(e) => e.stopPropagation()}
+                variant="outline-secondary"
+                size="icon"
+                className="absolute top-5 right-5 size-8"
+              >
+                <MoreVerticalIcon />
+              </Menu.TriggerButton>
+              <Menu.Popup align="end">
+                {typebot.publishedTypebotId && (
+                  <Menu.Item onClick={handleUnpublishClick}>
+                    {t("folders.typebotButton.unpublish")}
+                  </Menu.Item>
+                )}
+                <Menu.Item onClick={handleDuplicateClick}>
+                  {t("folders.typebotButton.duplicate")}
+                </Menu.Item>
+                <Menu.Item className="text-red-10" onClick={handleDeleteClick}>
+                  {t("delete")}
+                </Menu.Item>
+              </Menu.Popup>
+            </Menu.Root>
+          </>
+        )}
+        <VStack spacing="4">
+          <EmojiOrImageIcon
+            icon={typebot.icon}
+            size="lg"
+            defaultIcon={LayoutBottomIcon}
+          />
+          <Text textAlign="center" noOfLines={4} maxW="180px">
+            {typebot.name}
+          </Text>
+        </VStack>
+      </div>
       {!isReadOnly && (
-        <ConfirmModal
-          message={
-            <Stack spacing="4">
-              <Text>
-                <T
-                  keyName="folders.typebotButton.deleteConfirmationMessage"
-                  params={{
-                    strong: <strong>{typebot.name}</strong>,
-                  }}
-                />
-              </Text>
-              <Alert status="warning">
-                <AlertIcon />
-                {t("folders.typebotButton.deleteConfirmationMessageWarning")}
-              </Alert>
-            </Stack>
-          }
+        <ConfirmDialog
           confirmButtonLabel={t("delete")}
           onConfirm={handleDeleteTypebotClick}
-          isOpen={isDeleteOpen}
-          onClose={onDeleteClose}
-        />
+          isOpen={deleteDialogControls.isOpen}
+          onClose={deleteDialogControls.onClose}
+        >
+          <Text>
+            <T
+              keyName="folders.typebotButton.deleteConfirmationMessage"
+              params={{
+                strong: <strong>{typebot.name}</strong>,
+              }}
+            />
+          </Text>
+          <Alert status="warning">
+            <AlertIcon />
+            {t("folders.typebotButton.deleteConfirmationMessageWarning")}
+          </Alert>
+        </ConfirmDialog>
       )}
-    </Button>
+    </>
   );
 };
 

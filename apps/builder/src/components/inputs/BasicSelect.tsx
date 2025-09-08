@@ -1,133 +1,122 @@
-import { useFilteredCollection } from "@/features/forge/hooks/useFilteredCollection";
-import { useParentModal } from "@/features/graph/providers/ParentModalProvider";
-import { VariablesButton } from "@/features/variables/components/VariablesButton";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useInjectableInputValue } from "@/hooks/useInjectableInputValue";
-import { Portal } from "@ark-ui/react";
-import {
-  selectContentClassNames,
-  selectItemClassNames,
-} from "@typebot.io/ui/components/Select";
-import { cx } from "@typebot.io/ui/lib/cva";
-import { type ReactNode, useEffect, useRef } from "react";
-import { MoreInfoTooltip } from "../MoreInfoTooltip";
-import { type Item, getItemLabel, getItemValue } from "../collections";
-import { Combobox } from "../combobox";
-import { Field } from "../field";
+import { useTypebot } from "@/features/editor/providers/TypebotProvider";
+import type { Select as PrimitiveSelect } from "@base-ui-components/react/select";
+import { Tag } from "@chakra-ui/react";
+import { Select, type TriggerProps } from "@typebot.io/ui/components/Select";
+import type { Variable } from "@typebot.io/variables/schemas";
+import { useMemo } from "react";
 
-type Props = {
-  items: Item[] | undefined;
-  defaultValue?: string;
-  placeholder?: string;
-  label?: string;
-  helperText?: ReactNode;
-  moreInfoTooltip?: string;
-  isRequired?: boolean;
-  onChange: (value: string | undefined) => void;
+type NoInfer<T> = [T][T extends any ? 0 : never];
+
+type Props<ItemValue, Value extends ItemValue | undefined = ItemValue> = Omit<
+  PrimitiveSelect.Root.Props<ItemValue>,
+  "items" | "onChange" | "onValueChange" | "value" | "defaultValue"
+> & {
+  // NoInfer prevents defaultValue being the source of a too-narrow ItemValue.
+  defaultValue?: NoInfer<ItemValue>;
+  value: Value;
+  items:
+    | Array<{
+        label: React.ReactNode;
+        value: ItemValue;
+      }>
+    | readonly ItemValue[];
+  placeholder?: React.ReactNode;
+  className?: string;
+  size?: TriggerProps["size"];
+  includeVariables?: boolean;
+  onChange?: [undefined] extends [Value]
+    ? (value: ItemValue | undefined) => void
+    : (value: ItemValue) => void;
 };
 
-export const BasicSelect = ({
+export const BasicSelect = <ItemValue, Value extends ItemValue | undefined>({
   items,
-  defaultValue,
-  placeholder,
-  label,
-  helperText,
-  moreInfoTooltip,
-  isRequired,
   onChange,
-}: Omit<Props, "credentialsScope" | "fetcherId" | "options" | "blockDef"> & {
-  items: Item[] | undefined;
-}) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const {
-    value: inputValue,
-    setValue: setInputValue,
-    replaceDefaultValue,
-    isTouched,
-  } = useInjectableInputValue({
-    ref: inputRef,
-  });
+  placeholder,
+  className,
+  size,
+  includeVariables,
+  ...props
+}: Props<ItemValue, Value>) => {
+  const { typebot } = useTypebot();
 
-  const filteredCollection = useFilteredCollection({
+  const enrichedItems = useEnrichedItems({
     items,
-    filterQuery: inputValue,
-    isInputTouched: isTouched,
+    placeholder,
+    variables: includeVariables ? typebot?.variables : undefined,
   });
 
-  const transformToValueAndPropagate = useDebounce((label: string) => {
-    const value = filteredCollection.items.find(
-      (item) => getItemLabel(item) === label,
+  const handleValueChange = (value: ItemValue) => {
+    onChange?.(
+      value === null || value === props.defaultValue
+        ? (undefined as ItemValue)
+        : value,
     );
-    onChange(value ? getItemValue(value) : label);
-  });
-
-  useEffect(() => {
-    if (!defaultValue || isTouched || !items || items?.length === 0) return;
-    const defaultInputValue = items.find(
-      (item) => getItemValue(item) === defaultValue,
-    );
-    replaceDefaultValue(
-      defaultInputValue ? getItemLabel(defaultInputValue) : defaultValue,
-    );
-  }, [defaultValue, items?.length, isTouched]);
+  };
 
   return (
-    <Field.Root required={isRequired} className="flex flex-col gap-1">
-      <Combobox.Root
-        placeholder={placeholder}
-        collection={filteredCollection}
-        className={cx("flex justify-between flex-col gap-2")}
-        onInputValueChange={(details) => {
-          setInputValue(details.inputValue);
-          transformToValueAndPropagate(details.inputValue);
-        }}
-        onSelect={(details) => {
-          onChange(getItemValue(details.itemValue));
-        }}
-        inputValue={inputValue}
-        allowCustomValue
-      >
-        {label && (
-          <Combobox.Label>
-            {label}{" "}
-            {moreInfoTooltip && (
-              <MoreInfoTooltip>{moreInfoTooltip}</MoreInfoTooltip>
-            )}
-          </Combobox.Label>
-        )}
-        <div className="flex items-center w-full">
-          <Combobox.Control>
-            <Combobox.Input />
-          </Combobox.Control>
-          <VariablesButton
-            onSelectVariable={(variable) => {
-              setInputValue(`{{${variable.name}}}`);
-              onChange(`{{${variable.name}}}`);
-            }}
-          />
-        </div>
-
-        <Portal>
-          <Combobox.Positioner className="ark-positioner-z-10">
-            {filteredCollection.size > 0 &&
-              (filteredCollection.size > 1 ||
-                getItemLabel(filteredCollection.items[0]) !== inputValue) && (
-                <Combobox.Content className={selectContentClassNames}>
-                  {filteredCollection.items.map((item) => (
-                    <Combobox.Item
-                      key={getItemValue(item)}
-                      item={item}
-                      className={selectItemClassNames}
-                    >
-                      {getItemLabel(item)}
-                    </Combobox.Item>
-                  ))}
-                </Combobox.Content>
-              )}
-          </Combobox.Positioner>
-        </Portal>
-      </Combobox.Root>
-      {helperText && <Field.HelperText>{helperText}</Field.HelperText>}
-    </Field.Root>
+    <Select.Root
+      {...props}
+      // Base UI does not work well with undefined values so we need to convert it to null
+      value={(props.value ?? props.defaultValue ?? null) as ItemValue}
+      items={
+        enrichedItems as Array<{
+          label: React.ReactNode;
+          value: ItemValue;
+        }>
+      }
+      onValueChange={handleValueChange}
+    >
+      <Select.Trigger className={className} size={size} />
+      <Select.Popup size={size}>
+        {enrichedItems.map((item) => (
+          <Select.Item
+            key={(item.value as string) ?? "default"}
+            value={item.value}
+          >
+            {item.label}
+          </Select.Item>
+        ))}
+      </Select.Popup>
+    </Select.Root>
   );
 };
+
+const useEnrichedItems = <ItemValue, Value extends ItemValue | undefined>({
+  items,
+  placeholder,
+  variables,
+  defaultValue,
+}: {
+  items: Props<ItemValue, Value>["items"];
+  placeholder?: Props<ItemValue, Value>["placeholder"];
+  variables?: Variable[];
+  defaultValue?: Value;
+}): Array<{
+  label: React.ReactNode;
+  value: ItemValue;
+}> =>
+  useMemo(() => {
+    if (!items) return items;
+    const enrichedItems =
+      typeof items[0] === "string"
+        ? items.map((item) => ({
+            label: item as React.ReactNode,
+            value: item as ItemValue,
+          }))
+        : [...(items as Array<{ label: React.ReactNode; value: ItemValue }>)];
+    if (placeholder && !defaultValue)
+      enrichedItems.unshift({
+        label: placeholder,
+        value: null as ItemValue,
+      });
+    if (variables)
+      enrichedItems.push(
+        ...variables.map((variable) => ({
+          label: <Tag colorScheme="purple">{variable.name}</Tag>,
+          isHidden: true,
+          value: `{{${variable.name}}}` as ItemValue,
+        })),
+      );
+    return enrichedItems;
+  }, [items, placeholder, variables]);

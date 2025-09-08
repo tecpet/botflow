@@ -1,13 +1,9 @@
-import { CopyIcon, InfoIcon, PlayIcon, TrashIcon } from "@/components/icons";
+import { CopyIcon, PlayIcon } from "@/components/icons";
 import { useIsAnalyzing } from "@/features/graph/hooks/useIsAnalyzing";
 import { isMac } from "@/helpers/isMac";
-import {
-  HStack,
-  IconButton,
-  Tooltip,
-  useClipboard,
-  useColorModeValue,
-} from "@chakra-ui/react";
+import { HStack, useColorModeValue } from "@chakra-ui/react";
+import { Button } from "@typebot.io/ui/components/Button";
+import { TrashIcon } from "@typebot.io/ui/icons/TrashIcon";
 
 type Props = {
   groupId: string;
@@ -15,13 +11,8 @@ type Props = {
   onPlayClick: () => void;
 };
 
-export const GroupFocusToolbar = ({
-  groupId,
-  isReadOnly,
-  onPlayClick,
-}: Props) => {
+export const GroupFocusToolbar = ({ isReadOnly, onPlayClick }: Props) => {
   const isAnalyzing = useIsAnalyzing();
-  const { hasCopied, onCopy } = useClipboard(groupId);
 
   const dispatchCopyEvent = () => {
     dispatchEvent(
@@ -45,56 +36,40 @@ export const GroupFocusToolbar = ({
       shadow="md"
     >
       {!isAnalyzing && (
-        <IconButton
-          icon={<PlayIcon />}
-          borderRightWidth="1px"
-          borderRightRadius="none"
+        <Button
+          className="size-8 border-r rounded-r-none"
           aria-label={"Preview bot from this group"}
           variant="ghost"
           onClick={onPlayClick}
-          size="sm"
-        />
+          size="icon"
+        >
+          <PlayIcon />
+        </Button>
       )}
       {!isReadOnly && (
-        <IconButton
-          icon={<CopyIcon />}
-          borderRightWidth="1px"
-          borderRightRadius="none"
-          borderLeftRadius="none"
+        <Button
+          className="border-r rounded-r-none rounded-l-none size-8"
           aria-label={"Copy group"}
           variant="ghost"
           onClick={(e) => {
             e.stopPropagation();
             dispatchCopyEvent();
           }}
-          size="sm"
-        />
+          size="icon"
+        >
+          <CopyIcon />
+        </Button>
       )}
-      <Tooltip
-        label={hasCopied ? "Copied!" : groupId}
-        closeOnClick={false}
-        placement="top"
-      >
-        <IconButton
-          icon={<InfoIcon />}
-          borderRightWidth="1px"
-          borderRightRadius="none"
-          borderLeftRadius="none"
-          aria-label={"Show group info"}
-          variant="ghost"
-          size="sm"
-          onClick={onCopy}
-        />
-      </Tooltip>
       {!isReadOnly && (
-        <IconButton
+        <Button
+          className="border-l rounded-l-none size-8"
           aria-label="Delete"
-          borderLeftRadius="none"
-          icon={<TrashIcon />}
           onClick={dispatchDeleteEvent}
           variant="ghost"
-          size="sm"
-        />
+          size="icon"
+        >
+          <TrashIcon />
+        </Button>
       )}
     </HStack>
   );

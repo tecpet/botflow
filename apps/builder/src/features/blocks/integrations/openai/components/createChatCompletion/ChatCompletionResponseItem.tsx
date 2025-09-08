@@ -1,5 +1,5 @@
-import { DropdownList } from "@/components/DropdownList";
 import type { TableListItemProps } from "@/components/TableList";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
 import { Stack } from "@chakra-ui/react";
 import {
@@ -15,8 +15,9 @@ type Props = TableListItemProps<
 
 export const ChatCompletionResponseItem = ({ item, onItemChange }: Props) => {
   const changeValueToExtract = (
-    valueToExtract: (typeof chatCompletionResponseValues)[number],
+    valueToExtract: (typeof chatCompletionResponseValues)[number] | undefined,
   ) => {
+    if (!valueToExtract) return;
     onItemChange({ ...item, valueToExtract });
   };
 
@@ -26,12 +27,11 @@ export const ChatCompletionResponseItem = ({ item, onItemChange }: Props) => {
 
   return (
     <Stack p="4" rounded="md" flex="1" borderWidth="1px">
-      <DropdownList
-        currentItem={
-          item.valueToExtract ?? defaultOpenAIResponseMappingItem.valueToExtract
-        }
+      <BasicSelect
+        value={item.valueToExtract}
+        defaultValue={defaultOpenAIResponseMappingItem.valueToExtract}
         items={chatCompletionResponseValues}
-        onItemSelect={changeValueToExtract}
+        onChange={changeValueToExtract}
       />
       <VariableSearchInput
         onSelectVariable={changeVariableId}

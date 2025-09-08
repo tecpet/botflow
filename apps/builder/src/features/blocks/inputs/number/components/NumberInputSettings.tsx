@@ -1,6 +1,5 @@
-import { DropdownList } from "@/components/DropdownList";
 import { NumberInput, TextInput } from "@/components/inputs";
-import { Select } from "@/components/inputs/Select";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
 import {
   Accordion,
@@ -56,7 +55,7 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
     });
   const handleButtonLabelChange = (button: string) =>
     onOptionsChange({ ...options, labels: { ...options?.labels, button } });
-  const handleCurrencyChange = (currency: string) =>
+  const updateCurrency = (currency: string | undefined) =>
     onOptionsChange({
       ...options,
       currency,
@@ -70,12 +69,12 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
   const handleStepChange = (
     step?: NonNullable<NumberInputBlock["options"]>["step"],
   ) => onOptionsChange({ ...options, step });
-  const handleStyleChange = (style: NumberInputStyle) =>
+  const handleStyleChange = (style: NumberInputStyle | undefined) =>
     onOptionsChange({
       ...options,
       style,
     });
-  const handleUnitChange = (unit: NumberInputUnit) =>
+  const updateUnit = (unit: NumberInputUnit | undefined) =>
     onOptionsChange({ ...options, unit });
   const handleLocaleChange = (locale: string) => {
     const savableLocale = numberInputOptionsSchema.shape.locale.safeParse(
@@ -127,31 +126,27 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
             <AccordionIcon />
           </AccordionButton>
           <AccordionPanel>
-            <DropdownList
+            <BasicSelect
               items={Object.values(NumberInputStyle).map((style) => ({
                 label: t(numberStyleTranslationKeys[style]),
                 value: style,
               }))}
-              currentItem={options?.style ?? defaultNumberInputStyle}
-              onItemSelect={(value) =>
-                handleStyleChange(value as NumberInputStyle)
-              }
+              value={options?.style}
+              defaultValue={defaultNumberInputStyle}
+              onChange={handleStyleChange}
             />
             {options?.style === NumberInputStyle.CURRENCY && (
               <FormControl mt={4}>
                 <FormLabel>
                   {t("blocks.inputs.number.settings.currency.label")}
                 </FormLabel>
-                <Select
+                <BasicSelect
                   items={currencies.map(({ code, description }) => ({
                     label: description,
                     value: code,
                   }))}
-                  onSelect={(value) => handleCurrencyChange(value as string)}
-                  placeholder={t(
-                    "blocks.inputs.number.settings.currency.label",
-                  )}
-                  selectedItem={options?.currency}
+                  onChange={updateCurrency}
+                  value={options?.currency}
                 />
               </FormControl>
             )}
@@ -160,16 +155,13 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
                 <FormLabel>
                   {t("blocks.inputs.number.settings.unit.label")}
                 </FormLabel>
-                <Select
+                <BasicSelect
                   items={Object.values(NumberInputUnit).map((unit) => ({
                     label: t(unitTranslationKeys[unit]),
                     value: unit,
                   }))}
-                  onSelect={(value) =>
-                    handleUnitChange(value as NumberInputUnit)
-                  }
-                  placeholder={t("blocks.inputs.number.settings.unit.label")}
-                  selectedItem={options?.unit}
+                  onChange={updateUnit}
+                  value={options?.unit}
                 />
               </FormControl>
             )}

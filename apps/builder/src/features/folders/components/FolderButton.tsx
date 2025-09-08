@@ -1,31 +1,29 @@
-import { ConfirmModal } from "@/components/ConfirmModal";
-import { FolderIcon, MoreVerticalIcon } from "@/components/icons";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { MoreVerticalIcon } from "@/components/icons";
+import { useOpenControls } from "@/hooks/useOpenControls";
 import { trpc } from "@/lib/queryClient";
 import { toast } from "@/lib/toast";
 import {
   Alert,
   AlertIcon,
-  Button,
   Editable,
   EditableInput,
   EditablePreview,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   SkeletonCircle,
   SkeletonText,
   Stack,
   Text,
   VStack,
-  WrapItem,
   useColorModeValue,
-  useDisclosure,
 } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { T, useTranslate } from "@tolgee/react";
 import type { Prisma } from "@typebot.io/prisma/types";
+import { Button } from "@typebot.io/ui/components/Button";
+import { buttonVariants } from "@typebot.io/ui/components/Button";
+import { Menu } from "@typebot.io/ui/components/Menu";
+import { FolderSolidIcon } from "@typebot.io/ui/icons/FolderSolidIcon";
+import { cn } from "@typebot.io/ui/lib/cn";
 import { useRouter } from "next/router";
 import React, { memo, useMemo } from "react";
 import { useTypebotDnd } from "../TypebotDndProvider";
@@ -51,22 +49,15 @@ const FolderButton = ({
     () => draggedTypebot && mouseOverFolderId === folder.id,
     [draggedTypebot, folder.id, mouseOverFolderId],
   );
-  const { isOpen, onOpen, onClose } = useDisclosure();
-
+  const deleteDialogControls = useOpenControls();
   const { mutate: deleteFolder } = useMutation(
     trpc.folders.deleteFolder.mutationOptions({
-      onError: (error) => {
-        toast({ description: error.message });
-      },
       onSuccess: onFolderDeleted,
     }),
   );
 
   const { mutate: updateFolder } = useMutation(
     trpc.folders.updateFolder.mutationOptions({
-      onError: (error) => {
-        toast({ description: error.message });
-      },
       onSuccess: onFolderRenamed,
     }),
   );
@@ -89,91 +80,66 @@ const FolderButton = ({
   const handleMouseEnter = () => setMouseOverFolderId(folder.id);
   const handleMouseLeave = () => setMouseOverFolderId(undefined);
   return (
-    <Button
-      as={WrapItem}
-      style={{ width: "225px", height: "270px" }}
-      paddingX={6}
-      whiteSpace={"normal"}
-      pos="relative"
-      cursor="pointer"
-      variant="outline"
-      bg={useColorModeValue("white", "gray.900")}
-      colorScheme={isTypebotOver || draggedTypebot ? "orange" : "gray"}
-      borderWidth={isTypebotOver ? "2px" : "1px"}
-      transition={"border-width 0.1s ease"}
-      justifyContent="center"
-      onClick={handleClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <Menu>
-        <MenuButton
-          as={IconButton}
-          icon={<MoreVerticalIcon />}
-          aria-label={`Show ${folder.name} menu`}
-          onClick={(e) => e.stopPropagation()}
-          colorScheme="gray"
-          variant="outline"
-          size="sm"
-          pos="absolute"
-          top="5"
-          right="5"
-        />
-        <MenuList>
-          <MenuItem
-            color="red"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpen();
-            }}
+    <>
+      <div
+        role="button"
+        className={cn(
+          buttonVariants({
+            variant: "outline-secondary",
+            iconStyle: "none",
+            size: "lg",
+          }),
+          "w-[225px] h-[270px] relative px-6 whitespace-normal transition-all duration-100 justify-center bg-gray-1",
+          isTypebotOver && "border-2 border-orange-8",
+        )}
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <Menu.Root>
+          <Menu.TriggerButton
+            aria-label={`Show ${folder.name} menu`}
+            onClick={(e) => e.stopPropagation()}
+            variant="outline-secondary"
+            size="icon"
+            className="absolute top-5 right-5 size-8"
           >
-            {t("delete")}
-          </MenuItem>
-        </MenuList>
-      </Menu>
-      <VStack spacing="4">
-        <FolderIcon
-          fontSize={50}
-          color={useColorModeValue("blue.500", "blue.400")}
-        />
-        <Editable
-          defaultValue={folder.name === "" ? "New folder" : folder.name}
-          fontSize="18"
-          onClick={(e) => e.stopPropagation()}
-          onSubmit={onRenameSubmit}
-          startWithEditView={index === 0 && folder.name === ""}
-        >
-          <EditablePreview
-            _hover={{
-              bg: useColorModeValue("gray.100", "gray.700"),
-            }}
-            px="2"
-            textAlign="center"
-          />
-          <EditableInput textAlign="center" />
-        </Editable>
-      </VStack>
-
-      <ConfirmModal
-        isOpen={isOpen}
-        onClose={onClose}
+            <MoreVerticalIcon />
+          </Menu.TriggerButton>
+          <Menu.Popup align="end">
+            <Menu.Item
+              className="text-red-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteDialogControls.onOpen();
+              }}
+            >
+              {t("delete")}
+            </Menu.Item>
+          </Menu.Popup>
+        </Menu.Root>
+        <VStack spacing="4">
+          <FolderSolidIcon className="size-10 text-blue-10" />
+          <Editable
+            defaultValue={folder.name === "" ? "New folder" : folder.name}
+            fontSize="18"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={onRenameSubmit}
+            startWithEditView={index === 0 && folder.name === ""}
+          >
+            <EditablePreview
+              _hover={{
+                bg: useColorModeValue("gray.100", "gray.700"),
+              }}
+              px="2"
+              textAlign="center"
+            />
+            <EditableInput textAlign="center" />
+          </Editable>
+        </VStack>
+      </div>
+      <ConfirmDialog
         confirmButtonLabel={t("delete")}
-        message={
-          <Stack spacing="4">
-            <Text>
-              <T
-                keyName="folders.folderButton.deleteConfirmationMessage"
-                params={{
-                  strong: <strong>{folder.name}</strong>,
-                }}
-              />
-            </Text>
-            <Alert status="warning">
-              <AlertIcon />
-              {t("folders.folderButton.deleteConfirmationMessageWarning")}
-            </Alert>
-          </Stack>
-        }
         title={`${t("delete")} ${folder.name}?`}
         onConfirm={() =>
           deleteFolder({
@@ -181,25 +147,39 @@ const FolderButton = ({
             folderId: folder.id,
           })
         }
-        confirmButtonColor="red"
-      />
-    </Button>
+        actionType="destructive"
+        isOpen={deleteDialogControls.isOpen}
+        onClose={deleteDialogControls.onClose}
+      >
+        <Stack spacing="4">
+          <Text>
+            <T
+              keyName="folders.folderButton.deleteConfirmationMessage"
+              params={{
+                strong: <strong>{folder.name}</strong>,
+              }}
+            />
+          </Text>
+          <Alert status="warning">
+            <AlertIcon />
+            {t("folders.folderButton.deleteConfirmationMessageWarning")}
+          </Alert>
+        </Stack>
+      </ConfirmDialog>
+    </>
   );
 };
 
 export const ButtonSkeleton = () => (
   <Button
-    as={VStack}
-    style={{ width: "225px", height: "270px" }}
-    paddingX={6}
-    whiteSpace={"normal"}
-    pos="relative"
-    cursor="pointer"
-    variant="outline"
+    className="w-[225px] h-[270px] relative px-6 whitespace-normal"
+    variant="outline-secondary"
   >
-    <VStack spacing="6" w="full">
-      <SkeletonCircle boxSize="45px" />
-      <SkeletonText noOfLines={2} w="full" />
+    <VStack>
+      <VStack spacing="6" w="full">
+        <SkeletonCircle boxSize="45px" />
+        <SkeletonText noOfLines={2} w="full" />
+      </VStack>
     </VStack>
   </Button>
 );

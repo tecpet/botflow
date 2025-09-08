@@ -1,17 +1,16 @@
 import { CopyButton } from "@/components/CopyButton";
-import { EditIcon } from "@/components/icons";
 import {
-  Button,
-  type ButtonProps,
   Editable,
   EditableInput,
   EditablePreview,
   HStack,
   Text,
-  Tooltip,
   useEditableControls,
 } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
+import { Button, type ButtonProps } from "@typebot.io/ui/components/Button";
+import { Tooltip } from "@typebot.io/ui/components/Tooltip";
+import { EditIcon } from "@typebot.io/ui/icons/EditIcon";
 import React, { useState } from "react";
 
 type EditableUrlProps = {
@@ -46,23 +45,29 @@ export const EditableUrl = ({
     >
       <HStack spacing={1}>
         <Text flexShrink={0}>{hostname}/</Text>
-        <Tooltip label={t("edit")}>
-          <EditablePreview
-            mx={1}
-            borderWidth="1px"
-            px={3}
-            rounded="md"
-            cursor="text"
-            display="flex"
-            fontWeight="medium"
+        <Tooltip.Root>
+          <Tooltip.Trigger
+            render={
+              <EditablePreview
+                mx={1}
+                borderWidth="1px"
+                px={3}
+                rounded="md"
+                cursor="text"
+                display="flex"
+                fontWeight="medium"
+              />
+            }
           />
-        </Tooltip>
+          <Tooltip.Popup>{t("edit")}</Tooltip.Popup>
+        </Tooltip.Root>
+
         <EditableInput px={2} />
       </HStack>
 
       <HStack>
         <EditButton size="xs" />
-        <CopyButton size="xs" textToCopy={`${hostname}/${value ?? ""}`} />
+        <CopyButton textToCopy={`${hostname}/${value ?? ""}`} />
       </HStack>
     </Editable>
   );
@@ -73,7 +78,8 @@ const EditButton = (props: ButtonProps) => {
   const { isEditing, getEditButtonProps } = useEditableControls();
 
   return isEditing ? null : (
-    <Button leftIcon={<EditIcon />} {...props} {...getEditButtonProps()}>
+    <Button {...props} {...getEditButtonProps()} variant="secondary">
+      <EditIcon />
       {t("edit")}
     </Button>
   );

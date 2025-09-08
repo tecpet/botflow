@@ -1,8 +1,9 @@
-import { DropdownList } from "@/components/DropdownList";
 import { TableList, type TableListItemProps } from "@/components/TableList";
 import { NumberInput } from "@/components/inputs";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
 import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
+import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { toast } from "@/lib/toast";
 import {
@@ -11,7 +12,6 @@ import {
   AccordionIcon,
   AccordionItem,
   AccordionPanel,
-  Button,
   HStack,
   Stack,
   Text,
@@ -30,6 +30,7 @@ import type {
   ResponseVariableMapping,
   VariableForTest,
 } from "@typebot.io/blocks-integrations/httpRequest/schema";
+import { Button } from "@typebot.io/ui/components/Button";
 import { useMemo, useState } from "react";
 import { computeDeepKeysMappingSuggestionList } from "../helpers/computeDeepKeysMappingSuggestionList";
 import { convertVariablesForTestToVariables } from "../helpers/convertVariablesForTestToVariables";
@@ -60,7 +61,7 @@ export const HttpRequestAdvancedConfigForm = ({
   const [testResponse, setTestResponse] = useState<string>();
   const [responseKeys, setResponseKeys] = useState<string[]>([]);
 
-  const updateMethod = (method: HttpMethod) =>
+  const updateMethod = (method: HttpMethod | undefined) =>
     onHttpRequestChange({ ...httpRequest, method });
 
   const updateQueryParams = (queryParams: KeyValue[]) =>
@@ -116,6 +117,9 @@ export const HttpRequestAdvancedConfigForm = ({
     [responseKeys],
   );
 
+  const updateProxyCredentialsId = (proxyCredentialsId: string | undefined) =>
+    onOptionsChange({ ...options, proxyCredentialsId });
+
   const isCustomBody =
     options?.isCustomBody ?? defaultHttpRequestBlockOptions.isCustomBody;
 
@@ -139,12 +143,10 @@ export const HttpRequestAdvancedConfigForm = ({
             />
             <HStack justify="space-between">
               <Text>Method:</Text>
-              <DropdownList
-                currentItem={
-                  (httpRequest?.method ??
-                    defaultHttpRequestAttributes.method) as HttpMethod
-                }
-                onItemSelect={updateMethod}
+              <BasicSelect
+                value={httpRequest?.method}
+                defaultValue={defaultHttpRequestAttributes.method}
+                onChange={updateMethod}
                 items={Object.values(HttpMethod)}
               />
             </HStack>
@@ -206,8 +208,23 @@ export const HttpRequestAdvancedConfigForm = ({
                   Advanced parameters
                   <AccordionIcon />
                 </AccordionButton>
-                <AccordionPanel pt="4">
+                <AccordionPanel pt="4" as={Stack}>
+                  {typebot && (
+                    <CredentialsDropdown
+                      type="http proxy"
+                      hideIfNoCredentials
+                      scope={{
+                        type: "workspace",
+                        workspaceId: typebot.workspaceId,
+                      }}
+                      currentCredentialsId={options?.proxyCredentialsId}
+                      onCredentialsSelect={updateProxyCredentialsId}
+                      onCreateNewClick={undefined}
+                      credentialsName="HTTP proxy"
+                    />
+                  )}
                   <NumberInput
+                    direction="row"
                     label="Timeout (s)"
                     defaultValue={options?.timeout ?? defaultTimeout}
                     min={1}
@@ -238,11 +255,7 @@ export const HttpRequestAdvancedConfigForm = ({
       </Accordion>
 
       {httpRequest?.url && (
-        <Button
-          onClick={executeTestRequest}
-          colorScheme="orange"
-          isLoading={isTestResponseLoading}
-        >
+        <Button onClick={executeTestRequest} disabled={isTestResponseLoading}>
           Test the request
         </Button>
       )}

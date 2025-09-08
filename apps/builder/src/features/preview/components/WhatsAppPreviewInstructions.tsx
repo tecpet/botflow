@@ -1,3 +1,4 @@
+import { ButtonLink } from "@/components/ButtonLink";
 import { BuoyIcon, ExternalLinkIcon } from "@/components/icons";
 import { TextInput } from "@/components/inputs";
 import { useEditor } from "@/features/editor/providers/EditorProvider";
@@ -7,7 +8,6 @@ import { toast } from "@/lib/toast";
 import {
   Alert,
   AlertIcon,
-  Button,
   HStack,
   Link,
   SlideFade,
@@ -17,6 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { isEmpty } from "@typebot.io/lib/utils";
+import { Button } from "@typebot.io/ui/components/Button";
 import { type FormEvent, useState } from "react";
 import {
   getPhoneNumberFromLocalStorage,
@@ -37,10 +38,6 @@ export const WhatsAppPreviewInstructions = (props: StackProps) => {
     trpc.whatsApp.startWhatsAppPreview.mutationOptions({
       onMutate: () => setIsSendingMessage(true),
       onSettled: () => setIsSendingMessage(false),
-      onError: (error) => {
-        if (error.data?.logError) return toast(error.data.logError);
-        toast({ description: error.message });
-      },
       onSuccess: async (data) => {
         if (
           data?.message === "success" &&
@@ -82,14 +79,14 @@ export const WhatsAppPreviewInstructions = (props: StackProps) => {
     >
       <HStack justifyContent="flex-end">
         <Text fontSize="sm">Need help?</Text>
-        <Button
-          as={Link}
+        <ButtonLink
           href="https://docs.typebot.io/deploy/whatsapp/overview"
-          leftIcon={<BuoyIcon />}
           size="sm"
+          variant="secondary"
         >
+          <BuoyIcon />
           Check the docs
-        </Button>
+        </ButtonLink>
       </HStack>
       <TextInput
         label="Your phone number"
@@ -102,25 +99,18 @@ export const WhatsAppPreviewInstructions = (props: StackProps) => {
       />
       {!isMessageSent && (
         <Button
-          isDisabled={isEmpty(phoneNumber) || isMessageSent}
-          isLoading={isSendingMessage}
+          disabled={isEmpty(phoneNumber) || isMessageSent || isSendingMessage}
           type="submit"
-          colorScheme="orange"
         >
           {hasMessageBeenSent ? "Restart" : "Start"} the chat
         </Button>
       )}
       <SlideFade offsetY="20px" in={isMessageSent} unmountOnExit>
         <Stack>
-          <Button
-            as={Link}
-            href={`https://web.whatsapp.com/`}
-            isExternal
-            colorScheme="orange"
-            rightIcon={<ExternalLinkIcon />}
-          >
+          <ButtonLink href={`https://web.whatsapp.com/`} target="_blank">
             Open WhatsApp Web
-          </Button>
+            <ExternalLinkIcon />
+          </ButtonLink>
           <Alert status="success" w="100%">
             <HStack>
               <AlertIcon />

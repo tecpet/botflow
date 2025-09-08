@@ -1,3 +1,4 @@
+import { Portal } from "@/components/Portal";
 import { useTypebots } from "@/features/dashboard/hooks/useTypebots";
 import type { TypebotInDashboard } from "@/features/dashboard/types";
 import type { NodePosition } from "@/features/graph/providers/GraphDndProvider";
@@ -8,7 +9,6 @@ import {
   Flex,
   HStack,
   Heading,
-  Portal,
   Skeleton,
   Stack,
   Wrap,
@@ -61,9 +61,6 @@ export const FolderContent = ({ folder }: Props) => {
 
   const { mutate: createFolder } = useMutation(
     trpc.folders.createFolder.mutationOptions({
-      onError: (error) => {
-        toast({ description: error.message });
-      },
       onSuccess: () => {
         refetchFolders();
       },
@@ -72,9 +69,6 @@ export const FolderContent = ({ folder }: Props) => {
 
   const { mutate: updateTypebot } = useMutation(
     trpc.typebot.updateTypebot.mutationOptions({
-      onError: (error) => {
-        toast({ description: error.message });
-      },
       onSuccess: () => {
         refetchTypebots();
       },
@@ -182,7 +176,7 @@ export const FolderContent = ({ folder }: Props) => {
             {currentUserMode !== "guest" && (
               <CreateBotButton
                 folderId={folder?.id}
-                isLoading={isTypebotLoading}
+                disabled={isTypebotLoading}
               />
             )}
             {isFolderLoading && <ButtonSkeleton />}
@@ -205,7 +199,10 @@ export const FolderContent = ({ folder }: Props) => {
                   draggedTypebot={draggedTypebot}
                   onTypebotUpdated={refetchTypebots}
                   onDrag={handleTypebotDrag(typebot)}
-                  isReadOnly={typebot.accessRight !== "write"}
+                  isReadOnly={
+                    typebot.accessRight !== "write" &&
+                    currentUserMode !== "write"
+                  }
                 />
               ))}
           </Wrap>

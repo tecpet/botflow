@@ -50,24 +50,36 @@
                           "typebot": {
                             "anyOf": [
                               {
-                                "oneOf": [
+                                "allOf": [
                                   {
-                                    "$ref": "#/components/schemas/typebotV6"
+                                    "oneOf": [
+                                      {
+                                        "$ref": "#/components/schemas/typebotV6"
+                                      },
+                                      {
+                                        "$ref": "#/components/schemas/typebotV5"
+                                      }
+                                    ],
+                                    "discriminator": {
+                                      "propertyName": "version",
+                                      "mapping": {
+                                        "3": "#/components/schemas/typebotV5",
+                                        "4": "#/components/schemas/typebotV5",
+                                        "5": "#/components/schemas/typebotV5",
+                                        "6": "#/components/schemas/typebotV6",
+                                        "6.1": "#/components/schemas/typebotV6"
+                                      }
+                                    }
                                   },
                                   {
-                                    "$ref": "#/components/schemas/typebotV5"
+                                    "type": "object",
+                                    "properties": {
+                                      "publicTypebotId": {
+                                        "type": "string"
+                                      }
+                                    }
                                   }
-                                ],
-                                "discriminator": {
-                                  "propertyName": "version",
-                                  "mapping": {
-                                    "3": "#/components/schemas/typebotV5",
-                                    "4": "#/components/schemas/typebotV5",
-                                    "5": "#/components/schemas/typebotV5",
-                                    "6": "#/components/schemas/typebotV6",
-                                    "6.1": "#/components/schemas/typebotV6"
-                                  }
-                                }
+                                ]
                               },
                               {
                                 "type": "string"
@@ -911,24 +923,36 @@
                           "typebot": {
                             "anyOf": [
                               {
-                                "oneOf": [
+                                "allOf": [
                                   {
-                                    "$ref": "#/components/schemas/typebotV6"
+                                    "oneOf": [
+                                      {
+                                        "$ref": "#/components/schemas/typebotV6"
+                                      },
+                                      {
+                                        "$ref": "#/components/schemas/typebotV5"
+                                      }
+                                    ],
+                                    "discriminator": {
+                                      "propertyName": "version",
+                                      "mapping": {
+                                        "3": "#/components/schemas/typebotV5",
+                                        "4": "#/components/schemas/typebotV5",
+                                        "5": "#/components/schemas/typebotV5",
+                                        "6": "#/components/schemas/typebotV6",
+                                        "6.1": "#/components/schemas/typebotV6"
+                                      }
+                                    }
                                   },
                                   {
-                                    "$ref": "#/components/schemas/typebotV5"
+                                    "type": "object",
+                                    "properties": {
+                                      "publicTypebotId": {
+                                        "type": "string"
+                                      }
+                                    }
                                   }
-                                ],
-                                "discriminator": {
-                                  "propertyName": "version",
-                                  "mapping": {
-                                    "3": "#/components/schemas/typebotV5",
-                                    "4": "#/components/schemas/typebotV5",
-                                    "5": "#/components/schemas/typebotV5",
-                                    "6": "#/components/schemas/typebotV6",
-                                    "6.1": "#/components/schemas/typebotV6"
-                                  }
-                                }
+                                ]
                               },
                               {
                                 "type": "string"
@@ -3071,24 +3095,36 @@
                 "type": "object",
                 "properties": {
                   "typebot": {
-                    "oneOf": [
+                    "allOf": [
                       {
-                        "$ref": "#/components/schemas/typebotV6"
+                        "oneOf": [
+                          {
+                            "$ref": "#/components/schemas/typebotV6"
+                          },
+                          {
+                            "$ref": "#/components/schemas/typebotV5"
+                          }
+                        ],
+                        "discriminator": {
+                          "propertyName": "version",
+                          "mapping": {
+                            "3": "#/components/schemas/typebotV5",
+                            "4": "#/components/schemas/typebotV5",
+                            "5": "#/components/schemas/typebotV5",
+                            "6": "#/components/schemas/typebotV6",
+                            "6.1": "#/components/schemas/typebotV6"
+                          }
+                        }
                       },
                       {
-                        "$ref": "#/components/schemas/typebotV5"
+                        "type": "object",
+                        "properties": {
+                          "publicTypebotId": {
+                            "type": "string"
+                          }
+                        }
                       }
                     ],
-                    "discriminator": {
-                      "propertyName": "version",
-                      "mapping": {
-                        "3": "#/components/schemas/typebotV5",
-                        "4": "#/components/schemas/typebotV5",
-                        "5": "#/components/schemas/typebotV5",
-                        "6": "#/components/schemas/typebotV6",
-                        "6.1": "#/components/schemas/typebotV6"
-                      }
-                    },
                     "description": "If set, it will override the typebot that is used to start the chat."
                   },
                   "sessionId": {
@@ -6757,6 +6793,9 @@
                               "type": "number",
                               "minimum": 1,
                               "maximum": 120
+                            },
+                            "proxyCredentialsId": {
+                              "type": "string"
                             }
                           }
                         }
@@ -6826,6 +6865,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/blinkBlock"
+                    },
+                    {
+                      "$ref": "#/components/schemas/gmailBlock"
                     }
                   ],
                   "discriminator": {
@@ -6848,7 +6890,8 @@
                       "posthog": "#/components/schemas/posthogBlock",
                       "perplexity": "#/components/schemas/perplexityBlock",
                       "deepseek": "#/components/schemas/deepseekBlock",
-                      "blink": "#/components/schemas/blinkBlock"
+                      "blink": "#/components/schemas/blinkBlock",
+                      "gmail": "#/components/schemas/gmailBlock"
                     }
                   }
                 }
@@ -9432,6 +9475,9 @@
                 "type": "number",
                 "minimum": 1,
                 "maximum": 120
+              },
+              "proxyCredentialsId": {
+                "type": "string"
               }
             }
           }
@@ -9579,6 +9625,9 @@
                 "type": "number",
                 "minimum": 1,
                 "maximum": 120
+              },
+              "proxyCredentialsId": {
+                "type": "string"
               }
             }
           }
@@ -9660,6 +9709,9 @@
                 "type": "number",
                 "minimum": 1,
                 "maximum": 120
+              },
+              "proxyCredentialsId": {
+                "type": "string"
               }
             }
           }
@@ -10164,6 +10216,29 @@
                             "type": {
                               "type": "string",
                               "enum": [
+                                "array"
+                              ]
+                            },
+                            "variableId": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "isRequired": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
                                 "enum"
                               ]
                             },
@@ -10577,8 +10652,11 @@
                           "type": "string",
                           "enum": [
                             "Answer",
-                            "Conversation ID",
-                            "Total Tokens"
+                            "Total Tokens",
+                            "Message content",
+                            "Total tokens",
+                            "Prompt tokens",
+                            "Completion tokens"
                           ]
                         },
                         "variableId": {
@@ -10586,10 +10664,6 @@
                         }
                       }
                     }
-                  },
-                  "conversation_id": {
-                    "type": "string",
-                    "description": "Deprecated, use `conversationVariableId` instead"
                   }
                 },
                 "required": [
@@ -11028,6 +11102,29 @@
                               "type": "string",
                               "enum": [
                                 "boolean"
+                              ]
+                            },
+                            "variableId": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "isRequired": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "array"
                               ]
                             },
                             "variableId": {
@@ -11529,6 +11626,29 @@
                               "type": "string",
                               "enum": [
                                 "boolean"
+                              ]
+                            },
+                            "variableId": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "isRequired": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "array"
                               ]
                             },
                             "variableId": {
@@ -14310,6 +14430,98 @@
         ],
         "title": "Blink"
       },
+      "gmailBlock": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "outgoingEdgeId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "gmail"
+            ]
+          },
+          "options": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "credentialsId": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "credentialsId": {
+                    "type": "string"
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "Send email"
+                    ]
+                  },
+                  "to": {
+                    "type": "string"
+                  },
+                  "subject": {
+                    "type": "string"
+                  },
+                  "body": {
+                    "type": "string"
+                  },
+                  "attachments": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "from": {
+                    "type": "string"
+                  },
+                  "threadId": {
+                    "type": "string"
+                  },
+                  "replyTo": {
+                    "type": "string"
+                  },
+                  "responseMapping": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "item": {
+                          "type": "string",
+                          "enum": [
+                            "Thread ID"
+                          ]
+                        },
+                        "variableId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "action"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "title": "Gmail"
+      },
       "settings": {
         "type": "object",
         "properties": {
@@ -14485,7 +14697,6 @@
                   }
                 },
                 "required": [
-                  "logicalOperator",
                   "comparisons"
                 ]
               },
@@ -16262,6 +16473,9 @@
                                     "type": "number",
                                     "minimum": 1,
                                     "maximum": 120
+                                  },
+                                  "proxyCredentialsId": {
+                                    "type": "string"
                                   }
                                 }
                               },
@@ -16413,6 +16627,9 @@
                                     "type": "number",
                                     "minimum": 1,
                                     "maximum": 120
+                                  },
+                                  "proxyCredentialsId": {
+                                    "type": "string"
                                   }
                                 }
                               },
@@ -16565,6 +16782,9 @@
                                     "type": "number",
                                     "minimum": 1,
                                     "maximum": 120
+                                  },
+                                  "proxyCredentialsId": {
+                                    "type": "string"
                                   }
                                 }
                               },
@@ -16716,6 +16936,9 @@
                                     "type": "number",
                                     "minimum": 1,
                                     "maximum": 120
+                                  },
+                                  "proxyCredentialsId": {
+                                    "type": "string"
                                   }
                                 }
                               },
@@ -18463,6 +18686,14 @@
           },
           "text": {
             "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "replyId": {
+                "type": "string"
+              }
+            }
           },
           "attachedFileUrls": {
             "type": "array",

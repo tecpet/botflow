@@ -57,9 +57,12 @@ const nextConfig = {
     if (isServer) {
       // TODO: Remove once https://github.com/getsentry/sentry-javascript/issues/8105 is merged and sentry is upgraded
       config.ignoreWarnings = [
+        ...(config.ignoreWarnings ?? []),
         {
+          module:
+            /@opentelemetry\/instrumentation\/build\/esm\/platform\/node\/instrumentation\.js/,
           message:
-            /require function is used in a way in which dependencies cannot be statically extracted/,
+            /Critical dependency: the request of a dependency is an expression/,
         },
       ];
       return config;
@@ -68,6 +71,9 @@ const nextConfig = {
     config.resolve.alias["minio"] = false;
     config.resolve.alias["qrcode"] = false;
     config.resolve.alias["isolated-vm"] = false;
+    config.resolve.alias["@googleapis/gmail"] = false;
+    config.resolve.alias["nodemailer"] = false;
+    config.resolve.alias["google-auth-library"] = false;
     return config;
   },
   async redirects() {
@@ -102,6 +108,10 @@ const nextConfig = {
             {
               source: "/images/:image*",
               destination: `${process.env.LANDING_PAGE_URL}/images/:image*`,
+            },
+            {
+              source: "/sitemap.xml",
+              destination: `${process.env.LANDING_PAGE_URL}/sitemap.xml`,
             },
           ].concat(
             landingPagePaths.map((path) => ({

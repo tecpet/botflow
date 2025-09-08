@@ -11,6 +11,8 @@ import { difyAiBlock } from "@typebot.io/dify-ai-block";
 import { difyAiCredentialsSchema } from "@typebot.io/dify-ai-block/schemas";
 import { elevenlabsBlock } from "@typebot.io/elevenlabs-block";
 import { elevenlabsCredentialsSchema } from "@typebot.io/elevenlabs-block/schemas";
+import { gmailBlock } from "@typebot.io/gmail-block";
+import { gmailCredentialsSchema } from "@typebot.io/gmail-block/schemas";
 import { groqBlock } from "@typebot.io/groq-block";
 import { groqCredentialsSchema } from "@typebot.io/groq-block/schemas";
 import { mistralBlock } from "@typebot.io/mistral-block";
@@ -55,4 +57,5 @@ export const forgedCredentialsSchemas = {
   [tecpetBlock.id]: tecpetCredentialsSchema,
   [tecpetAiBlock.id]: tecpetAiCredentialsSchema,
   [blinkBlock.id]: blinkCredentialsSchema,
+  [gmailBlock.id]: gmailCredentialsSchema,
 };

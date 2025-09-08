@@ -1,4 +1,4 @@
-import { DropdownList } from "@/components/DropdownList";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { FormLabel, HStack, Heading, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import {
@@ -82,7 +82,7 @@ export const ChatThemeSettings = ({
   const updateGuestAvatar = (guestAvatar: AvatarProps) =>
     onChatThemeChange({ ...chatTheme, guestAvatar });
 
-  const updateButtonsInputLayout = (layout: "wrap" | "vertical") =>
+  const updateButtonsInputLayout = (layout: "wrap" | "vertical" | undefined) =>
     onChatThemeChange({ ...chatTheme, buttonsInput: { layout } });
 
   return (
@@ -205,13 +205,12 @@ export const ChatThemeSettings = ({
             Layout:
           </FormLabel>
           <HStack>
-            <DropdownList
-              currentItem={
-                chatTheme?.buttonsInput?.layout ?? defaultButtonsInputLayout
-              }
-              onItemSelect={updateButtonsInputLayout}
-              items={["wrap", "vertical"]}
+            <BasicSelect
               size="sm"
+              value={chatTheme?.buttonsInput?.layout}
+              defaultValue={defaultButtonsInputLayout}
+              onChange={updateButtonsInputLayout}
+              items={["wrap", "vertical"]}
             />
           </HStack>
         </HStack>

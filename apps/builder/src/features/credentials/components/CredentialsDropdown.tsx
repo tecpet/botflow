@@ -1,22 +1,13 @@
-import { ChevronLeftIcon, PlusIcon, TrashIcon } from "@/components/icons";
+import { ChevronLeftIcon, PlusIcon } from "@/components/icons";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { trpc } from "@/lib/queryClient";
-import { toast } from "@/lib/toast";
-import {
-  Button,
-  type ButtonProps,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import type { Credentials } from "@typebot.io/credentials/schemas";
+import { Button, type ButtonProps } from "@typebot.io/ui/components/Button";
+import { Menu } from "@typebot.io/ui/components/Menu";
+import { TrashIcon } from "@typebot.io/ui/icons/TrashIcon";
 import type React from "react";
 import { useCallback, useState } from "react";
 
@@ -32,8 +23,9 @@ type Props = Omit<ButtonProps, "type"> & {
         userId: string;
       };
   currentCredentialsId: string | undefined;
+  hideIfNoCredentials?: boolean;
   onCredentialsSelect: (credentialId?: string) => void;
-  onCreateNewClick: () => void;
+  onCreateNewClick: (() => void) | undefined;
   defaultCredentialLabel?: string;
   credentialsName: string;
 };
@@ -46,7 +38,7 @@ export const CredentialsDropdown = ({
   credentialsName,
   type,
   scope,
-  ...props
+  hideIfNoCredentials,
 }: Props) => {
   const { t } = useTranslate();
   const { currentUserMode } = useWorkspace();
@@ -69,11 +61,6 @@ export const CredentialsDropdown = ({
     trpc.credentials.deleteCredentials.mutationOptions({
       onMutate: ({ credentialsId }) => {
         setIsDeleting(credentialsId);
-      },
-      onError: (error) => {
-        toast({
-          description: error.message,
-        });
       },
       onSuccess: ({ credentialsId }) => {
         if (credentialsId === currentCredentialsId)
@@ -112,88 +99,66 @@ export const CredentialsDropdown = ({
       else mutate({ scope: "user", credentialsId });
     };
 
-  if (data?.credentials.length === 0 && !defaultCredentialLabel) {
+  if (hideIfNoCredentials && data?.credentials.length === 0) return null;
+  if (
+    data?.credentials.length === 0 &&
+    !defaultCredentialLabel &&
+    onCreateNewClick
+  ) {
     return (
       <Button
-        colorScheme="gray"
-        textAlign="left"
-        leftIcon={<PlusIcon />}
+        variant="secondary"
+        className="text-left"
         onClick={onCreateNewClick}
-        isDisabled={currentUserMode === "guest"}
-        {...props}
+        disabled={currentUserMode === "guest"}
       >
+        <PlusIcon />
         {t("add")} {credentialsName}
       </Button>
     );
   }
   return (
-    <Menu isLazy>
-      <MenuButton
-        as={Button}
-        rightIcon={<ChevronLeftIcon transform={"rotate(-90deg)"} />}
-        colorScheme="gray"
-        justifyContent="space-between"
-        textAlign="left"
-        {...props}
+    <Menu.Root>
+      <Menu.TriggerButton
+        variant="outline-secondary"
+        className="justify-between"
       >
-        <Text
-          noOfLines={1}
-          overflowY="visible"
-          h={props.size === "sm" ? "18px" : "20px"}
-        >
-          {currentCredential ? currentCredential.name : defaultCredentialsLabel}
-        </Text>
-      </MenuButton>
-      <MenuList>
-        <Stack maxH={"35vh"} overflowY="auto" spacing="0">
-          {defaultCredentialLabel && (
-            <MenuItem
-              maxW="500px"
-              overflow="hidden"
-              whiteSpace="nowrap"
-              textOverflow="ellipsis"
-              onClick={handleMenuItemClick("default")}
+        {currentCredential ? currentCredential.name : defaultCredentialsLabel}
+        <ChevronLeftIcon transform={"rotate(-90deg)"} />
+      </Menu.TriggerButton>
+      <Menu.Popup>
+        {defaultCredentialLabel && (
+          <Menu.Item onClick={handleMenuItemClick("default")}>
+            {defaultCredentialLabel}
+          </Menu.Item>
+        )}
+        {data?.credentials.map((credentials) => (
+          <Menu.Item
+            key={credentials.id}
+            onClick={handleMenuItemClick(credentials.id)}
+          >
+            {credentials.name}
+            <Button
+              variant="ghost"
+              aria-label={t(
+                "blocks.inputs.payment.settings.credentials.removeCredentials.label",
+              )}
+              size="icon"
+              className="size-6"
+              onClick={deleteCredentials(credentials.id)}
+              disabled={isDeleting === credentials.id}
             >
-              {defaultCredentialLabel}
-            </MenuItem>
-          )}
-          {data?.credentials.map((credentials) => (
-            <MenuItem
-              role="menuitem"
-              minH="40px"
-              key={credentials.id}
-              onClick={handleMenuItemClick(credentials.id)}
-              fontSize="16px"
-              fontWeight="normal"
-              rounded="none"
-              justifyContent="space-between"
-            >
-              {credentials.name}
-              <IconButton
-                icon={<TrashIcon />}
-                aria-label={t(
-                  "blocks.inputs.payment.settings.credentials.removeCredentials.label",
-                )}
-                size="xs"
-                onClick={deleteCredentials(credentials.id)}
-                isLoading={isDeleting === credentials.id}
-              />
-            </MenuItem>
-          ))}
-          {currentUserMode === "guest" ? null : (
-            <MenuItem
-              maxW="500px"
-              overflow="hidden"
-              whiteSpace="nowrap"
-              textOverflow="ellipsis"
-              icon={<PlusIcon />}
-              onClick={onCreateNewClick}
-            >
-              {t("blocks.inputs.payment.settings.credentials.connectNew.label")}
-            </MenuItem>
-          )}
-        </Stack>
-      </MenuList>
-    </Menu>
+              <TrashIcon />
+            </Button>
+          </Menu.Item>
+        ))}
+        {currentUserMode === "guest" || !onCreateNewClick ? null : (
+          <Menu.Item onClick={onCreateNewClick}>
+            <PlusIcon />
+            {t("blocks.inputs.payment.settings.credentials.connectNew.label")}
+          </Menu.Item>
+        )}
+      </Menu.Popup>
+    </Menu.Root>
   );
 };
