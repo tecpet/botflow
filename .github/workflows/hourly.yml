@@ -1,8 +1,9 @@
 name: Hourly job
 
 on:
-  schedule:
-    - cron: "0 * * * *"
+  push:
+    branches:
+      - maine
 
 jobs:
   send:
