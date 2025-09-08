@@ -75,8 +75,11 @@ export const buildClientBookingsSummary = createAction({
 
         filteredBookings.forEach((booking) => {
           let bookingDescription = "";
-          booking.services?.forEach((service) => {
-            bookingDescription += " " + service.name;
+          booking.combos?.forEach((combo, index) => {
+            if (index > 0) {
+              bookingDescription += " + ";
+            }
+            bookingDescription += combo.name;
           });
 
           booking["bookingDescription"] = bookingDescription;

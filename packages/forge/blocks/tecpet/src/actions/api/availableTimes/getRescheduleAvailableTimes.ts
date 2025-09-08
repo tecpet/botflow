@@ -68,6 +68,8 @@ export const getRescheduleAvailableTimes = createAction({
           (service) => service.id,
         );
 
+        const combos: number[] = booking.combos.map((combo) => combo.id);
+
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
@@ -103,7 +105,7 @@ export const getRescheduleAvailableTimes = createAction({
           for (const dateISO of searchDates) {
             const body: PaGetAvailableTimesTimesBody = {
               date: dateISO,
-              combos: [],
+              combos,
               services,
               petId: Number(booking.petId),
               segment: booking.segmentType as ShopSegment,
