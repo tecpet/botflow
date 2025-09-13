@@ -25,6 +25,7 @@ import { env } from "@typebot.io/env";
 import { isDefined, isNotEmpty, omit } from "@typebot.io/lib/utils";
 import type { Prisma } from "@typebot.io/prisma/types";
 import { resultSchema } from "@typebot.io/results/schemas/results";
+import { parseVariablesInRichText } from "@typebot.io/rich-text/parseVariablesInRichText";
 import type { SessionStore } from "@typebot.io/runtime-session-store";
 import {
   defaultSettings,
@@ -50,7 +51,6 @@ import { transformPrefilledVariablesToVariables } from "@typebot.io/variables/tr
 import { NodeType, parse } from "node-html-parser";
 import { getFirstEdgeId } from "./getFirstEdgeId";
 import { isTypebotInSessionAtLeastV6 } from "./helpers/isTypebotInSessionAtLeastV6";
-import { parseVariablesInRichText } from "./parseBubbleBlock";
 import { parseDynamicTheme } from "./parseDynamicTheme";
 import { findPublicTypebot } from "./queries/findPublicTypebot";
 import { findResult } from "./queries/findResult";
@@ -558,7 +558,9 @@ const extractVariableIdsUsedForTranscript = (
             sessionStore,
           },
         );
-        parsedVariableIds.forEach((variableId) => variableIds.add(variableId));
+        parsedVariableIds.forEach((variableId) => {
+          variableIds.add(variableId);
+        });
       }
       if (
         block.type === BubbleBlockType.IMAGE ||
@@ -570,14 +572,14 @@ const extractVariableIdsUsedForTranscript = (
           ...parseVarParams,
           sessionStore,
         });
-        variablesInfo.forEach((variableInfo) =>
+        variablesInfo.forEach((variableInfo) => {
           variableInfo.variableId
             ? variableIds.add(variableInfo.variableId ?? "")
-            : undefined,
-        );
+            : undefined;
+        });
       }
       if (block.type === LogicBlockType.CONDITION) {
-        block.items.forEach((item) =>
+        block.items.forEach((item) => {
           item.content?.comparisons?.forEach((comparison) => {
             if (comparison.variableId) variableIds.add(comparison.variableId);
             if (comparison.value) {
@@ -594,8 +596,8 @@ const extractVariableIdsUsedForTranscript = (
                   : undefined;
               });
             }
-          }),
-        );
+          });
+        });
       }
     });
   });

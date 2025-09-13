@@ -1,16 +1,3 @@
-import { TextBubbleEditor } from "@/features/blocks/bubbles/textBubble/components/TextBubbleEditor";
-import { BlockIcon } from "@/features/editor/components/BlockIcon";
-import { useTypebot } from "@/features/editor/providers/TypebotProvider";
-import { useSelectionStore } from "@/features/graph/hooks/useSelectionStore";
-import {
-  type NodePosition,
-  useBlockDnd,
-  useDragDistance,
-} from "@/features/graph/providers/GraphDndProvider";
-import { useGraph } from "@/features/graph/providers/GraphProvider";
-import { hasDefaultConnector } from "@/features/typebot/helpers/hasDefaultConnector";
-import { setMultipleRefs } from "@/helpers/setMultipleRefs";
-import { toast } from "@/lib/toast";
 import { Flex, HStack, useColorModeValue } from "@chakra-ui/react";
 import type {
   BubbleBlock,
@@ -31,14 +18,26 @@ import { LogicBlockType } from "@typebot.io/blocks-logic/constants";
 import type { TEventWithOptions } from "@typebot.io/events/schemas";
 import type { TurnableIntoParam } from "@typebot.io/forge/types";
 import { isDefined } from "@typebot.io/lib/utils";
+import type { TElement } from "@typebot.io/rich-text/plate";
 import { ContextMenu } from "@typebot.io/ui/components/ContextMenu";
 import { Popover } from "@typebot.io/ui/components/Popover";
-import type { TElement } from "@udecode/plate-common";
 import { useRouter } from "next/router";
-import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { ZodError, type ZodObject } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { TextBubbleEditor } from "@/features/blocks/bubbles/textBubble/components/TextBubbleEditor";
+import { BlockIcon } from "@/features/editor/components/BlockIcon";
+import { useTypebot } from "@/features/editor/providers/TypebotProvider";
+import { useSelectionStore } from "@/features/graph/hooks/useSelectionStore";
+import {
+  type NodePosition,
+  useBlockDnd,
+  useDragDistance,
+} from "@/features/graph/providers/GraphDndProvider";
+import { useGraph } from "@/features/graph/providers/GraphProvider";
+import { hasDefaultConnector } from "@/features/typebot/helpers/hasDefaultConnector";
+import { setMultipleRefs } from "@/helpers/setMultipleRefs";
+import { toast } from "@/lib/toast";
 import { BlockSourceEndpoint } from "../../endpoints/BlockSourceEndpoint";
 import { TargetEndpoint } from "../../endpoints/TargetEndpoint";
 import { BlockNodeContent } from "./BlockNodeContent";
@@ -299,30 +298,33 @@ export const BlockNode = ({
           </ContextMenu.Root>
         )}
       />
-      {hasSettingsPopover(block) && (
-        <SettingsPopoverContent
-          node={block}
-          groupId={groupId}
-          onNodeChange={handleBlockUpdate}
-          side="left"
-          isExpanded={isSettingsPopoverExpanded}
-          onExpandClick={() =>
-            setIsSettingsPopoverExpanded(!isSettingsPopoverExpanded)
-          }
-        />
-      )}
-      {typebot && isMediaBubbleBlock(block) && (
-        <MediaBubblePopoverContent
-          uploadFileProps={{
-            workspaceId: typebot.workspaceId,
-            typebotId: typebot.id,
-            blockId: block.id,
-          }}
-          block={block}
-          side="left"
-          onContentChange={handleContentChange}
-        />
-      )}
+      {/* Prevent triggering parent group context menu */}
+      <div onContextMenu={(e) => e.stopPropagation()}>
+        {hasSettingsPopover(block) && (
+          <SettingsPopoverContent
+            node={block}
+            groupId={groupId}
+            onNodeChange={handleBlockUpdate}
+            side="left"
+            isExpanded={isSettingsPopoverExpanded}
+            onExpandClick={() =>
+              setIsSettingsPopoverExpanded(!isSettingsPopoverExpanded)
+            }
+          />
+        )}
+        {typebot && isMediaBubbleBlock(block) && (
+          <MediaBubblePopoverContent
+            uploadFileProps={{
+              workspaceId: typebot.workspaceId,
+              typebotId: typebot.id,
+              blockId: block.id,
+            }}
+            block={block}
+            side="left"
+            onContentChange={handleContentChange}
+          />
+        )}
+      </div>
     </Popover.Root>
   );
 };

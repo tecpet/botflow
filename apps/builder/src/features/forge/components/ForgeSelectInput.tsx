@@ -1,5 +1,3 @@
-import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
-import { BasicSelect } from "@/components/inputs/BasicSelect";
 import {
   FormControl,
   FormHelperText,
@@ -10,6 +8,8 @@ import {
 import type { ForgedBlockDefinition } from "@typebot.io/forge-repository/definitions";
 import type { ForgedBlock } from "@typebot.io/forge-repository/schemas";
 import type { ReactNode } from "react";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
 import { useSelectItemsQuery } from "../hooks/useSelectItemsQuery";
 
 type Props = {
@@ -50,8 +50,6 @@ export const ForgeSelectInput = ({
     options,
     fetcherId,
   });
-
-  console.log(credentialsScope, blockDef, options, fetcherId);
 
   return (
     <FormControl
