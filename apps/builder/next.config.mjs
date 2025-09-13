@@ -1,8 +1,8 @@
-import { dirname, join } from "path";
 import { withSentryConfig } from "@sentry/nextjs";
+import { dirname, join } from "path";
 import "@typebot.io/env/compiled";
-import { fileURLToPath } from "url";
 import { configureRuntimeEnv } from "next-runtime-env/build/configure.js";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -72,6 +72,7 @@ const nextConfig = {
     config.resolve.alias["@googleapis/gmail"] = false;
     config.resolve.alias["nodemailer"] = false;
     config.resolve.alias["google-auth-library"] = false;
+    config.resolve.alias["posthog-node"] = false;
     return config;
   },
   headers: async () => {
