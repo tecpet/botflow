@@ -1,14 +1,11 @@
-import { Tag, Text } from "@chakra-ui/react";
+import { Tag, Text, Wrap } from "@chakra-ui/react";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { trpc } from "@/lib/queryClient";
-import { Tag, Text, Wrap } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import type { TypebotLinkBlock } from "@typebot.io/blocks-logic/typebotLink/schema";
 import { byId, isNotEmpty } from "@typebot.io/lib/utils";
 import { isSingleVariable } from "@typebot.io/variables/isSingleVariable";
 import { useMemo } from "react";
-import { useTypebot } from "@/features/editor/providers/TypebotProvider";
-import { trpc } from "@/lib/queryClient";
 
 type Props = {
   block: TypebotLinkBlock;

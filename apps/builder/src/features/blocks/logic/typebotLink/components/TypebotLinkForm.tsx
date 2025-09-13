@@ -7,9 +7,6 @@ import { useQuery } from "@tanstack/react-query";
 import { defaultTypebotLinkOptions } from "@typebot.io/blocks-logic/typebotLink/constants";
 import type { TypebotLinkBlock } from "@typebot.io/blocks-logic/typebotLink/schema";
 import { isNotEmpty } from "@typebot.io/lib/utils";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { useTypebot } from "@/features/editor/providers/TypebotProvider";
-import { trpc } from "@/lib/queryClient";
 import { GroupsDropdown } from "./GroupsDropdown";
 import { TypebotsDropdown } from "./TypebotsDropdown";
 
