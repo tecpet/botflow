@@ -45,8 +45,6 @@ export const buildClientBookingsSummary = createAction({
         const rawPet = options.pet as string;
         const rawClientBookings = options.clientBookings;
 
-        console.log(rawClientBookings);
-
         const pet: PaPetResponse = JSON.parse(rawPet);
 
         const clientBookingsParsed: string[] = rawClientBookings
