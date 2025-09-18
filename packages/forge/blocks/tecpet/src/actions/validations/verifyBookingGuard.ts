@@ -92,7 +92,6 @@ export const verifyBookingGuard = createAction({
 
         const services = serviceIds.includes(selectedId) ? [selectedId] : [];
 
-        console.log("SERVIÇOS", serviceIds);
         const body: PaGetBookingGuardValidationBody = {
           petId: Number(options.petId),
           servicesId: services,

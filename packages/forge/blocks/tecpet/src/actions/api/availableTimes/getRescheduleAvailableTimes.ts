@@ -100,8 +100,6 @@ export const getRescheduleAvailableTimes = createAction({
 
           all = [];
 
-          console.log(booking);
-
           for (const dateISO of searchDates) {
             const body: PaGetAvailableTimesTimesBody = {
               date: dateISO,

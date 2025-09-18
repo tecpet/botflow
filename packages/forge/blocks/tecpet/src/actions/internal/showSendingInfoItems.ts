@@ -69,8 +69,6 @@ export const showSendingInfoItems = createAction({
             typeof item === "string" ? JSON.parse(item) : item,
           );
 
-        console.log("INFO ITEMS", sendingInfoItem);
-
         if (sendingInfoItem.length > 0) {
           infoItem = sendingInfoItem[0];
 

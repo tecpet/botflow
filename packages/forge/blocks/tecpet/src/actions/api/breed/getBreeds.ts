@@ -84,8 +84,6 @@ export const getBreeds = createAction({
           shopId,
         );
 
-        console.log("Raças", breeds);
-
         const petSRD: PaBreedResponse = breeds.find((breed) => {
           if (breed.name.includes("SRD")) return breed;
         }) as PaBreedResponse;

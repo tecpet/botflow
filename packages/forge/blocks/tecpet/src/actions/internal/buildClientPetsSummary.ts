@@ -41,8 +41,6 @@ export const buildClientPetsSummary = createAction({
       try {
         const rawClientPetsSummary = options.clientPetsSummary;
 
-        console.log(rawClientPetsSummary);
-
         const petParsed: string[] = rawClientPetsSummary
           ? JSON.parse(rawClientPetsSummary)
           : null;
