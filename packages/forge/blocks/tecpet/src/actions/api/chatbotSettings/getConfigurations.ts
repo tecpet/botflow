@@ -73,6 +73,11 @@ export const getConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    voiceGenre: option.string.layout({
+      label: "Gênero da voz",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     configurations,
@@ -87,6 +92,7 @@ export const getConfigurations = createAction({
     voiceResponseEnabled,
     chatbotTriggers,
     chatbotActions,
+    voiceGenre,
   }) => {
     const variables = [];
 
@@ -102,7 +108,7 @@ export const getConfigurations = createAction({
     if (voiceResponseEnabled) variables.push(voiceResponseEnabled);
     if (chatbotTriggers) variables.push(chatbotTriggers);
     if (chatbotActions) variables.push(chatbotActions);
-
+    if (voiceGenre) variables.push(voiceGenre);
     return variables;
   },
   run: {
@@ -151,6 +157,10 @@ export const getConfigurations = createAction({
               },
               { id: options.chatbotTriggers, value: result.chatbotTriggers },
               { id: options.chatbotActions, value: result.chatbotActions },
+    		{
+                id: options.voiceGenre,
+                value: result.aiVoice,
+              },
             ];
 
             variablesToSet.forEach(({ id, value }) => {

@@ -1,5 +1,4 @@
-import { DropdownList } from "@/components/DropdownList";
-import { FormLabel, HStack, Heading, Stack } from "@chakra-ui/react";
+import { FormLabel, Heading, HStack, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import {
   defaultBlur,
@@ -30,7 +29,7 @@ import type {
   Theme,
 } from "@typebot.io/theme/schemas";
 import type { TypebotV6 } from "@typebot.io/typebot/schemas/typebot";
-import React from "react";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { AvatarForm } from "./AvatarForm";
 import { ChatContainerForm } from "./ChatContainerForm";
 import { ContainerThemeForm } from "./ContainerThemeForm";
@@ -82,7 +81,7 @@ export const ChatThemeSettings = ({
   const updateGuestAvatar = (guestAvatar: AvatarProps) =>
     onChatThemeChange({ ...chatTheme, guestAvatar });
 
-  const updateButtonsInputLayout = (layout: "wrap" | "vertical") =>
+  const updateButtonsInputLayout = (layout: "wrap" | "vertical" | undefined) =>
     onChatThemeChange({ ...chatTheme, buttonsInput: { layout } });
 
   return (
@@ -205,13 +204,12 @@ export const ChatThemeSettings = ({
             Layout:
           </FormLabel>
           <HStack>
-            <DropdownList
-              currentItem={
-                chatTheme?.buttonsInput?.layout ?? defaultButtonsInputLayout
-              }
-              onItemSelect={updateButtonsInputLayout}
-              items={["wrap", "vertical"]}
+            <BasicSelect
               size="sm"
+              value={chatTheme?.buttonsInput?.layout}
+              defaultValue={defaultButtonsInputLayout}
+              onChange={updateButtonsInputLayout}
+              items={["wrap", "vertical"]}
             />
           </HStack>
         </HStack>

@@ -1,14 +1,11 @@
-import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
 import {
-  Button,
+  chakra,
   Flex,
-  HStack,
   Heading,
+  HStack,
   Stack,
   Tag,
   Text,
-  Tooltip,
-  chakra,
   useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
@@ -16,7 +13,10 @@ import { T, useTranslate } from "@tolgee/react";
 import { prices } from "@typebot.io/billing/constants";
 import { formatPrice } from "@typebot.io/billing/helpers/formatPrice";
 import { Plan } from "@typebot.io/prisma/enum";
-import { ChatsProTiersModal } from "./ChatsProTiersModal";
+import { Button } from "@typebot.io/ui/components/Button";
+import { Tooltip } from "@typebot.io/ui/components/Tooltip";
+import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
+import { ChatsProTiersDialog } from "./ChatsProTiersDialog";
 import { FeaturesList } from "./FeaturesList";
 
 type Props = {
@@ -43,7 +43,7 @@ export const ProPlanPricingCard = ({
 
   return (
     <>
-      <ChatsProTiersModal isOpen={isOpen} onClose={onClose} />{" "}
+      <ChatsProTiersDialog isOpen={isOpen} onClose={onClose} />{" "}
       <Flex
         p="6"
         pos="relative"
@@ -95,8 +95,11 @@ export const ProPlanPricingCard = ({
                 </chakra.span>
               </Heading>
               <Text fontWeight="bold">
-                <Tooltip
-                  label={
+                <Tooltip.Root>
+                  <Tooltip.Trigger className="underline cursor-pointer">
+                    {t("billing.pricingCard.pro.everythingFromStarter")}
+                  </Tooltip.Trigger>
+                  <Tooltip.Popup>
                     <FeaturesList
                       features={[
                         t("billing.pricingCard.starter.brandingRemoved"),
@@ -105,14 +108,9 @@ export const ProPlanPricingCard = ({
                       ]}
                       spacing="0"
                     />
-                  }
-                  hasArrow
-                  placement="top"
-                >
-                  <chakra.span textDecoration="underline" cursor="pointer">
-                    {t("billing.pricingCard.pro.everythingFromStarter")}
-                  </chakra.span>
-                </Tooltip>
+                  </Tooltip.Popup>
+                </Tooltip.Root>
+
                 {t("billing.pricingCard.plus")}
               </Text>
               <FeaturesList
@@ -145,11 +143,9 @@ export const ProPlanPricingCard = ({
             </Stack>
 
             <Button
-              colorScheme="orange"
-              variant="outline"
+              variant="secondary"
               onClick={onPayClick}
-              isLoading={isLoading}
-              isDisabled={currentPlan === Plan.PRO}
+              disabled={isLoading || currentPlan === Plan.PRO}
             >
               {getButtonLabel()}
             </Button>

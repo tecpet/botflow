@@ -1,17 +1,18 @@
-import { useGraph } from "@/features/graph/providers/GraphProvider";
-import { useRightPanel } from "@/hooks/useRightPanel";
 import {
-  Button,
-  CloseButton,
   Fade,
   Flex,
   HStack,
-  VStack,
   useColorModeValue,
+  VStack,
 } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
+import { reload } from "@typebot.io/react";
+import { Button } from "@typebot.io/ui/components/Button";
+import { CloseIcon } from "@typebot.io/ui/icons/CloseIcon";
 import { useDrag } from "@use-gesture/react";
-import React, { useState } from "react";
+import { useState } from "react";
+import { useGraph } from "@/features/graph/providers/GraphProvider";
+import { useRightPanel } from "@/hooks/useRightPanel";
 import { headerHeight } from "../../editor/constants";
 import { useTypebot } from "../../editor/providers/TypebotProvider";
 import { runtimes } from "../data";
@@ -35,7 +36,6 @@ export const PreviewDrawer = () => {
   const { setPreviewingBlock } = useGraph();
   const [width, setWidth] = useState(500);
   const [isResizeHandleVisible, setIsResizeHandleVisible] = useState(false);
-  const [restartKey, setRestartKey] = useState(0);
   const [selectedRuntime, setSelectedRuntime] = useState<
     (typeof runtimes)[number]
   >(getDefaultRuntime(typebot?.id));
@@ -43,7 +43,7 @@ export const PreviewDrawer = () => {
 
   const handleRestartClick = async () => {
     await save();
-    setRestartKey((key) => key + 1);
+    reload();
   };
 
   const handleCloseClick = () => {
@@ -102,7 +102,7 @@ export const PreviewDrawer = () => {
             {selectedRuntime.name === "Web" ? (
               <Button
                 onClick={handleRestartClick}
-                isLoading={isSavingLoading}
+                disabled={isSavingLoading}
                 variant="ghost"
               >
                 {t("preview.restartButton.label")}
@@ -110,9 +110,11 @@ export const PreviewDrawer = () => {
             ) : null}
           </HStack>
 
-          <CloseButton onClick={handleCloseClick} />
+          <Button onClick={handleCloseClick} variant="secondary" size="icon">
+            <CloseIcon />
+          </Button>
         </HStack>
-        <PreviewDrawerBody key={restartKey} runtime={selectedRuntime.name} />
+        <PreviewDrawerBody runtime={selectedRuntime.name} />
       </VStack>
     </Flex>
   );

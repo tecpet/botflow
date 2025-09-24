@@ -14,6 +14,7 @@ const ignoreTrpcMessages = [
   "Missing credentialsId",
   "Provided response is not valid JSON",
   "Could not parse amount, make sure your block is configured correctly",
+  "Start event doesn't exist",
 ];
 
 const ignoreMessages = [
@@ -55,6 +56,10 @@ Sentry.init({
     }
     return event;
   },
+  integrations: [
+    Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
+  ],
+  enableLogs: true,
 });
 
 const isTrpcError = (err: unknown): err is TRPCError => {

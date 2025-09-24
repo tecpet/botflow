@@ -1,22 +1,15 @@
-import { ChevronLeftIcon } from "@/components/icons";
-import { toast } from "@/lib/toast";
-import {
-  Button,
-  HStack,
-  Input,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Stack,
-} from "@chakra-ui/react";
+import { HStack, Input } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { WorkspaceRole } from "@typebot.io/prisma/enum";
 import type { Prisma } from "@typebot.io/prisma/types";
+import { Button } from "@typebot.io/ui/components/Button";
 import { type FormEvent, useState } from "react";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { toast } from "@/lib/toast";
 import { sendInvitationQuery } from "../queries/sendInvitationQuery";
 import type { Member } from "../types";
 
+type InvitationRole = "ADMIN" | "MEMBER";
 type Props = {
   workspaceId: string;
   onNewMember: (member: Member) => void;
@@ -33,7 +26,7 @@ export const AddMemberForm = ({
 }: Props) => {
   const { t } = useTranslate();
   const [invitationEmail, setInvitationEmail] = useState("");
-  const [invitationRole, setInvitationRole] = useState<WorkspaceRole>(
+  const [invitationRole, setInvitationRole] = useState<InvitationRole>(
     WorkspaceRole.MEMBER,
   );
 
@@ -50,7 +43,6 @@ export const AddMemberForm = ({
     if (error) {
       toast({
         description: error.message,
-        status: "error",
       });
     } else {
       setInvitationEmail("");
@@ -78,11 +70,10 @@ export const AddMemberForm = ({
         />
       )}
       <Button
-        colorScheme="orange"
-        isLoading={isSendingInvitation}
-        flexShrink={0}
         type="submit"
-        isDisabled={isLoading || isLocked || invitationEmail === ""}
+        disabled={
+          isLoading || isLocked || invitationEmail === "" || isSendingInvitation
+        }
       >
         {t("workspace.membersList.inviteButton.label")}
       </Button>
@@ -94,29 +85,18 @@ const WorkspaceRoleMenuButton = ({
   role,
   onChange,
 }: {
-  role: WorkspaceRole;
-  onChange: (role: WorkspaceRole) => void;
+  role: InvitationRole;
+  onChange: (role: InvitationRole) => void;
 }) => {
   return (
-    <Menu placement="bottom" isLazy matchWidth>
-      <MenuButton
-        flexShrink={0}
-        as={Button}
-        rightIcon={<ChevronLeftIcon transform={"rotate(-90deg)"} />}
-      >
-        {convertWorkspaceRoleToReadable(role)}
-      </MenuButton>
-      <MenuList minW={0}>
-        <Stack maxH={"35vh"} overflowY="auto" spacing="0">
-          <MenuItem onClick={() => onChange(WorkspaceRole.ADMIN)}>
-            {convertWorkspaceRoleToReadable(WorkspaceRole.ADMIN)}
-          </MenuItem>
-          <MenuItem onClick={() => onChange(WorkspaceRole.MEMBER)}>
-            {convertWorkspaceRoleToReadable(WorkspaceRole.MEMBER)}
-          </MenuItem>
-        </Stack>
-      </MenuList>
-    </Menu>
+    <BasicSelect
+      items={[
+        { label: "Admin", value: WorkspaceRole.ADMIN },
+        { label: "Member", value: WorkspaceRole.MEMBER },
+      ]}
+      value={role}
+      onChange={onChange}
+    />
   );
 };
 

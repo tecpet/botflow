@@ -1,43 +1,33 @@
-import { UsersIcon } from "@/components/icons";
-import {
-  Button,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Portal,
-  chakra,
-} from "@chakra-ui/react";
+import { chakra } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
-import React from "react";
+import { Button } from "@typebot.io/ui/components/Button";
+import { Popover } from "@typebot.io/ui/components/Popover";
+import { UsersIcon } from "@/components/icons";
+import { useOpenControls } from "@/hooks/useOpenControls";
 import { SharePopoverContent } from "./SharePopoverContent";
 
 export const ShareTypebotButton = ({ isLoading }: { isLoading: boolean }) => {
+  const controls = useOpenControls();
   const { t } = useTranslate();
 
   return (
-    <Popover isLazy placement="bottom-end">
-      <PopoverTrigger>
+    <Popover.Root {...controls}>
+      <Popover.Trigger>
         <Button
-          isLoading={isLoading}
-          leftIcon={<UsersIcon fontSize="md" />}
+          disabled={isLoading}
           aria-label={t("share.button.popover.ariaLabel")}
+          variant="secondary"
           size="sm"
-          iconSpacing={{ base: 0, xl: 2 }}
         >
+          <UsersIcon fontSize="md" />
           <chakra.span display={{ base: "none", xl: "inline" }}>
             {t("share.button.label")}
           </chakra.span>
         </Button>
-      </PopoverTrigger>
-      <Portal>
-        <PopoverContent
-          shadow="md"
-          width="430px"
-          rootProps={{ style: { transform: "scale(0)" } }}
-        >
-          <SharePopoverContent />
-        </PopoverContent>
-      </Portal>
-    </Popover>
+      </Popover.Trigger>
+      <Popover.Popup className="w-[430px]" side="bottom" align="end">
+        <SharePopoverContent />
+      </Popover.Popup>
+    </Popover.Root>
   );
 };

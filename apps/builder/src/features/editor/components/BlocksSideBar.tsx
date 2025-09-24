@@ -1,15 +1,10 @@
-import { LockedIcon, UnlockedIcon } from "@/components/icons";
-import { useBlockDnd } from "@/features/graph/providers/GraphDndProvider";
 import {
   Fade,
   Flex,
   Heading,
-  IconButton,
   Input,
-  Portal,
   SimpleGrid,
   Stack,
-  Tooltip,
   useColorModeValue,
   useEventListener,
 } from "@chakra-ui/react";
@@ -30,9 +25,13 @@ import { EventType } from "@typebot.io/events/constants";
 import type { TDraggableEvent } from "@typebot.io/events/schemas";
 import { forgedBlocks } from "@typebot.io/forge-repository/definitions";
 import { isDefined } from "@typebot.io/lib/utils";
+import { Tooltip } from "@typebot.io/ui/components/Tooltip";
 import type React from "react";
 import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import { LockedIcon, UnlockedIcon } from "@/components/icons";
+import { Portal } from "@/components/Portal";
+import { useBlockDnd } from "@/features/graph/providers/GraphDndProvider";
 import { EventCard } from "../../events/components/EventCard";
 import { EventCardOverlay } from "../../events/components/EventCardOverlay";
 import { getEventBlockLabel } from "../../events/components/EventLabel";
@@ -235,24 +234,26 @@ export const BlocksSideBar = () => {
             value={searchInput}
             onChange={handleSearchInputChange}
           />
-          <Tooltip
-            label={
-              isLocked
-                ? t("editor.sidebarBlocks.sidebar.unlock.label")
-                : t("editor.sidebarBlocks.sidebar.lock.label")
-            }
-          >
-            <IconButton
-              icon={isLocked ? <LockedIcon /> : <UnlockedIcon />}
+          <Tooltip.Root>
+            <Tooltip.TriggerButton
               aria-label={
                 isLocked
                   ? t("editor.sidebarBlocks.sidebar.icon.unlock.label")
                   : t("editor.sidebarBlocks.sidebar.icon.lock.label")
               }
-              size="sm"
+              size="icon"
+              variant="secondary"
+              className="size-8"
               onClick={handleLockClick}
-            />
-          </Tooltip>
+            >
+              {isLocked ? <LockedIcon /> : <UnlockedIcon />}
+            </Tooltip.TriggerButton>
+            <Tooltip.Popup>
+              {isLocked
+                ? t("editor.sidebarBlocks.sidebar.unlock.label")
+                : t("editor.sidebarBlocks.sidebar.lock.label")}
+            </Tooltip.Popup>
+          </Tooltip.Root>
         </Flex>
 
         <Stack>

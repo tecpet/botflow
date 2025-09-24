@@ -28,7 +28,8 @@
     "@typebot.io/tecpet-ai-block": "workspace:*",
     "@typebot.io/tecpet-gateway-block": "workspace:*",
     "@typebot.io/deepseek-block": "workspace:*",
-    "@typebot.io/blink-block": "workspace:*"
+    "@typebot.io/blink-block": "workspace:*",
+    "@typebot.io/gmail-block": "workspace:*"
   },
   "devDependencies": {
     "@typebot.io/tsconfig": "workspace:*"

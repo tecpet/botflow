@@ -1,11 +1,11 @@
-import { Select } from "@/components/inputs/Select";
-import { BlockIcon } from "@/features/editor/components/BlockIcon";
-import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { Stack } from "@chakra-ui/react";
 import type { JumpBlock } from "@typebot.io/blocks-logic/jump/schema";
 import { byId } from "@typebot.io/lib/utils";
 import { isSingleVariable } from "@typebot.io/variables/isSingleVariable";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { BlockIcon } from "@/features/editor/components/BlockIcon";
+import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { GroupsDropdown } from "../../typebotLink/components/GroupsDropdown";
 
 type Props = {
@@ -37,14 +37,14 @@ export const JumpSettings = ({ options, onOptionsChange }: Props) => {
       />
       {selectedGroup &&
         (selectedGroup.blocks.length > 1 || options?.blockId) && (
-          <Select
-            selectedItem={options?.blockId}
+          <BasicSelect
+            value={options?.blockId}
             items={selectedGroup.blocks.map((block, index) => ({
               label: `Block #${(index + 1).toString()}`,
               value: block.id,
               icon: <BlockIcon type={block.type} />,
             }))}
-            onSelect={handleBlockIdChange}
+            onChange={handleBlockIdChange}
             placeholder="Select a block"
           />
         )}

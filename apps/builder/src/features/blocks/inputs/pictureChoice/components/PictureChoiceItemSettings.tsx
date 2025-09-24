@@ -1,22 +1,15 @@
-import { ImageUploadContent } from "@/components/ImageUploadContent";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
-import { TextInput, Textarea } from "@/components/inputs";
-import { ConditionForm } from "@/features/blocks/logic/condition/components/ConditionForm";
-import {
-  Button,
-  HStack,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Portal,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
+import { HStack, Stack, Text } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import type { PictureChoiceItem } from "@typebot.io/blocks-inputs/pictureChoice/schema";
 import { LogicalOperator } from "@typebot.io/conditions/constants";
 import type { Condition } from "@typebot.io/conditions/schemas";
-import React from "react";
+import { Button } from "@typebot.io/ui/components/Button";
+import { Popover } from "@typebot.io/ui/components/Popover";
+import { ImageUploadContent } from "@/components/ImageUploadContent";
+import { Textarea, TextInput } from "@/components/inputs";
+import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
+import { ConditionForm } from "@/features/blocks/logic/condition/components/ConditionForm";
+import { useOpenControls } from "@/hooks/useOpenControls";
 
 type Props = {
   workspaceId: string;
@@ -34,6 +27,7 @@ export const PictureChoiceItemSettings = ({
   onItemChange,
 }: Props) => {
   const { t } = useTranslate();
+  const imageUploadPopoverControls = useOpenControls();
 
   const updateTitle = (title: string) => onItemChange({ ...item, title });
 
@@ -70,41 +64,35 @@ export const PictureChoiceItemSettings = ({
         <Text fontWeight="medium">
           {t("blocks.inputs.picture.itemSettings.image.label")}
         </Text>
-        <Popover isLazy>
-          {({ onClose }) => (
-            <>
-              <PopoverTrigger>
-                <Button size="sm">
-                  {item.pictureSrc
-                    ? t("blocks.inputs.picture.itemSettings.image.change.label")
-                    : t("blocks.inputs.picture.itemSettings.image.pick.label")}
-                </Button>
-              </PopoverTrigger>
-              <Portal>
-                <PopoverContent p="4" w="500px">
-                  <ImageUploadContent
-                    uploadFileProps={{
-                      workspaceId,
-                      typebotId,
-                      blockId,
-                      itemId: item.id,
-                    }}
-                    defaultUrl={item.pictureSrc}
-                    onSubmit={(url) => {
-                      updateImage(url);
-                      onClose();
-                    }}
-                    additionalTabs={{
-                      giphy: true,
-                      unsplash: true,
-                      icon: true,
-                    }}
-                  />
-                </PopoverContent>
-              </Portal>
-            </>
-          )}
-        </Popover>
+        <Popover.Root {...imageUploadPopoverControls}>
+          <Popover.Trigger>
+            <Button size="sm" variant="secondary">
+              {item.pictureSrc
+                ? t("blocks.inputs.picture.itemSettings.image.change.label")
+                : t("blocks.inputs.picture.itemSettings.image.pick.label")}
+            </Button>
+          </Popover.Trigger>
+          <Popover.Popup>
+            <ImageUploadContent
+              uploadFileProps={{
+                workspaceId,
+                typebotId,
+                blockId,
+                itemId: item.id,
+              }}
+              defaultUrl={item.pictureSrc}
+              onSubmit={(url) => {
+                updateImage(url);
+                imageUploadPopoverControls.onClose();
+              }}
+              additionalTabs={{
+                giphy: true,
+                unsplash: true,
+                icon: true,
+              }}
+            />
+          </Popover.Popup>
+        </Popover.Root>
       </HStack>
       <TextInput
         label={t("blocks.inputs.picture.itemSettings.title.label")}

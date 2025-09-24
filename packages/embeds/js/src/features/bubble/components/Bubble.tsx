@@ -1,3 +1,16 @@
+import { EnvironmentProvider } from "@ark-ui/solid";
+import { isDefined } from "@typebot.io/lib/utils";
+import typebotColors from "@typebot.io/ui/colors.css";
+import { cx } from "@typebot.io/ui/lib/cva";
+import { zendeskWebWidgetOpenedMessage } from "@typebot.io/zendesk-block/constants";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  Show,
+  splitProps,
+} from "solid-js";
 import { Bot, type BotProps } from "@/components/Bot";
 import { getPaymentInProgressInStorage } from "@/features/blocks/inputs/payment/helpers/paymentInProgressStorage";
 import { chatwootWebWidgetOpenedMessage } from "@/features/blocks/integrations/chatwoot/constants";
@@ -7,20 +20,8 @@ import {
   getBotOpenedStateFromStorage,
   removeBotOpenedStateInStorage,
   setBotOpenedStateInStorage,
+  wipeExistingChatStateInStorage,
 } from "@/utils/storage";
-import { EnvironmentProvider } from "@ark-ui/solid";
-import { isDefined } from "@typebot.io/lib/utils";
-import typebotColors from "@typebot.io/ui/colors.css";
-import { cx } from "@typebot.io/ui/lib/cva";
-import { zendeskWebWidgetOpenedMessage } from "@typebot.io/zendesk-block/constants";
-import {
-  Show,
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  splitProps,
-} from "solid-js";
 import styles from "../../../assets/index.css";
 import type { BubbleParams } from "../types";
 import { BubbleButton } from "./BubbleButton";
@@ -59,7 +60,7 @@ export const Bubble = (props: BubbleProps) => {
   const [bubbleLifecycle, setBubbleLifecycle] =
     createSignal<BubbleLifecycle>("idle");
   const [hasOpenedOnce, setHasOpenedOnce] = createSignal(false);
-
+  const [currentTypebotId, setCurrentTypebotId] = createSignal<string>();
   const isControlled = createMemo(() => isDefined(bubbleProps.isOpen));
 
   const isOpen = createMemo(() =>
@@ -78,26 +79,23 @@ export const Bubble = (props: BubbleProps) => {
   });
   const [isPreviewMessageOpen, setIsPreviewMessageOpen] = createSignal(false);
 
-  const attachEventListeners = () => {
-    window.addEventListener("message", handlePostMessage);
-  };
-
-  const detachEventListeners = () => {
-    window.removeEventListener("message", handlePostMessage);
-  };
-
   // Simulating onMount because botProps.typebot is not available at first render
   createEffect(() => {
     if (bubbleLifecycle() !== "idle" || !botProps.typebot) return;
 
     setBubbleLifecycle("ready");
-    attachEventListeners();
     autoShowIfNeeded();
   });
 
   onCleanup(() => {
     setBubbleLifecycle("idle");
-    detachEventListeners();
+  });
+
+  createEffect(() => {
+    window.addEventListener("message", handlePostMessage);
+    onCleanup(() => {
+      window.removeEventListener("message", handlePostMessage);
+    });
   });
 
   createEffect(() => {
@@ -133,6 +131,13 @@ export const Bubble = (props: BubbleProps) => {
       case "reload":
         reloadBot();
         break;
+      case "reset": {
+        const typebotId = currentTypebotId();
+        if (!typebotId) return;
+        wipeExistingChatStateInStorage(typebotId);
+        removeBotOpenedStateInStorage();
+        break;
+      }
     }
   };
 
@@ -213,9 +218,13 @@ export const Bubble = (props: BubbleProps) => {
     }
   };
 
-  const handleOnChatStatePersisted = (isPersisted: boolean) => {
-    botProps.onChatStatePersisted?.(isPersisted);
-    if (isPersisted) setBotOpenedStateInStorage();
+  const handleOnChatStatePersisted = (
+    isEnabled: boolean,
+    { typebotId }: { typebotId: string },
+  ) => {
+    botProps.onChatStatePersisted?.(isEnabled, { typebotId });
+    setCurrentTypebotId(typebotId);
+    if (isEnabled) setBotOpenedStateInStorage();
   };
 
   const handleScriptExecutionSuccess = (message: string) => {

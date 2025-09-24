@@ -1,15 +1,15 @@
-import { Seo } from "@/components/Seo";
 import {
-  Button,
   Heading,
   Stack,
   Tag,
   Text,
-  VStack,
   useColorModeValue,
+  VStack,
 } from "@chakra-ui/react";
+import { Button } from "@typebot.io/ui/components/Button";
 import { useQueryState } from "nuqs";
-import { toast } from "sonner";
+import { Seo } from "@/components/Seo";
+import { toast } from "@/lib/toast";
 import { createEmailMagicLink } from "../helpers/createEmailMagicLink";
 
 export const EmailRedirectPage = () => {
@@ -20,7 +20,7 @@ export const EmailRedirectPage = () => {
 
   const redirectToMagicLink = () => {
     if (!token || !email) {
-      toast.error("Missing token or email query params");
+      toast({ description: "Missing token or email query params" });
       return;
     }
     window.location.assign(
@@ -46,9 +46,7 @@ export const EmailRedirectPage = () => {
             You are about to login with <Tag>{email}</Tag>
           </Text>
         </Stack>
-        <Button onClick={redirectToMagicLink} colorScheme="orange">
-          Continue
-        </Button>
+        <Button onClick={redirectToMagicLink}>Continue</Button>
       </Stack>
     </VStack>
   );

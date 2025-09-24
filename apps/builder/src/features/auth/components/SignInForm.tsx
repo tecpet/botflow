@@ -1,10 +1,7 @@
-import { TextLink } from "@/components/TextLink";
-import { toast } from "@/lib/toast";
 import { sanitizeUrl } from "@braintree/sanitize-url";
 import {
   Alert,
   AlertIcon,
-  Button,
   FormControl,
   FormLabel,
   HStack,
@@ -19,11 +16,14 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
-import { getProviders, signIn, useSession } from "next-auth/react";
+import { Button } from "@typebot.io/ui/components/Button";
 import { useRouter } from "next/navigation";
+import { getProviders, signIn, useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
 import type { ChangeEvent, FormEvent } from "react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { TextLink } from "@/components/TextLink";
+import { toast } from "@/lib/toast";
 import { createEmailMagicLink } from "../helpers/createEmailMagicLink";
 import { DividerWithText } from "./DividerWithText";
 import { SignInError } from "./SignInError";
@@ -68,7 +68,7 @@ export const SignInForm = ({
   useEffect(() => {
     if (authError === "ip-banned") {
       toast({
-        status: "info",
+        type: "info",
         description:
           "Your account has suspicious activity and is being reviewed by our team. Feel free to contact us.",
       });
@@ -91,12 +91,12 @@ export const SignInForm = ({
       if (response?.error) {
         if (response.error.includes("too-many-requests"))
           toast({
-            status: "info",
+            type: "info",
             description: t("auth.signinErrorToast.tooManyRequests"),
           });
         else if (response.error.includes("sign-up-disabled"))
           toast({
-            status: "info",
+            type: "info",
             description: t("auth.signinErrorToast.title"),
           });
         else if (response.error.includes("email-not-legit"))
@@ -111,9 +111,9 @@ export const SignInForm = ({
       } else {
         setIsMagicCodeSent(true);
       }
-    } catch (e) {
+    } catch (_e) {
       toast({
-        status: "info",
+        type: "info",
         description: "An error occured while signing in",
       });
     }
@@ -159,10 +159,11 @@ export const SignInForm = ({
                 />
                 <Button
                   type="submit"
-                  isLoading={
-                    ["loading", "authenticated"].includes(status) || authLoading
+                  disabled={
+                    ["loading", "authenticated"].includes(status) ||
+                    authLoading ||
+                    isMagicCodeSent
                   }
-                  isDisabled={isMagicCodeSent}
                 >
                   {t("auth.emailSubmitButton.label")}
                 </Button>

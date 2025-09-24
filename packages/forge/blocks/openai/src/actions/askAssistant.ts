@@ -83,7 +83,7 @@ export const askAssistant = createAction({
 
         const config = {
           apiKey: credentials.apiKey,
-          baseURL: options.baseUrl,
+          baseURL: credentials.baseUrl ?? options.baseUrl,
           defaultHeaders: {
             "api-key": credentials.apiKey,
           },
@@ -131,7 +131,7 @@ export const askAssistant = createAction({
 
         const config = {
           apiKey: credentials.apiKey,
-          baseURL: options.baseUrl,
+          baseURL: credentials.baseUrl ?? options.baseUrl,
           defaultHeaders: {
             "api-key": credentials.apiKey,
           },
@@ -180,7 +180,7 @@ export const askAssistant = createAction({
           apiKey: credentials.apiKey,
           assistantId: options.assistantId,
           message: options.message,
-          baseUrl: options.baseUrl,
+          baseUrl: credentials.baseUrl ?? options.baseUrl,
           apiVersion: options.apiVersion,
           threadVariableId: options.threadVariableId,
           variables,
@@ -409,7 +409,9 @@ const createAssistantStream = async ({
 const createAssistantFoundationalStream = (
   process: ({
     forwardStream,
-  }: { forwardStream: (stream: any) => Promise<any> }) => Promise<void>,
+  }: {
+    forwardStream: (stream: any) => Promise<any>;
+  }) => Promise<void>,
 ) =>
   new ReadableStream({
     async start(controller) {
@@ -422,7 +424,7 @@ const createAssistantFoundationalStream = (
       };
 
       const forwardStream = async (stream: any) => {
-        let result: any | undefined = undefined;
+        let result: any | undefined;
 
         for await (const value of stream) {
           switch (value.event) {

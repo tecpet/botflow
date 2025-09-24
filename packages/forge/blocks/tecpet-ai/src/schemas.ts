@@ -5,5 +5,5 @@ import {auth} from "./auth";
 export const tecpetAiBlockSchema = parseBlockSchema(tecpetAiBlock);
 export const tecpetAiCredentialsSchema = parseBlockCredentials(
   tecpetAiBlock.id,
-  auth.schema,
+  auth,
 );

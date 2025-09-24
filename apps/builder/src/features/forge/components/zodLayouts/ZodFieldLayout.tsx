@@ -1,18 +1,20 @@
-import { DropdownList } from "@/components/DropdownList";
-import { PrimitiveList } from "@/components/PrimitiveList";
-import { TableList } from "@/components/TableList";
-import { TagsInput } from "@/components/TagsInput";
-import { NumberInput, TextInput, Textarea } from "@/components/inputs";
-import { CodeEditor } from "@/components/inputs/CodeEditor";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
 import { FormLabel, Stack } from "@chakra-ui/react";
+import { evaluateIsHidden } from "@typebot.io/forge/helpers/evaluateIsHidden";
 import type { ForgedBlockDefinition } from "@typebot.io/forge-repository/definitions";
 import type { ForgedBlock } from "@typebot.io/forge-repository/schemas";
-import { evaluateIsHidden } from "@typebot.io/forge/helpers/evaluateIsHidden";
+import { Field } from "@typebot.io/ui/components/Field";
 import type { ZodLayoutMetadata } from "@typebot.io/zod";
 import Markdown, { type Components } from "react-markdown";
 import type { ZodTypeAny, z } from "zod";
+import { NumberInput, Textarea, TextInput } from "@/components/inputs";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { CodeEditor } from "@/components/inputs/CodeEditor";
+import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
+import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
+import { PrimitiveList } from "@/components/PrimitiveList";
+import { TableList } from "@/components/TableList";
+import { TagsInput } from "@/components/TagsInput";
 import { getZodInnerSchema } from "../../helpers/getZodInnerSchema";
 import {
   AutocompleteInput,
@@ -74,6 +76,24 @@ export const ZodFieldLayout = ({
 
   if (evaluateIsHidden(layout?.isHidden, blockOptions)) return null;
 
+  if (layout?.inputType === "variableDropdown") {
+    return (
+      <VariableSearchInput
+        initialVariableId={data}
+        onSelectVariable={(variable) => onDataChange(variable?.id)}
+        placeholder={layout?.placeholder}
+        label={layout?.label}
+        moreInfoTooltip={layout.moreInfoTooltip}
+        helperText={
+          layout?.helperText ? (
+            <Markdown components={mdComponents}>{layout.helperText}</Markdown>
+          ) : undefined
+        }
+        width="full"
+      />
+    );
+  }
+
   switch (innerSchema._def.typeName) {
     case "ZodObject":
       return (
@@ -115,21 +135,28 @@ export const ZodFieldLayout = ({
     }
     case "ZodEnum": {
       return (
-        <DropdownList
-          currentItem={data ?? layout?.defaultValue}
-          onItemSelect={onDataChange}
-          items={parseEnumItems(innerSchema, layout)}
-          label={layout?.label}
-          helperText={
-            layout?.helperText ? (
+        <Field.Root>
+          {layout?.label && (
+            <Field.Label>
+              {layout.label}
+              {layout.moreInfoTooltip && (
+                <MoreInfoTooltip>{layout.moreInfoTooltip}</MoreInfoTooltip>
+              )}
+            </Field.Label>
+          )}
+          <BasicSelect
+            value={data}
+            defaultValue={layout?.defaultValue}
+            onChange={onDataChange}
+            items={parseEnumItems(innerSchema, layout)}
+            placeholder={layout?.placeholder}
+          />
+          {layout?.helperText && (
+            <Field.Description>
               <Markdown components={mdComponents}>{layout.helperText}</Markdown>
-            ) : undefined
-          }
-          moreInfoTooltip={layout?.moreInfoTooltip}
-          placeholder={layout?.placeholder}
-          direction={layout?.direction}
-          width={width}
-        />
+            </Field.Description>
+          )}
+        </Field.Root>
       );
     }
     case "ZodNumber":
@@ -230,25 +257,6 @@ export const ZodFieldLayout = ({
             onChange={onDataChange}
             width={width}
             withVariableButton={layout.withVariableButton ?? true}
-          />
-        );
-      }
-      if (layout?.inputType === "variableDropdown") {
-        return (
-          <VariableSearchInput
-            initialVariableId={data}
-            onSelectVariable={(variable) => onDataChange(variable?.id)}
-            placeholder={layout?.placeholder}
-            label={layout?.label}
-            moreInfoTooltip={layout.moreInfoTooltip}
-            helperText={
-              layout?.helperText ? (
-                <Markdown components={mdComponents}>
-                  {layout.helperText}
-                </Markdown>
-              ) : undefined
-            }
-            width={width}
           />
         );
       }

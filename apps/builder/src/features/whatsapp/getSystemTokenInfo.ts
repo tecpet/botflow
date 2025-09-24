@@ -1,5 +1,3 @@
-import { authenticatedProcedure } from "@/helpers/server/trpc";
-import { ClientToastError } from "@/lib/ClientToastError";
 import { TRPCError } from "@trpc/server";
 import { decrypt } from "@typebot.io/credentials/decrypt";
 import type { WhatsAppCredentials } from "@typebot.io/credentials/schemas";
@@ -7,6 +5,8 @@ import { env } from "@typebot.io/env";
 import prisma from "@typebot.io/prisma";
 import { z } from "@typebot.io/zod";
 import ky from "ky";
+import { authenticatedProcedure } from "@/helpers/server/trpc";
+import { ClientToastError } from "@/lib/ClientToastError";
 
 const inputSchema = z.object({
   token: z.string().optional(),
@@ -63,7 +63,7 @@ export const getSystemTokenInfo = authenticatedProcedure
 const getCredentials = async (
   userId: string,
   input: z.infer<typeof inputSchema>,
-): Promise<Omit<WhatsAppCredentials["data"], "phoneNumberId"> | undefined> => {
+): Promise<{ systemUserAccessToken: string } | undefined> => {
   if (input.token)
     return {
       systemUserAccessToken: input.token,
@@ -75,8 +75,19 @@ const getCredentials = async (
     },
   });
   if (!credentials) return;
-  return (await decrypt(
+  const decryptedData = (await decrypt(
     credentials.data,
     credentials.iv,
   )) as WhatsAppCredentials["data"];
+
+  if (decryptedData.provider !== "meta") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "This endpoint only supports Meta credentials",
+    });
+  }
+
+  return {
+    systemUserAccessToken: decryptedData.systemUserAccessToken,
+  };
 };

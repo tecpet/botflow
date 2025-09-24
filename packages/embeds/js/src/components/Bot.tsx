@@ -1,3 +1,28 @@
+import { Toast, Toaster } from "@ark-ui/solid";
+import type { InputBlock } from "@typebot.io/blocks-inputs/schema";
+import type {
+  StartChatResponse,
+  StartFrom,
+  StartTypebot,
+} from "@typebot.io/chat-api/schemas";
+import { isDefined, isNotDefined, isNotEmpty } from "@typebot.io/lib/utils";
+import type { LogInSession } from "@typebot.io/logs/schemas";
+import { isTypebotVersionAtLeastV6 } from "@typebot.io/schemas/helpers/isTypebotVersionAtLeastV6";
+import {
+  defaultSettings,
+  defaultSystemMessages,
+} from "@typebot.io/settings/constants";
+import {
+  defaultFontFamily,
+  defaultFontType,
+  defaultProgressBarPosition,
+} from "@typebot.io/theme/constants";
+import type { Font } from "@typebot.io/theme/schemas";
+import { cn } from "@typebot.io/ui/lib/cn";
+import { cx } from "@typebot.io/ui/lib/cva";
+import { HTTPError } from "ky";
+import { createEffect, createSignal, onCleanup, Show } from "solid-js";
+import { Portal } from "solid-js/web";
 import { BotContainerContext } from "@/contexts/BotContainerContext";
 import { startChatQuery } from "@/queries/startChatQuery";
 import type { BotContext } from "@/types";
@@ -14,44 +39,12 @@ import {
   wipeExistingChatStateInStorage,
 } from "@/utils/storage";
 import { toaster } from "@/utils/toaster";
-import { Toast, Toaster } from "@ark-ui/solid";
-import type { InputBlock } from "@typebot.io/blocks-inputs/schema";
-import type {
-  StartChatResponse,
-  StartFrom,
-  StartTypebot,
-} from "@typebot.io/chat-api/schemas";
-import { isDefined, isNotDefined, isNotEmpty } from "@typebot.io/lib/utils";
-import type { LogInSession } from "@typebot.io/logs/schemas";
-import { isTypebotVersionAtLeastV6 } from "@typebot.io/schemas/helpers/isTypebotVersionAtLeastV6";
-import {
-  defaultSettings,
-  defaultSystemMessages,
-} from "@typebot.io/settings/constants";
-import {
-  defaultContainerBackgroundColor,
-  defaultFontFamily,
-  defaultFontType,
-  defaultProgressBarPosition,
-} from "@typebot.io/theme/constants";
-import type { Font } from "@typebot.io/theme/schemas";
-import { cn } from "@typebot.io/ui/lib/cn";
-import { cx } from "@typebot.io/ui/lib/cva";
-import { HTTPError } from "ky";
-import {
-  Show,
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-} from "solid-js";
-import { Portal } from "solid-js/web";
 import { buttonVariants } from "./Button";
 import { ChatContainer } from "./ConversationContainer/ChatContainer";
 import { ErrorMessage } from "./ErrorMessage";
+import { CloseIcon } from "./icons/CloseIcon";
 import { LiteBadge } from "./LiteBadge";
 import { ProgressBar } from "./ProgressBar";
-import { CloseIcon } from "./icons/CloseIcon";
 
 export type BotProps = {
   id?: string;
@@ -70,7 +63,10 @@ export type BotProps = {
   onInit?: () => void;
   onEnd?: () => void;
   onNewLogs?: (logs: LogInSession[]) => void;
-  onChatStatePersisted?: (isEnabled: boolean) => void;
+  onChatStatePersisted?: (
+    isEnabled: boolean,
+    { typebotId }: { typebotId: string },
+  ) => void;
   onScriptExecutionSuccess?: (message: string) => void;
 };
 
@@ -193,14 +189,14 @@ export const Bot = (props: BotProps & { class?: string }) => {
           storage,
         });
       }
-      props.onChatStatePersisted?.(true);
+      props.onChatStatePersisted?.(true, { typebotId: data.typebot.id });
     } else {
       wipeExistingChatStateInStorage(data.typebot.id);
       setInitialChatReply(data);
       if (data.input?.id && props.onNewInputBlock)
         props.onNewInputBlock(data.input);
       if (data.logs) props.onNewLogs?.(data.logs);
-      props.onChatStatePersisted?.(false);
+      props.onChatStatePersisted?.(false, { typebotId: data.typebot.id });
     }
 
     setCustomCss(data.typebot.theme.customCss ?? "");

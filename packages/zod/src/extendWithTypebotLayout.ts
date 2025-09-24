@@ -29,7 +29,7 @@ export interface ZodLayoutMetadata<
   moreInfoTooltip?: string;
   isHidden?: boolean | ((currentObj: Record<string, any>) => boolean);
   isDebounceDisabled?: boolean;
-  hiddenItems?: string[];
+  hiddenItems?: string[] | readonly string[];
   mergeWithLastField?: boolean;
   /** Useful for string options with fetcher when we also want to allow for custom text */
   allowCustomValue?: boolean;
@@ -38,7 +38,7 @@ export interface ZodLayoutMetadata<
 }
 
 declare module "zod" {
-  interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
+  interface ZodType {
     layout<T extends ZodTypeAny>(this: T, metadata: ZodLayoutMetadata<T>): T;
   }
 

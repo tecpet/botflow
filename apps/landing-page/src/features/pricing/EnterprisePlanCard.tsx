@@ -1,4 +1,4 @@
-import { ButtonLink } from "@/components/link";
+import { CtaButtonLink } from "@/components/link";
 import { enterpriseLeadTypebotUrl } from "@/constants";
 import {
   PerkListItem,
@@ -23,18 +23,20 @@ export const EnterprisePlanCard = () => (
           24/7 support with a designated representative
         </PerkListItem>
         <PerkListItem>SSO & Granular access rights</PerkListItem>
+        <PerkListItem>Dedicated IP address</PerkListItem>
+        <PerkListItem>ISO 27001 Certified Security</PerkListItem>
         <PerkListItem>Custom Security Questionnaires</PerkListItem>
         <PerkListItem>Custom Features Development (add-on)</PerkListItem>
       </ul>
     </div>
     <PricingCardFooter>
-      <ButtonLink
-        variant="ctaSecondary"
+      <CtaButtonLink
+        variant="secondary"
         size="lg"
         href={enterpriseLeadTypebotUrl}
       >
         Get a quote
-      </ButtonLink>
+      </CtaButtonLink>
     </PricingCardFooter>
   </PricingCardRoot>
 );

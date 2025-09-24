@@ -11,7 +11,7 @@
     "ky": "1.2.4",
     "@typebot.io/forge": "workspace:*",
     "@typebot.io/lib": "workspace:*",
-    "@tec.pet/tecpet-sdk": "^0.0.33"
+    "@tec.pet/tecpet-sdk": "^0.0.65"
   },
   "devDependencies": {
     "@typebot.io/tsconfig": "workspace:*"

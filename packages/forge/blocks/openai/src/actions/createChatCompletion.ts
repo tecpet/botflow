@@ -7,8 +7,7 @@ import { runChatCompletionStream } from "@typebot.io/ai/runChatCompletionStream"
 import { createAction } from "@typebot.io/forge";
 import { auth } from "../auth";
 import { baseOptions } from "../baseOptions";
-import { reasoningModels } from "../constants";
-import { chatModels } from "../constants";
+import { chatModels, reasoningModels } from "../constants";
 import { isModelCompatibleWithVision } from "../helpers/isModelCompatibleWithVision";
 
 export const createChatCompletion = createAction({
@@ -58,7 +57,7 @@ export const createChatCompletion = createAction({
     },
   ],
   run: {
-    server: ({
+    server: async ({
       credentials: { apiKey, baseUrl },
       options,
       variables,
@@ -70,7 +69,7 @@ export const createChatCompletion = createAction({
       if (!modelName) return logs.add("No model provided");
       if (!options.messages) return logs.add("No messages provided");
 
-      return runChatCompletion({
+      await runChatCompletion({
         model: createOpenAI({
           baseURL: baseUrl ?? options.baseUrl,
           apiKey,

@@ -7,9 +7,9 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
+import { evaluateIsHidden } from "@typebot.io/forge/helpers/evaluateIsHidden";
 import type { ForgedBlockDefinition } from "@typebot.io/forge-repository/definitions";
 import type { ForgedBlock } from "@typebot.io/forge-repository/schemas";
-import { evaluateIsHidden } from "@typebot.io/forge/helpers/evaluateIsHidden";
 import type { ZodLayoutMetadata } from "@typebot.io/zod";
 import type { ReactNode } from "react";
 import type { ZodTypeAny, z } from "zod";
@@ -116,7 +116,8 @@ export const ZodObjectLayout = ({
 
 const getObjectKeysWithSameAccordionAttr = (accordion: string, shape: any) =>
   Object.keys(shape).reduce<string[]>((keys, currentKey) => {
-    const l = shape[currentKey]._def.layout as
+    const innerSchema = getZodInnerSchema(shape[currentKey]);
+    const l = innerSchema._def.layout as
       | ZodLayoutMetadata<ZodTypeAny>
       | undefined;
     return !l?.accordion || l.accordion !== accordion

@@ -1,3 +1,9 @@
+import { Flex, HStack, Tag, Text, useColorModeValue } from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/router";
+import { useQueryState } from "nuqs";
+import { useMemo } from "react";
+import { ButtonLink } from "@/components/ButtonLink";
 import { Seo } from "@/components/Seo";
 import { AnalyticsGraphContainer } from "@/features/analytics/components/AnalyticsGraphContainer";
 import {
@@ -8,19 +14,6 @@ import { TypebotHeader } from "@/features/editor/components/TypebotHeader";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { trpc } from "@/lib/queryClient";
-import {
-  Button,
-  Flex,
-  HStack,
-  Tag,
-  Text,
-  useColorModeValue,
-} from "@chakra-ui/react";
-import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { useQueryState } from "nuqs";
-import { useMemo } from "react";
 import { ResultsProvider } from "../ResultsProvider";
 import { ResultsTableContainer } from "./ResultsTableContainer";
 
@@ -46,10 +39,7 @@ export const ResultsPage = () => {
     },
   });
 
-  const {
-    data: { stats } = {},
-    refetch,
-  } = useQuery(
+  const { data: { stats } = {}, refetch } = useQuery(
     trpc.analytics.getStats.queryOptions(
       {
         typebotId: publishedTypebot?.typebotId as string,
@@ -90,9 +80,7 @@ export const ResultsPage = () => {
           display={["none", "flex"]}
         >
           <HStack maxW="1600px" w="full" px="4">
-            <Button
-              as={Link}
-              colorScheme={!isAnalytics ? "orange" : "gray"}
+            <ButtonLink
               variant={!isAnalytics ? "outline" : "ghost"}
               size="sm"
               href={{
@@ -112,10 +100,8 @@ export const ResultsPage = () => {
                   {stats?.totalStarts}
                 </Tag>
               )}
-            </Button>
-            <Button
-              as={Link}
-              colorScheme={isAnalytics ? "orange" : "gray"}
+            </ButtonLink>
+            <ButtonLink
               variant={isAnalytics ? "outline" : "ghost"}
               href={{
                 pathname: "/typebots/[typebotId]/results/analytics",
@@ -130,7 +116,7 @@ export const ResultsPage = () => {
               size="sm"
             >
               Analytics
-            </Button>
+            </ButtonLink>
           </HStack>
         </Flex>
         <Flex pt={["10px", "60px"]} w="full" justify="center">

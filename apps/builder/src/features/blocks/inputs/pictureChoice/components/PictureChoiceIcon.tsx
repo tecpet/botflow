@@ -1,7 +1,5 @@
-import { ListIcon } from "@/components/icons";
-import type { IconProps } from "@chakra-ui/react";
-import React from "react";
+import { ImageIcon } from "@/components/icons";
 
-export const PictureChoiceIcon = (props: IconProps) => (
-  <ListIcon color="orange.500" {...props} />
+export const PictureChoiceIcon = ({ className }: { className?: string }) => (
+  <ImageIcon className={className} />
 );

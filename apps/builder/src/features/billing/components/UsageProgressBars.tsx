@@ -1,20 +1,18 @@
-import { AlertIcon } from "@/components/icons";
-import type { WorkspaceInApp } from "@/features/workspace/WorkspaceProvider";
-import { trpc } from "@/lib/queryClient";
 import {
   Flex,
-  HStack,
   Heading,
+  HStack,
   Progress,
   Skeleton,
   Stack,
   Text,
-  Tooltip,
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import { getChatsLimit } from "@typebot.io/billing/helpers/getChatsLimit";
 import { parseNumberWithCommas } from "@typebot.io/lib/utils";
+import type { WorkspaceInApp } from "@/features/workspace/WorkspaceProvider";
+import { trpc } from "@/lib/queryClient";
 
 type Props = {
   workspace: WorkspaceInApp;

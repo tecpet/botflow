@@ -1,8 +1,8 @@
+import { Stack } from "@chakra-ui/react";
 import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
 import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { trpc } from "@/lib/queryClient";
-import { Stack } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { defaultTypebotLinkOptions } from "@typebot.io/blocks-logic/typebotLink/constants";
 import type { TypebotLinkBlock } from "@typebot.io/blocks-logic/typebotLink/schema";
@@ -44,7 +44,7 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
     if (id) {
       onOptionsChange({ ...options, variableId: id });
     }
-  }
+  };
 
   const updateFluxByVariable = (fluxByVariable: boolean) =>
     onOptionsChange({

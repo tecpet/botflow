@@ -1,11 +1,10 @@
-import { DropdownList } from "@/components/DropdownList";
-import { TableList, type TableListItemProps } from "@/components/TableList";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
-import { FormLabel, Stack } from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
 import { cardMappableFields } from "@typebot.io/blocks-inputs/cards/constants";
 import type { CardsBlock } from "@typebot.io/blocks-inputs/cards/schema";
 import type { Variable } from "@typebot.io/variables/schemas";
-import React from "react";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { TableList, type TableListItemProps } from "@/components/TableList";
 
 type Props = {
   options?: CardsBlock["options"];
@@ -49,7 +48,7 @@ const CardSaveResponseItem = ({
   field?: (typeof cardMappableFields)[number] | undefined;
 }>) => {
   const changeValueToExtract = (
-    valueToExtract: (typeof cardMappableFields)[number],
+    valueToExtract: (typeof cardMappableFields)[number] | undefined,
   ) => {
     onItemChange({ ...item, field: valueToExtract });
   };
@@ -60,10 +59,11 @@ const CardSaveResponseItem = ({
 
   return (
     <Stack p="4" rounded="md" flex="1" borderWidth="1px">
-      <DropdownList
-        currentItem={item.field}
+      <BasicSelect
+        placeholder="Select a field"
+        value={item.field}
         items={cardMappableFields}
-        onItemSelect={changeValueToExtract}
+        onChange={changeValueToExtract}
       />
       <VariableSearchInput
         initialVariableId={item.variableId}

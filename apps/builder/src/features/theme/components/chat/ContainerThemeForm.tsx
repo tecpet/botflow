@@ -1,5 +1,3 @@
-import { DropdownList } from "@/components/DropdownList";
-import { NumberInput } from "@/components/inputs";
 import {
   Accordion,
   AccordionButton,
@@ -22,7 +20,8 @@ import type {
   ContainerTheme,
   InputTheme,
 } from "@typebot.io/theme/schemas";
-import React from "react";
+import { NumberInput } from "@/components/inputs";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { ColorPicker } from "../../../../components/ColorPicker";
 
 type Props<T extends ((placeholder: string) => void) | undefined> = {
@@ -178,11 +177,11 @@ export const ContainerThemeForm = <
                 Shadow:
               </FormLabel>
               <HStack>
-                <DropdownList
-                  currentItem={shadow}
-                  onItemSelect={updateShadow}
-                  items={shadows}
+                <BasicSelect
                   size="sm"
+                  value={shadow}
+                  onChange={updateShadow}
+                  items={shadows}
                 />
               </HStack>
             </HStack>
@@ -202,7 +201,9 @@ const BorderThemeForm = ({
   defaultBorder: ContainerBorderTheme | undefined;
   onBorderChange: (border: ContainerBorderTheme) => void;
 }) => {
-  const updateRoundness = (roundeness: (typeof borderRoundness)[number]) => {
+  const updateRoundness = (
+    roundeness: (typeof borderRoundness)[number] | undefined,
+  ) => {
     onBorderChange({ ...border, roundeness });
   };
 
@@ -231,12 +232,12 @@ const BorderThemeForm = ({
           Roundness:
         </FormLabel>
         <HStack>
-          <DropdownList
-            currentItem={border?.roundeness ?? defaultBorder?.roundeness}
-            onItemSelect={updateRoundness}
-            items={borderRoundness}
-            placeholder="md"
+          <BasicSelect
             size="sm"
+            value={border?.roundeness}
+            defaultValue={defaultBorder?.roundeness}
+            onChange={updateRoundness}
+            items={borderRoundness}
           />
           {(border?.roundeness ?? defaultBorder?.roundeness) === "custom" && (
             <NumberInput

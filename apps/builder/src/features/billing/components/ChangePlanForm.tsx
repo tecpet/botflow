@@ -1,16 +1,16 @@
+import { HStack, Stack, Text } from "@chakra-ui/react";
+import { useMutation } from "@tanstack/react-query";
+import { useTranslate } from "@tolgee/react";
+import { Plan } from "@typebot.io/prisma/enum";
+import { useState } from "react";
 import { TextLink } from "@/components/TextLink";
-import { ParentModalProvider } from "@/features/graph/providers/ParentModalProvider";
 import { useUser } from "@/features/user/hooks/useUser";
 import type { WorkspaceInApp } from "@/features/workspace/WorkspaceProvider";
 import { queryClient, trpc } from "@/lib/queryClient";
 import { toast } from "@/lib/toast";
-import { HStack, Stack, Text } from "@chakra-ui/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useTranslate } from "@tolgee/react";
-import { Plan } from "@typebot.io/prisma/enum";
-import { useState } from "react";
-import type { PreCheckoutModalProps } from "./PreCheckoutModal";
-import { PreCheckoutModal } from "./PreCheckoutModal";
+import { useSubscriptionQuery } from "../hooks/useSubscriptionQuery";
+import type { PreCheckoutDialogProps } from "./PreCheckoutDialog";
+import { PreCheckoutDialog } from "./PreCheckoutDialog";
 import { ProPlanPricingCard } from "./ProPlanPricingCard";
 import { StarterPlanPricingCard } from "./StarterPlanPricingCard";
 import { StripeClimateLogo } from "./StripeClimateLogo";
@@ -30,22 +30,13 @@ export const ChangePlanForm = ({
 
   const { user } = useUser();
   const [preCheckoutPlan, setPreCheckoutPlan] =
-    useState<PreCheckoutModalProps["selectedSubscription"]>();
+    useState<PreCheckoutDialogProps["selectedSubscription"]>();
 
-  const { data, refetch } = useQuery(
-    trpc.billing.getSubscription.queryOptions({
-      workspaceId: workspace.id,
-    }),
-  );
+  const { data, refetch } = useSubscriptionQuery(workspace.id);
 
   const { mutate: updateSubscription, status: updateSubscriptionStatus } =
     useMutation(
       trpc.billing.updateSubscription.mutationOptions({
-        onError: (error) => {
-          toast({
-            description: error.message,
-          });
-        },
         onSuccess: ({ workspace, checkoutUrl }) => {
           if (checkoutUrl) {
             window.location.href = checkoutUrl;
@@ -58,7 +49,7 @@ export const ChangePlanForm = ({
             }),
           });
           toast({
-            status: "success",
+            type: "success",
             description: t("billing.updateSuccessToast.description", {
               plan: workspace?.plan,
             }),
@@ -116,14 +107,12 @@ export const ChangePlanForm = ({
         </Text>
       </HStack>
       {!workspace.stripeId && (
-        <ParentModalProvider>
-          <PreCheckoutModal
-            selectedSubscription={preCheckoutPlan}
-            existingEmail={user?.email ?? undefined}
-            existingCompany={user?.company ?? undefined}
-            onClose={() => setPreCheckoutPlan(undefined)}
-          />
-        </ParentModalProvider>
+        <PreCheckoutDialog
+          selectedSubscription={preCheckoutPlan}
+          existingEmail={user?.email ?? undefined}
+          existingCompany={user?.company ?? undefined}
+          onClose={() => setPreCheckoutPlan(undefined)}
+        />
       )}
       {data && (
         <Stack align="flex-end" spacing={6}>

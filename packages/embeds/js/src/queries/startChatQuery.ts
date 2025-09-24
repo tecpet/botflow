@@ -1,9 +1,3 @@
-import {
-  getPaymentInProgressInStorage,
-  removePaymentInProgressFromStorage,
-} from "@/features/blocks/inputs/payment/helpers/paymentInProgressStorage";
-import type { BotContext } from "@/types";
-import { guessApiHost } from "@/utils/guessApiHost";
 import type {
   ContinueChatResponse,
   StartChatInput,
@@ -13,6 +7,13 @@ import type {
 } from "@typebot.io/chat-api/schemas";
 import { isNotDefined, isNotEmpty } from "@typebot.io/lib/utils";
 import ky from "ky";
+import {
+  getPaymentInProgressInStorage,
+  removePaymentInProgressFromStorage,
+} from "@/features/blocks/inputs/payment/helpers/paymentInProgressStorage";
+import type { BotContext } from "@/types";
+import { getIframeReferrerOrigin } from "@/utils/getIframeReferrerOrigin";
+import { guessApiHost } from "@/utils/guessApiHost";
 
 type Props = {
   typebot: string | any;
@@ -66,10 +67,7 @@ export async function startChatQuery({
   }
 
   try {
-    const iframeReferrerOrigin =
-      parent !== window && isNotEmpty(document.referrer)
-        ? new URL(document.referrer).origin
-        : undefined;
+    const iframeReferrerOrigin = getIframeReferrerOrigin();
     const response = await ky.post(
       `${getApiHost(apiHost)}/api/v1/typebots/${typebotId}/startChat`,
       {
@@ -110,12 +108,16 @@ const resumeChatAfterPaymentRedirect = async ({
   removePaymentInProgressFromStorage();
 
   try {
+    const iframeReferrerOrigin = getIframeReferrerOrigin();
     const data = await ky
       .post(
         `${getApiHost(apiHost)}/api/v1/sessions/${
           paymentInProgressState.sessionId
         }/continueChat`,
         {
+          headers: {
+            "x-typebot-iframe-referrer-origin": iframeReferrerOrigin,
+          },
           json: {
             message: stripeRedirectStatus === "failed" ? "fail" : "Success",
           },

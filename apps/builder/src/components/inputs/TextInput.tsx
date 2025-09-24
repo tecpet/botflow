@@ -1,6 +1,3 @@
-import { VariablesButton } from "@/features/variables/components/VariablesButton";
-import { injectVariableInText } from "@/features/variables/helpers/injectVariableInTextInput";
-import { focusInput } from "@/helpers/focusInput";
 import {
   Input as ChakraInput,
   FormControl,
@@ -12,8 +9,8 @@ import {
 } from "@chakra-ui/react";
 import { env } from "@typebot.io/env";
 import type { Variable } from "@typebot.io/variables/schemas";
-import type { ReactNode } from "react";
 import type React from "react";
+import type { ReactNode } from "react";
 import {
   forwardRef,
   useEffect,
@@ -22,6 +19,9 @@ import {
   useState,
 } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import { VariablesButton } from "@/features/variables/components/VariablesButton";
+import { injectVariableInText } from "@/features/variables/helpers/injectVariableInTextInput";
+import { focusInput } from "@/helpers/focusInput";
 import { MoreInfoTooltip } from "../MoreInfoTooltip";
 
 export type TextInputProps = {
@@ -49,6 +49,7 @@ export type TextInputProps = {
   | "maxWidth"
   | "flexShrink"
   | "onKeyDown"
+  | "className"
 >;
 
 export const TextInput = forwardRef(function TextInput(
@@ -57,6 +58,7 @@ export const TextInput = forwardRef(function TextInput(
     defaultValue,
     debounceTimeout = 1000,
     label,
+    className,
     helperText,
     moreInfoTooltip,
     withVariableButton = true,
@@ -154,6 +156,7 @@ export const TextInput = forwardRef(function TextInput(
       width={label || width === "full" ? "full" : "auto"}
       spacing={direction === "column" ? 2 : 3}
       flexShrink={flexShrink}
+      className={className}
     >
       {label && (
         <FormLabel display="flex" flexShrink={0} gap="1" mb="0" mr="0">

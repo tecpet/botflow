@@ -1,15 +1,16 @@
+import { Stack } from "@chakra-ui/react";
+import type { Coordinates } from "@dnd-kit/utilities";
+import { shouldOpenBlockSettingsOnCreation } from "@typebot.io/blocks-core/helpers";
+import type { BlockV6 } from "@typebot.io/blocks-core/schemas/schema";
+import { isDefined } from "@typebot.io/lib/utils";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Portal } from "@/components/Portal";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import {
   computeNearestPlaceholderIndex,
   useBlockDnd,
 } from "@/features/graph/providers/GraphDndProvider";
 import { useGraph } from "@/features/graph/providers/GraphProvider";
-import { Portal, Stack } from "@chakra-ui/react";
-import type { Coordinates } from "@dnd-kit/utilities";
-import { shouldOpenBlockSettingsOnCreation } from "@typebot.io/blocks-core/helpers";
-import type { BlockV6 } from "@typebot.io/blocks-core/schemas/schema";
-import { isDefined } from "@typebot.io/lib/utils";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { PlaceholderNode } from "../PlaceholderNode";
 import { BlockNode } from "./BlockNode";
 import { BlockNodeOverlay } from "./BlockNodeOverlay";
@@ -28,11 +29,7 @@ export const BlockNodesList = ({ blocks, groupIndex, groupRef }: Props) => {
     setDraggedBlockType,
   } = useBlockDnd();
   const { typebot, createBlock, detachBlockFromGroup } = useTypebot();
-  const {
-    isReadOnly,
-    graphPosition,
-    setOpenedNodeId: setOpenedBlockId,
-  } = useGraph();
+  const { isReadOnly, graphPosition, setOpenedNodeId } = useGraph();
   const [expandedPlaceholderIndex, setExpandedPlaceholderIndex] = useState<
     number | undefined
   >();
@@ -133,7 +130,7 @@ export const BlockNodesList = ({ blocks, groupIndex, groupRef }: Props) => {
       setDraggedBlock(undefined);
       setDraggedBlockType(undefined);
       if (shouldOpenBlockSettingsOnCreation(draggedBlockType))
-        setOpenedBlockId(blockId);
+        setOpenedNodeId(blockId);
     },
     [
       isDraggingOnCurrentGroup,

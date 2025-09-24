@@ -1,7 +1,9 @@
-import { PlusIcon, TrashIcon } from "@/components/icons";
-import { Box, Button, Fade, Flex, IconButton, Stack } from "@chakra-ui/react";
+import { Box, Fade, Flex, Stack } from "@chakra-ui/react";
 import { createId } from "@paralleldrive/cuid2";
-import React, { useEffect, useState } from "react";
+import { Button } from "@typebot.io/ui/components/Button";
+import { TrashIcon } from "@typebot.io/ui/icons/TrashIcon";
+import { useEffect, useState } from "react";
+import { PlusIcon } from "@/components/icons";
 
 type ItemWithId<T extends number | string | boolean> = {
   id: string;
@@ -114,23 +116,21 @@ export const PrimitiveList = <T extends number | string | boolean>({
               }}
               unmountOnExit
             >
-              <IconButton
-                icon={<TrashIcon />}
-                aria-label="Remove cell"
+              <Button
+                variant="secondary"
+                className="size-6"
+                size="icon"
+                aria-label="Remove item"
                 onClick={deleteItem(itemIndex)}
-                size="sm"
-                shadow="md"
-              />
+              >
+                <TrashIcon />
+              </Button>
             </Fade>
           </Flex>
         </Box>
       ))}
-      <Button
-        leftIcon={<PlusIcon />}
-        onClick={createItem}
-        flexShrink={0}
-        colorScheme="orange"
-      >
+      <Button onClick={createItem} className="flex-shrink-0">
+        <PlusIcon />
         {addLabel}
       </Button>
     </Stack>

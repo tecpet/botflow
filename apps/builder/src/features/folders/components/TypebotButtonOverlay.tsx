@@ -1,13 +1,13 @@
-import { EmojiOrImageIcon } from "@/components/EmojiOrImageIcon";
-import type { TypebotInDashboard } from "@/features/dashboard/types";
 import {
   Box,
   type BoxProps,
   Flex,
-  Text,
-  VStack,
   useColorModeValue,
+  VStack,
 } from "@chakra-ui/react";
+import { LayoutBottomIcon } from "@typebot.io/ui/icons/LayoutBottomIcon";
+import { EmojiOrImageIcon } from "@/components/EmojiOrImageIcon";
+import type { TypebotInDashboard } from "@/features/dashboard/types";
 
 type Props = {
   typebot: TypebotInDashboard;
@@ -39,9 +39,13 @@ export const TypebotCardOverlay = ({ typebot, ...props }: Props) => {
           alignItems="center"
           fontSize={"4xl"}
         >
-          <EmojiOrImageIcon icon={typebot.icon} boxSize={"35px"} />
+          <EmojiOrImageIcon
+            icon={typebot.icon}
+            size="lg"
+            defaultIcon={LayoutBottomIcon}
+          />
         </Flex>
-        <Text>{typebot.name}</Text>
+        <p className="font-medium">{typebot.name}</p>
       </VStack>
     </Box>
   );
