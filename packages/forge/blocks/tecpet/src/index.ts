@@ -1,7 +1,10 @@
 import { createBlock } from "@typebot.io/forge";
 import { getAvailableTimes } from "./actions/api/availableTimes/getAvailableTimes";
+import { getRescheduleAvailableTimes } from "./actions/api/availableTimes/getRescheduleAvailableTimes";
 import { getBillingMethods } from "./actions/api/billingMethod/getBillingMethods";
+import { cancelBooking } from "./actions/api/booking/cancelBooking";
 import { createBooking } from "./actions/api/booking/createBooking";
+import { rescheduleBooking } from "./actions/api/booking/rescheduleBooking";
 import { getBreeds } from "./actions/api/breed/getBreeds";
 import { getConfigurations } from "./actions/api/chatbotSettings/getConfigurations";
 import { getFormattedMessages } from "./actions/api/chatbotSettings/getFormattedMessages";
@@ -18,14 +21,17 @@ import { getShopConfigurations } from "./actions/api/shop/getShopConfigurations"
 import { getSpecies } from "./actions/api/specie/getSpecies";
 import { extractToken } from "./actions/api/token/extractToken";
 import { buildAvailableTimesOptions } from "./actions/internal/buildAvailableTimesOptions";
+import { buildClientBookingsSummary } from "./actions/internal/buildClientBookingsSummary";
+import { buildClientPetsSummary } from "./actions/internal/buildClientPetsSummary";
 import { buildEmployeeOptions } from "./actions/internal/buildEmployeeOptions";
 import { buildSelectedAdditionals } from "./actions/internal/buildSelectedAdditionals";
-import { buildSelectedFlux } from "./actions/internal/buildSelectedFlux";
 import { buildServiceOptions } from "./actions/internal/buildServiceOptions";
 import { showSendingInfoItems } from "./actions/internal/showSendingInfoItems";
 import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedFlux.chatbotAction";
 import { parseSelectedFluxSettings } from "./actions/parser/selectedFlux.settings";
 import { verifyAvailableTimesOptionSelected } from "./actions/validations/veirifyAvailableTimesOptionSelected";
+import { verifyBookingGuard } from "./actions/validations/verifyBookingGuard";
+import { verifyInitialMessageToTrigger } from "./actions/validations/verifyInitialMessageToTrigger";
 import { verifyInputedCpfText } from "./actions/validations/verifyInputedCpf";
 import { verifyInputedDateText } from "./actions/validations/verifyInputedDateText";
 import { verifySimilarBreedOptionSelected } from "./actions/validations/verifySimilarBreedOptionSelected";
@@ -35,24 +41,34 @@ import { TecpetLogo } from "./logo";
 const buildActions = [
   parseSelectedFluxSettings,
   parseSelectedFluxInfoCollectionMenus,
-  buildSelectedFlux,
   buildServiceOptions,
   buildSelectedAdditionals,
   buildAvailableTimesOptions,
   buildEmployeeOptions,
   showSendingInfoItems,
+  buildClientBookingsSummary,
+  buildClientPetsSummary,
 ];
 
 const validations = [
   verifyInputedDateText,
   verifyAvailableTimesOptionSelected,
   verifyInputedCpfText,
+  verifyBookingGuard,
+  verifyInitialMessageToTrigger,
   verifySimilarBreedOptionSelected,
 ];
 
 const clientActions = [getClient, editClient, getClientSummary];
 
 const petActions = [getPets, createPet, editPet];
+
+const bookingActions = [
+  createBooking,
+  cancelBooking,
+  rescheduleBooking,
+  getRescheduleAvailableTimes,
+];
 
 const apiActions = [
   extractToken,
@@ -65,10 +81,10 @@ const apiActions = [
   getEmployess,
   getCategoriesAndServices,
   getAvailableTimes,
-  createBooking,
   getFormattedMessages,
   ...clientActions,
   ...petActions,
+  ...bookingActions,
   ...validations,
 ];
 export const tecpetBlock = createBlock({

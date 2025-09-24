@@ -31,10 +31,23 @@ export const getClientSummary = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    clientBookingsSummary: option.string.layout({
+      label: "Resumo de agendamentos do cliente",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
-  getSetVariableIds: ({ client }) => {
+  getSetVariableIds: ({
+    client,
+    hasAnyBookings,
+    clientPetsSummary,
+    clientBookingsSummary,
+  }) => {
     const variables = [];
 
+    if (clientBookingsSummary) variables.push(clientBookingsSummary);
+    if (hasAnyBookings) variables.push(hasAnyBookings);
+    if (clientPetsSummary) variables.push(clientPetsSummary);
     if (client) variables.push(client);
 
     return variables;
@@ -62,6 +75,12 @@ export const getClientSummary = createAction({
             {
               id: options.hasAnyBookings as string,
               value: response.hasAnyBooking,
+            },
+          ]);
+          variables.set([
+            {
+              id: options.clientBookingsSummary as string,
+              value: response.bookings,
             },
           ]);
           variables.set([

@@ -6,6 +6,7 @@ import {
   TecpetSDK,
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
+import { format, parse } from "date-fns";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 
@@ -105,10 +106,19 @@ export const editPet = createAction({
           genre: (options.petGender === "Macho"
             ? "MALE"
             : "FEMALE") as GenderType,
-          birthDate: options.petBirthDate ?? "",
           hair: options.petHair as BillingItemType,
           size: options.petSize as BillingItemType,
         };
+
+        if (options.petBirthDate) {
+          const parsedBirthDate = parse(
+            options.petBirthDate as string,
+            "dd/MM/yyyy",
+            new Date(),
+          );
+          body.birthDate = format(parsedBirthDate, "yyyy-MM-dd");
+        }
+
         const editedPet: PaPetResponse = (await tecpetSdk.pet.edit(
           Number(options.petId),
           body,
