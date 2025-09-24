@@ -5,5 +5,5 @@ import { auth } from "./auth";
 export const tecpetGatewayBlockSchema = parseBlockSchema(tecpetGatewayBlock);
 export const tecpetGatewayCredentialsSchema = parseBlockCredentials(
   tecpetGatewayBlock.id,
-  auth.schema,
+  auth,
 );
