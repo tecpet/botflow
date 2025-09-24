@@ -1,5 +1,4 @@
 import { option } from "@typebot.io/forge";
-import type { AuthDefinition } from "@typebot.io/forge/types";
 import { tecpetGatewayDefaultBaseUrl } from "./constants";
 
 export const auth = {
@@ -24,4 +23,4 @@ export const auth = {
       isDebounceDisabled: true,
     }),
   }),
-} satisfies AuthDefinition;
+} 
