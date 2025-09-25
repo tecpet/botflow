@@ -18,11 +18,6 @@ export const getConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    actionMenus: option.string.layout({
-      label: "Menus de ação Inicial",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
     actionMenuTitles: option.string.layout({
       label: "Menu de ação Inicial - Títulos",
       placeholder: "Selecione",
@@ -81,7 +76,6 @@ export const getConfigurations = createAction({
   }),
   getSetVariableIds: ({
     configurations,
-    actionMenus,
     actionMenuTitles,
     actionMenuIds,
     actionMenuDescriptions,
@@ -97,7 +91,6 @@ export const getConfigurations = createAction({
     const variables = [];
 
     if (configurations) variables.push(configurations);
-    if (actionMenus) variables.push(actionMenus);
     if (actionMenuTitles) variables.push(actionMenuTitles);
     if (actionMenuIds) variables.push(actionMenuIds);
     if (actionMenuDescriptions) variables.push(actionMenuDescriptions);
@@ -124,50 +117,52 @@ export const getConfigurations = createAction({
               options.shopId,
             )) as PaChatbotSettingsResponse;
           if (result) {
-            const variablesToSet = [
-              { id: options.configurations, value: result },
+            variables.set([
+              { id: options.configurations as string, value: result },
               {
-                id: options.actionMenus,
-                value: result.chatbotActions.filter((a) => a.enabled),
-              },
-              {
-                id: options.actionMenuTitles,
+                id: options.actionMenuTitles as string,
                 value: result.chatbotActions
                   .filter((a) => a.enabled)
                   .map((a) => a.name),
               },
               {
-                id: options.actionMenuIds,
+                id: options.actionMenuIds as string,
                 value: result.chatbotActions
                   .filter((a) => a.enabled)
                   .map((a) => a),
               },
               {
-                id: options.actionMenuDescriptions,
+                id: options.actionMenuDescriptions as string,
                 value: result.chatbotActions
                   .filter((a) => a.enabled)
                   .map((a) => a.description),
               },
-              { id: options.newClientMessage, value: result.newClientMessage },
-              { id: options.aiEnabled, value: result.aiEnabled },
-              { id: options.aiPersonality, value: result.aiPersonality },
               {
-                id: options.voiceResponseEnabled,
+                id: options.newClientMessage as string,
+                value: result.newClientMessage,
+              },
+              { id: options.aiEnabled as string, value: result.aiEnabled },
+              {
+                id: options.aiPersonality as string,
+                value: result.aiPersonality,
+              },
+              {
+                id: options.voiceResponseEnabled as string,
                 value: result.voiceResponseEnabled,
               },
-              { id: options.chatbotTriggers, value: result.chatbotTriggers },
-              { id: options.chatbotActions, value: result.chatbotActions },
-    		{
-                id: options.voiceGenre,
+              {
+                id: options.chatbotTriggers as string,
+                value: result.chatbotTriggers,
+              },
+              {
+                id: options.chatbotActions as string,
+                value: result.chatbotActions,
+              },
+              {
+                id: options.voiceGenre as string,
                 value: result.aiVoice,
               },
-            ];
-
-            variablesToSet.forEach(({ id, value }) => {
-              if (id !== undefined) {
-                variables.set([{ id, value }]);
-              }
-            });
+            ]);
           }
         }
       } catch (error) {
