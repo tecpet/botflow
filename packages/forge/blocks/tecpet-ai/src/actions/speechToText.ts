@@ -39,7 +39,7 @@ export const speechToText = createAction({
               sessionId: options.sessionId,
               audioUrl: options.audioUrl,
             },
-            timeout: 30000,
+            timeout: 10 * 60000,
           })
           .json<any>();
         if (options.saveTextInVariableId) {

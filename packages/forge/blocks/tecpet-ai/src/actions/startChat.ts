@@ -55,7 +55,7 @@ export const startChat = createAction({
               client: options.client,
               chatbotSettings: options.chatbotSettings
             },
-            timeout: 30000,
+            timeout: 10 * 60000,
           })
           .json<any>();
 
