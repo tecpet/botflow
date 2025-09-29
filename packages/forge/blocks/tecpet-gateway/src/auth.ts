@@ -1,7 +1,8 @@
-import { createAuth, option } from "@typebot.io/forge";
-import { tecpetGatewayDefaultBaseUrl } from "./constants";
+import {option} from "@typebot.io/forge";
+import {tecpetGatewayDefaultBaseUrl} from "./constants";
+import type {AuthDefinition} from "@typebot.io/forge/types";
 
-export const auth = createAuth({
+export const auth = {
   type: "encryptedCredentials",
   name: "tecpet-gateway account",
   schema: option.object({
@@ -23,4 +24,4 @@ export const auth = createAuth({
       isDebounceDisabled: true,
     }),
   }),
-} )
+} satisfies AuthDefinition;

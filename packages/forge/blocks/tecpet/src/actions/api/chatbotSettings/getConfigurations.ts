@@ -58,26 +58,6 @@ export const getConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    voiceGenre: option.string.layout({
-      label: "Gênero da voz",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
-    aiEnabled: option.string.layout({
-      label: "Atendimento por IA habilitado",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
-    aiPersonality: option.string.layout({
-      label: "Personalidade da IA",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
-    voiceResponseEnabled: option.string.layout({
-      label: "Agendamento por voz habilitado",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
     chatbotTriggers: option.string.layout({
       label: "Disparos para escolher chatbot",
       placeholder: "Selecione",
@@ -85,6 +65,11 @@ export const getConfigurations = createAction({
     }),
     chatbotActions: option.string.layout({
       label: "Açoes da configuração",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    voiceGenre: option.string.layout({
+      label: "Gênero da voz",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
