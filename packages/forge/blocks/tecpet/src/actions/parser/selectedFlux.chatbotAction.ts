@@ -1,3 +1,4 @@
+import type { ChatbotActionJson } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
 
@@ -6,7 +7,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
   name: "Construir configurações do fluxo - Info Collection",
   options: option.object({
     selectedMenuConfigurations: option.string.layout({
-      label: "Configurações do menu selecionado",
+      label: "Menu de ação selecionado",
       isRequired: true,
       helperText: "Configurações",
     }),
@@ -62,11 +63,6 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     }),
     petInfoPetFurMessage: option.string.layout({
       label: "Pelo do pet - Mensagem",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
-    serviceSelectionEnabled: option.string.layout({
-      label: "Serviços do agendamento - Habilitado",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -195,6 +191,41 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+
+    scheduleToAnotherPetEnabled: option.string.layout({
+      label: "Agendar mesmo serviço para outro pet - Habilitado",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
+    scheduleToAnotherPetMessage: option.string.layout({
+      label: "Agendar mesmo serviço para outro pet - Mensagem",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
+    sendingInfoItems: option.string.layout({
+      label: "Informações para cliente",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
+    showSendingInfo: option.string.layout({
+      label: "Mostrar informações para cliente",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
+    allowCancel: option.string.layout({
+      label: "Cancelar agendamento",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    allowChangeDateAndTime: option.string.layout({
+      label: "Mudar data e horário do agendamento",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     additionalSelectionEnabled,
@@ -221,11 +252,14 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     petInfoPetSpecieMessage,
     petWeightEnabled,
     petWeightMessage,
+    scheduleToAnotherPetEnabled,
+    scheduleToAnotherPetMessage,
+    sendingInfoItems,
+    showSendingInfo,
     professionalSelectionEnabled,
     professionalSelectionMessage,
     promotionSelectionEnabled,
     selectedMenuConfigurations,
-    serviceSelectionEnabled,
     serviceSelectionMessage,
     serviceSelectionValueMode,
     takeAndBringEnabled,
@@ -235,6 +269,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     timeSelectionBehaviorMessage,
     timeSelectionBehaviorMinAdvanceHours,
     timeSelectionBehaviorTimeDisplayMode,
+    allowCancel,
+    allowChangeDateAndTime,
   }) => {
     const variables = [];
 
@@ -268,7 +304,6 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       variables.push(professionalSelectionMessage);
     if (promotionSelectionEnabled) variables.push(promotionSelectionEnabled);
     if (selectedMenuConfigurations) variables.push(selectedMenuConfigurations);
-    if (serviceSelectionEnabled) variables.push(serviceSelectionEnabled);
     if (serviceSelectionMessage) variables.push(serviceSelectionMessage);
     if (serviceSelectionValueMode) variables.push(serviceSelectionValueMode);
     if (takeAndBringEnabled) variables.push(takeAndBringEnabled);
@@ -283,6 +318,14 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       variables.push(timeSelectionBehaviorMinAdvanceHours);
     if (timeSelectionBehaviorTimeDisplayMode)
       variables.push(timeSelectionBehaviorTimeDisplayMode);
+    if (scheduleToAnotherPetEnabled)
+      variables.push(scheduleToAnotherPetEnabled);
+    if (scheduleToAnotherPetMessage)
+      variables.push(scheduleToAnotherPetMessage);
+    if (sendingInfoItems) variables.push(sendingInfoItems);
+    if (showSendingInfo) variables.push(showSendingInfo);
+    if (allowCancel) variables.push(allowCancel);
+    if (allowChangeDateAndTime) variables.push(allowChangeDateAndTime);
 
     return variables;
   },
@@ -291,7 +334,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       try {
         const setVar = (id: string, value: any) =>
           variables.set([{ id, value }]);
-        const selectedMenuConfig =
+
+        const chatbotActionConfig: ChatbotActionJson =
           typeof options.selectedMenuConfigurations === "string"
             ? JSON.parse(options.selectedMenuConfigurations)
             : (options.selectedMenuConfigurations as any);
@@ -302,114 +346,202 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
           timeSelection,
           takeAndBring,
           guidance,
+          editBooking,
           extraInfo,
-        } = selectedMenuConfig.infoCollectionMenus;
+        } = chatbotActionConfig.infoCollectionMenus;
+
+        /* ----- Sending Info ----- */
+
+        const sendingInfoVariable = chatbotActionConfig.sendingInfoItems;
+
+        variables.set([
+          {
+            id: options.showSendingInfo as string,
+            value: chatbotActionConfig.showSendingInfo,
+          },
+        ]);
+
+        variables.set([
+          {
+            id: options.sendingInfoItems as string,
+            value: sendingInfoVariable,
+          },
+        ]);
+
+        /* ----- Edit booking ----- */
+
+        variables.set([
+          {
+            id: options.allowCancel as string,
+            value: editBooking?.allowCancel,
+          },
+        ]);
+
+        variables.set([
+          {
+            id: options.allowChangeDateAndTime as string,
+            value: editBooking?.allowChangeDateAndTime,
+          },
+        ]);
 
         /* ---- Pet Info ---- */
-        [
-          [options.petInfoPetNameEnabled, Boolean(petInfo.petName.enabled)],
-          [options.petInfoPetNameMessage, petInfo.petName.message ?? ""],
-          [options.petInfoPetSpecieEnabled, Boolean(petInfo.petSpecie.enabled)],
-          [options.petInfoPetSpecieMessage, petInfo.petSpecie.message ?? ""],
-          [options.petInfoPetBreedEnabled, Boolean(petInfo.petBreed.enabled)],
-          [options.petInfoPetBreedMessage, petInfo.petBreed.message ?? ""],
-          [options.petInfoPetSizeEnabled, Boolean(petInfo.petSize.enabled)],
-          [options.petInfoPetSizeMessage, petInfo.petSize.message ?? ""],
-          [options.petInfoPetSizeMode, petInfo.petSize.sizeDisplayMode ?? ""],
-          [options.petInfoPetFurEnabled, Boolean(petInfo.petFur.enabled)],
-          [options.petInfoPetFurMessage, petInfo.petFur.message ?? ""],
-        ].forEach(([id, value]) => setVar(id as string, value));
+
+        const petInfoVariables = [
+          [
+            options.petInfoPetNameEnabled,
+            Boolean(petInfo?.petName?.enabled ?? false),
+          ],
+          [options.petInfoPetNameMessage, petInfo?.petName?.message ?? ""],
+          [
+            options.petInfoPetSpecieEnabled,
+            Boolean(petInfo?.petSpecie?.enabled ?? false),
+          ],
+          [options.petInfoPetSpecieMessage, petInfo?.petSpecie?.message ?? ""],
+          [
+            options.petInfoPetBreedEnabled,
+            Boolean(petInfo?.petBreed?.enabled ?? false),
+          ],
+          [options.petInfoPetBreedMessage, petInfo?.petBreed?.message ?? ""],
+          [
+            options.petInfoPetSizeEnabled,
+            Boolean(petInfo?.petSize?.enabled ?? false),
+          ],
+          [options.petInfoPetSizeMessage, petInfo?.petSize?.message ?? ""],
+          [options.petInfoPetSizeMode, petInfo?.petSize?.sizeDisplayMode ?? ""],
+          [
+            options.petInfoPetFurEnabled,
+            Boolean(petInfo?.petFur?.enabled ?? false),
+          ],
+          [options.petInfoPetFurMessage, petInfo?.petFur?.message ?? ""],
+        ];
+
+        petInfoVariables.forEach(([id, value]) => setVar(id as string, value));
 
         /* ---- Service Selection ---- */
 
-        [
-          [
-            options.serviceSelectionEnabled,
-            Boolean(serviceSelection.service.enabled),
-          ],
+        const serviceSelectionVariables = [
           [
             options.serviceSelectionMessage,
-            serviceSelection.service.message ?? "",
+            serviceSelection?.service?.message ?? "",
           ],
           [
             options.serviceSelectionValueMode,
-            serviceSelection.showServiceValues.priceDisplayMode,
+            serviceSelection?.showServiceValues?.priceDisplayMode ?? "",
           ],
           [
             options.additionalSelectionEnabled,
-            Boolean(serviceSelection.serviceAddons.enabled),
+            Boolean(serviceSelection?.serviceAddons?.enabled ?? false),
           ],
           [
             options.additionalSelectionMessage,
-            serviceSelection.serviceAddons.message ?? "",
+            serviceSelection?.serviceAddons?.message ?? "",
           ],
           [
             options.professionalSelectionEnabled,
-            Boolean(serviceSelection.serviceProfessionalChoice.enabled),
-          ],
-          [
-            options.professionalSelectionMessage,
-            serviceSelection.serviceProfessionalChoice.message ?? "",
+            Boolean(
+              serviceSelection?.serviceProfessionalChoice?.enabled ?? false,
+            ),
           ],
           [
             options.promotionSelectionEnabled,
-            Boolean(serviceSelection.showServicePromotions.enabled),
+            Boolean(serviceSelection?.showServicePromotions?.enabled ?? false),
           ],
-        ].forEach(([id, value]) => setVar(id as string, value));
+        ];
+
+        serviceSelectionVariables.forEach(([id, value]) =>
+          setVar(id as string, value),
+        );
 
         /* ---- Time Selection ---- */
-        [
+        const timeSelectionVariables = [
           [
             options.timeSelectionBehaviorMessage,
-            timeSelection.timeSelectionBehavior.message,
+            timeSelection?.timeSelectionBehavior?.message ?? "",
           ],
           [
             options.timeSelectionBehaviorMinAdvanceHours,
-            timeSelection.timeSelectionBehavior.minAdvanceHours,
+            timeSelection?.timeSelectionBehavior?.minAdvanceHours ?? null,
           ],
           [
             options.timeSelectionBehaviorBehavior,
-            timeSelection.timeSelectionBehavior.behavior,
+            timeSelection?.timeSelectionBehavior.behavior ?? "",
           ],
           [
             options.timeSelectionBehaviorTimeDisplayMode,
-            timeSelection.timeSelectionBehavior.timeDisplayMode,
+            timeSelection?.timeSelectionBehavior?.timeDisplayMode ?? "",
           ],
-        ].forEach(([id, value]) => setVar(id as string, value));
+        ];
 
-        const allowTakeAndBring = takeAndBring.allowTakeAndBring;
-        [
-          [options.takeAndBringEnabled, Boolean(allowTakeAndBring.enabled)],
-          [options.takeAndBringMessage, allowTakeAndBring.message ?? ""],
+        timeSelectionVariables.forEach(([id, value]) =>
+          setVar(id as string, value),
+        );
+
+        const takeAndBringVariables = [
+          [
+            options.takeAndBringEnabled,
+            Boolean(takeAndBring?.allowTakeAndBring?.enabled ?? false),
+          ],
+          [
+            options.takeAndBringMessage,
+            takeAndBring?.allowTakeAndBring?.message ?? "",
+          ],
           [
             options.takeAndBringMinAdvanceHours,
-            allowTakeAndBring.minAdvanceHours ?? "",
+            takeAndBring?.allowTakeAndBring?.minAdvanceHours ?? "",
           ],
-        ].forEach(([id, value]) => setVar(id as string, value));
+        ];
+
+        takeAndBringVariables.forEach(([id, value]) =>
+          setVar(id as string, value),
+        );
 
         setVar(
           options?.guidanceMessage as string,
           guidance?.guidanceMessage?.message ?? "",
         );
 
-        [
+        const extraInfoVariables = [
           [
             options.confirmClientNameEnabled,
-            Boolean(extraInfo.confirmClientName.enabled),
+            Boolean(extraInfo?.confirmClientName?.enabled ?? false),
           ],
           [
             options.confirmClientNameMessage,
-            extraInfo.confirmClientName.message ?? "",
+            extraInfo?.confirmClientName?.message ?? "",
           ],
-          [options.clientCpfEnabled, Boolean(extraInfo.clientCpf.enabled)],
-          [options.clientCpfMessage, extraInfo.clientCpf.message ?? ""],
-          [options.petGenderEnabled, Boolean(extraInfo.petGender.enabled)],
-          [options.petGenderMessage, extraInfo.petGender.message ?? ""],
-          [options.petBirthEnabled, Boolean(extraInfo.petBirthDate.enabled)],
-          [options.petBirthMessage, extraInfo.petBirthDate.message ?? ""],
-          [options.petWeightEnabled, Boolean(extraInfo.petWeight.enabled)],
-          [options.petWeightMessage, extraInfo.petWeight.message ?? ""],
-        ].forEach(([id, value]) => setVar(id as string, value));
+          [
+            options.clientCpfEnabled,
+            Boolean(extraInfo?.clientCpf?.enabled ?? false),
+          ],
+          [options.clientCpfMessage, extraInfo?.clientCpf.message ?? ""],
+          [
+            options.petGenderEnabled,
+            Boolean(extraInfo?.petGender?.enabled ?? false),
+          ],
+          [options.petGenderMessage, extraInfo?.petGender.message ?? ""],
+          [
+            options.petBirthEnabled,
+            Boolean(extraInfo?.petBirthDate?.enabled ?? false),
+          ],
+          [options.petBirthMessage, extraInfo?.petBirthDate.message ?? ""],
+          [
+            options.petWeightEnabled,
+            Boolean(extraInfo?.petWeight?.enabled ?? false),
+          ],
+          [options.petWeightMessage, extraInfo?.petWeight.message ?? ""],
+          [
+            options.scheduleToAnotherPetEnabled,
+            extraInfo?.scheduleToAnotherPet?.enabled ?? false,
+          ],
+          [
+            options.scheduleToAnotherPetMessage,
+            extraInfo?.scheduleToAnotherPet?.message ?? "",
+          ],
+        ];
+
+        extraInfoVariables.forEach(([id, value]) =>
+          setVar(id as string, value),
+        );
       } catch (error) {
         console.error(error);
       }

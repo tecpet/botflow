@@ -30,8 +30,8 @@ export const getBreeds = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    breedsIds: option.string.layout({
-      label: "Raças Ids",
+    breedValues: option.string.layout({
+      label: "Valores de raça",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -45,14 +45,26 @@ export const getBreeds = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    petSRD: option.string.layout({
+      label: "SRD - Sem raça definida",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
-  getSetVariableIds: ({ breeds, breedsIds, breedsNames, petBreed }) => {
+  getSetVariableIds: ({
+    breeds,
+    breedValues,
+    breedsNames,
+    petBreed,
+    petSRD,
+  }) => {
     const variables = [];
 
     if (breeds) variables.push(breeds);
-    if (breedsIds) variables.push(breedsIds);
+    if (breedValues) variables.push(breedValues);
     if (breedsNames) variables.push(breedsNames);
     if (petBreed) variables.push(petBreed);
+    if (petSRD) variables.push(petSRD);
 
     return variables;
   },
@@ -66,22 +78,33 @@ export const getBreeds = createAction({
         const specieId = options?.specie ?? "";
         const shopId = Number(options.shopId);
         const breedName = options.name ?? "";
-        const breeds: PaBreedResponse[] = (await tecpetSdk.breed.list(
+        const breeds: PaBreedResponse[] = await tecpetSdk.breed.list(
           specieId,
           "",
           shopId,
-        )) as PaBreedResponse[];
+        );
+
+        const petSRD: PaBreedResponse = breeds.find((breed) => {
+          if (breed.name.includes("SRD")) return breed;
+        }) as PaBreedResponse;
 
         if (breeds && breeds.length > 0) {
-          const similarBreeds = getSimilarBreeds(breedName, breeds);
+          const similarBreeds: {
+            [k: string]: string | boolean;
+            name: string;
+          }[] = getSimilarBreeds(breedName, breeds);
+
+          similarBreeds.push({ id: false, name: "OUTRO" });
+
+          variables.set([{ id: options.petSRD as string, value: petSRD.id }]);
 
           if (options.breeds) {
             variables.set([{ id: options.breeds, value: similarBreeds }]);
           }
 
-          if (options.breedsIds) {
+          if (options.breedValues) {
             variables.set([
-              { id: options.breedsIds, value: similarBreeds.map((b) => b.id) },
+              { id: options.breedValues, value: similarBreeds.map((b) => b) },
             ]);
           }
 
@@ -96,7 +119,7 @@ export const getBreeds = createAction({
 
           if (similarBreeds.length === 1) {
             variables.set([
-              { id: options.petBreed as string, value: similarBreeds[0].id },
+              { id: options.petBreed as string, value: similarBreeds[0] },
             ]);
           }
         }

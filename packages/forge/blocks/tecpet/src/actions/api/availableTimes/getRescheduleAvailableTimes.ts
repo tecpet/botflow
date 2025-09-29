@@ -1,60 +1,30 @@
 import type {
   PaGetAvailableTimesResponse,
   PaGetAvailableTimesTimesBody,
+  PaGetBookingResponse,
   ShopSegment,
 } from "@tec.pet/tecpet-sdk";
 import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
-import { formatBRDate, formatISODate, parseIds } from "../../../helpers/utils";
-import type { ServiceOptionType } from "../../internal/buildServiceOptions";
+import { formatBRDate, formatISODate } from "../../../helpers/utils";
+import type { AvailableTimeType } from "./getAvailableTimes";
 
-export type AvailableTimeType = PaGetAvailableTimesResponse & {
-  dateISO: string; // 2025-06-11
-  dateBR: string; // 11/06/2025
-  startStop: string; // 08:00 - 10:00
-};
-
-export const getAvailableTimes = createAction({
+export const getRescheduleAvailableTimes = createAction({
   auth,
   baseOptions,
-  name: "Buscar opções de horário",
+  name: "Buscar opções de horário para reagendamento",
   options: option.object({
     shopId: option.number.layout({
       label: "Id da loja",
       isRequired: true,
       helperText: "Id da loja",
     }),
-    combosIds: option.string.layout({
-      label: "Id dos combos disponiveis",
+    selectedBooking: option.string.layout({
+      label: "Agendamento selecionado",
       isRequired: true,
-      helperText: "Id dos combos disponiveis",
-    }),
-    servicesIds: option.string.layout({
-      label: "Id dos serviços disponiveis",
-      isRequired: true,
-      helperText: "Id dos serviços disponiveis",
-    }),
-    petId: option.number.layout({
-      label: "Id do Pet",
-      isRequired: true,
-      helperText: "Id do pet",
-    }),
-    segmentType: option.string.layout({
-      label: "Segmento",
-      isRequired: true,
-      helperText: "Segmento",
-    }),
-    selectedServices: option.string.layout({
-      label: "Serviços selecionados",
-      isRequired: true,
-      helperText: "Serviços selecionados",
-    }),
-    selectedAdditionals: option.string.layout({
-      label: "Serviços adicionais selecionados",
-      isRequired: true,
-      helperText: "Serviços adicionais selecionados",
+      helperText: "Agendamento",
     }),
     availableTimes: option.string.layout({
       label: "Array de horarios disponiveis",
@@ -90,15 +60,22 @@ export const getAvailableTimes = createAction({
   run: {
     server: async ({ credentials, options, variables, logs }) => {
       try {
+        const rawBooking = options.selectedBooking;
+
+        const booking: PaGetBookingResponse = JSON.parse(rawBooking as string);
+
+        const services: number[] = booking.services.map(
+          (service) => service.id,
+        );
+
+        const combos: number[] = booking.combos.map((combo) => combo.id);
+
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
 
         const rawAdditionalDays = options.getAdditionalDays;
-        const parsedSelectedService: ServiceOptionType = JSON.parse(
-          options.selectedServices as string,
-        );
 
         let additionalDays = rawAdditionalDays ? Number(rawAdditionalDays) : 0;
 
@@ -107,20 +84,6 @@ export const getAvailableTimes = createAction({
         if (showOtherDates) {
           additionalDays += 2;
         }
-
-        const serviceIds = parseIds(options.servicesIds);
-        const comboIds = parseIds(options.combosIds);
-
-        const selectedId = Number(parsedSelectedService.id);
-
-        const services = serviceIds.includes(selectedId) ? [selectedId] : [];
-        const combos = comboIds.includes(selectedId) ? [selectedId] : [];
-
-        const additionalsRaw = options.selectedAdditionals ?? "[]";
-        (typeof additionalsRaw === "string"
-          ? JSON.parse(additionalsRaw)
-          : additionalsRaw
-        ).forEach((id: string | number) => services.push(Number(id)));
 
         const MAX_ATTEMPTS = 10;
         let all: AvailableTimeType[] = [];
@@ -142,8 +105,8 @@ export const getAvailableTimes = createAction({
               date: dateISO,
               combos,
               services,
-              petId: Number(options.petId),
-              segment: options.segmentType as ShopSegment,
+              petId: Number(booking.petId),
+              segment: booking.segmentType as ShopSegment,
             };
 
             const times = await tecpetSdk.availableTimes.list(

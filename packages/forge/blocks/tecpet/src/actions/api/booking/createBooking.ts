@@ -1,9 +1,15 @@
-import type { PaCreateBookingInput, ShopSegment } from "@tec.pet/tecpet-sdk";
-import { TecpetSDK } from "@tec.pet/tecpet-sdk";
+import {
+  type PaCreateBookingInput,
+  type PaEmployeeIndication,
+  type ShopSegment,
+  TecpetSDK,
+} from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { parseIds } from "../../../helpers/utils";
+import type { ServiceOptionType } from "../../internal/buildServiceOptions";
+import type { AvailableTimeType } from "../availableTimes/getAvailableTimes";
 
 export const createBooking = createAction({
   auth,
@@ -19,6 +25,10 @@ export const createBooking = createAction({
       label: "Ids dos serviços disponiveis",
       isRequired: true,
       helperText: "Ids dos serviços disponiveis",
+    }),
+    employeeIndications: option.string.layout({
+      label: "Funcionários indicados para o serviço",
+      isRequired: true,
     }),
     combosIds: option.string.layout({
       label: "Ids dos combos disponiveis",
@@ -36,9 +46,9 @@ export const createBooking = createAction({
       helperText: "Segmento",
     }),
     selectedServices: option.string.layout({
-      label: "Serviços selecionados",
+      label: "Serviços selecionado",
       isRequired: true,
-      helperText: "Serviços selecionados",
+      helperText: "Serviços selecionado",
     }),
     selectedAdditionals: option.string.layout({
       label: "Adicionais selecionados",
@@ -72,16 +82,40 @@ export const createBooking = createAction({
   run: {
     server: async ({ credentials, options, variables, logs }) => {
       try {
+        const rawEmployeeIndications = options.employeeIndications;
+
+        const rawSelectedTimeOption = options.selectedTimeOption;
+
+        const selectedTimeOption: AvailableTimeType = JSON.parse(
+          rawSelectedTimeOption as string,
+        );
+
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
 
+        const parsedSelectedService: ServiceOptionType = JSON.parse(
+          options.selectedServices as string,
+        );
+
+        const parsedEmployeeIndications: string[] = rawEmployeeIndications
+          ? JSON.parse(options.employeeIndications as string)
+          : [];
+
+        const employeesIndications: PaEmployeeIndication[] =
+          parsedEmployeeIndications.map((item) =>
+            typeof item === "string" ? JSON.parse(item) : item,
+          );
+
         const serviceIds = parseIds(options.servicesIds);
+
         const comboIds = parseIds(options.combosIds);
-        const selectedId = Number(options.selectedServices);
+
+        const selectedId = Number(parsedSelectedService.id);
 
         const services = serviceIds.includes(selectedId) ? [selectedId] : [];
+
         const combos = comboIds.includes(selectedId) ? [selectedId] : [];
 
         const additionalsRaw = options.selectedAdditionals ?? "[]";
@@ -91,16 +125,19 @@ export const createBooking = createAction({
         ).forEach((id: string | number) => services.push(Number(id)));
 
         const body: PaCreateBookingInput = {
-          timeId: options.selectedTimeOption ?? "",
+          timeId: selectedTimeOption.id ?? "",
           petId: Number(options.petId),
           servicesId: services,
+          employeeIndication: employeesIndications,
           combosId: combos,
           segment: options.segmentType as ShopSegment,
         };
+
         const createdBooking = await tecpetSdk.booking.create(
           body,
           Number(options.shopId),
         );
+
         if (createdBooking) {
           variables.set([
             { id: options.booking as string, value: createdBooking },

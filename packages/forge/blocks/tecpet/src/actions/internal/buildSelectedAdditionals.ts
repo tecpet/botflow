@@ -94,26 +94,16 @@ export const buildSelectedAdditionals = createAction({
           options.selectedAdditionalsArray ?? "[]",
         );
 
-        let withoutDuplicates: number[] = [];
-
-        if (selectedAdditionals && selectedAdditionals.length > 0) {
-          withoutDuplicates = [...selectedAdditionals];
-        }
-
-        withoutDuplicates.push(selectedAdditionalId);
-
-        const selectedItem = additionals.find(
-          (item) => item.id === selectedAdditionalId,
-        );
+        selectedAdditionals.push(selectedAdditionalId);
 
         const updatedAdditionalArray = additionals.filter(
-          (item) => item.id !== selectedItem.id,
+          (item) => item.id !== selectedAdditionalId,
         );
 
         variables.set([
           {
             id: options.updateSelectedAdditionalsArray as string,
-            value: withoutDuplicates,
+            value: selectedAdditionals,
           },
         ]);
         variables.set([

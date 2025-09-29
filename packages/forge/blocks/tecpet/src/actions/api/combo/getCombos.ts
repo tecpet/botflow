@@ -55,6 +55,7 @@ export const getCombos = createAction({
           options.segmentType as ShopSegment,
           Number(options?.shopId),
         )) as PaComboPricingResponse[];
+
         variables.set([{ id: options.combos as string, value: combos }]);
         variables.set([
           { id: options.combosIds as string, value: combos.map((c) => c.id) },

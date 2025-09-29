@@ -54,10 +54,7 @@ export const extractToken = createAction({
             variables.set([{ id: options.shopName, value: name }]);
           }
         }
-      } catch (e) {
-        console.log("Could not extract token");
-        return;
-      }
+      } catch (e) {}
     },
   },
 });

@@ -87,6 +87,7 @@ export const createPet = createAction({
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
         );
+
         const petInput: PaCreatePetInput = {
           clientId: Number(options?.clientId),
           name: options?.name as string,

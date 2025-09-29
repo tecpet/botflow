@@ -1,5 +1,5 @@
 {
-  "name": "@typebot.io/tecpet-block",
+  "name": "@typebot.io/tecpet-gateway-block",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -10,8 +10,7 @@
   "dependencies": {
     "ky": "1.2.4",
     "@typebot.io/forge": "workspace:*",
-    "@typebot.io/lib": "workspace:*",
-    "@tec.pet/tecpet-sdk": "^0.0.70"
+    "@typebot.io/lib": "workspace:*"
   },
   "devDependencies": {
     "@typebot.io/tsconfig": "workspace:*"

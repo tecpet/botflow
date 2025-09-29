@@ -1,8 +1,8 @@
-import {createAction, option} from "@typebot.io/forge";
-import {baseOptions} from "../constants";
-import {auth} from "../auth";
-import ky, {HTTPError} from "ky";
-import {parseUnknownError} from "@typebot.io/lib/parseUnknownError";
+import { createAction, option } from "@typebot.io/forge";
+import { parseUnknownError } from "@typebot.io/lib/parseUnknownError";
+import ky, { HTTPError } from "ky";
+import { auth } from "../auth";
+import { baseOptions } from "../constants";
 
 export const startChat = createAction({
   auth,
@@ -26,22 +26,22 @@ export const startChat = createAction({
     chatbotSettings: option.string.layout({
       accordion: "Configurações",
       label: "Chatbot",
-      moreInfoTooltip: "Configurações do chatbot..."
+      moreInfoTooltip: "Configurações do chatbot...",
     }),
     shop: option.string.layout({
       accordion: "Configurações",
       label: "Loja",
-      moreInfoTooltip: "Nome, segmentos..."
+      moreInfoTooltip: "Nome, segmentos...",
     }),
     saveResponseInVariableId: option.string.layout({
       label: "Salvar resposta em",
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({saveResponseInVariableId}) =>
+  getSetVariableIds: ({ saveResponseInVariableId }) =>
     saveResponseInVariableId ? [saveResponseInVariableId] : [],
   run: {
-    server: async ({credentials, options, variables, logs}) => {
+    server: async ({ credentials, options, variables, logs }) => {
       try {
         const response = await ky
           .post(`${credentials.baseUrl}/start`, {
@@ -50,22 +50,22 @@ export const startChat = createAction({
             },
             json: {
               sessionId: options.sessionId,
-              message: options.text || 'oi',
+              message: options.text || "oi",
               shop: options.shop,
               client: options.client,
-              chatbotSettings: options.chatbotSettings
+              chatbotSettings: options.chatbotSettings,
             },
             timeout: 30000,
           })
           .json<any>();
 
-        console.log(response)
-
         if (options.saveResponseInVariableId) {
-          variables.set([{id: options.saveResponseInVariableId, value: response.response}]);
+          variables.set([
+            { id: options.saveResponseInVariableId, value: response.response },
+          ]);
         }
       } catch (error) {
-        console.error(error)
+        console.error(error);
 
         if (error instanceof HTTPError)
           return logs.add(

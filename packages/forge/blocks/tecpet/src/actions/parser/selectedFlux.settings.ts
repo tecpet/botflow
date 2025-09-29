@@ -1,3 +1,4 @@
+import type { ChatbotActionJson } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
 
@@ -5,18 +6,13 @@ export const parseSelectedFluxSettings = createAction({
   baseOptions,
   name: "Construir configurações gerais do fluxo",
   options: option.object({
-    selectedMenuConfigurations: option.string.layout({
-      label: "Configurações do menu selecionado",
+    selectedActionMenu: option.string.layout({
+      label: "Menu de ação selecionado",
       isRequired: true,
       helperText: "Configurações",
     }),
     fluxId: option.string.layout({
       label: "Fluxo - Id",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
-    fluxTypebotId: option.string.layout({
-      label: "Fluxo - Typebot Id",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -49,20 +45,22 @@ export const parseSelectedFluxSettings = createAction({
   run: {
     server: async ({ options, variables, logs }) => {
       try {
-        const selectedMenuConfig =
-          typeof options.selectedMenuConfigurations === "string"
-            ? JSON.parse(options.selectedMenuConfigurations)
-            : (options.selectedMenuConfigurations as any);
+        const rawSelectedActionMenuConfig = JSON.parse(
+          options.selectedActionMenu as string,
+        );
+
+        const selectedMenuConfig: ChatbotActionJson =
+          typeof rawSelectedActionMenuConfig === "string"
+            ? JSON.parse(rawSelectedActionMenuConfig)
+            : rawSelectedActionMenuConfig;
 
         variables.set([
-          { id: options.fluxId as string, value: selectedMenuConfig.id ?? "" },
-        ]);
-        variables.set([
           {
-            id: options.fluxTypebotId as string,
+            id: options.fluxId as string,
             value: selectedMenuConfig.chatbotFlux.id ?? "",
           },
         ]);
+
         variables.set([
           {
             id: options.fluxName as string,
@@ -72,7 +70,7 @@ export const parseSelectedFluxSettings = createAction({
         variables.set([
           {
             id: options.fluxType as string,
-            value: selectedMenuConfig.type ?? "",
+            value: selectedMenuConfig.chatbotFlux.fluxType ?? "",
           },
         ]);
         variables.set([
