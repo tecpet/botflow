@@ -2,10 +2,10 @@ import { chatsLimits, seatsLimits } from "@typebot.io/billing/constants";
 import { formatPrice } from "@typebot.io/billing/helpers/formatPrice";
 import { parseNumberWithCommas } from "@typebot.io/lib/utils";
 import { Button } from "@typebot.io/ui/components/Button";
-import { InfinityIcon } from "@typebot.io/ui/icons/InfinityIcon";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Infinity01Icon } from "@typebot.io/ui/icons/Infinity01Icon";
 import { TickIcon } from "@typebot.io/ui/icons/TickIcon";
 import { cn } from "@typebot.io/ui/lib/cn";
-import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
 import {
   Table,
   TableBody,
@@ -250,7 +250,7 @@ const CheckedTableCell = () => (
 
 const InfinityTableCell = () => (
   <TableCell>
-    <InfinityIcon className="size-4" />
+    <Infinity01Icon className="size-4" />
   </TableCell>
 );
 

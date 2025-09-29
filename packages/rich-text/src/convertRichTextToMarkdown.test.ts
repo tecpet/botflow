@@ -9,11 +9,19 @@ describe("convertRichTextToMarkdown", () => {
     const richText: TElement[] = [
       {
         type: "p",
-        children: [{ text: "Hello, world!" }],
+        children: [
+          {
+            text: "1) ",
+          },
+          {
+            bold: true,
+            text: "Hello world <3",
+          },
+        ],
       },
     ];
     const markdown = convertRichTextToMarkdown(richText);
-    expect(markdown).toBe("Hello, world!");
+    expect(markdown).toBe("1) **Hello world <3**");
   });
 
   it("should convert new lines correctly", () => {
@@ -98,6 +106,10 @@ describe("convertRichTextToMarkdown", () => {
         type: "p",
         children: [{ text: "italic", italic: true }],
       },
+      {
+        type: "p",
+        children: [{ text: "underlined", underline: true }],
+      },
     ];
     const parsedRichText = parseVariablesInRichText(richText, {
       variables: [],
@@ -107,7 +119,7 @@ describe("convertRichTextToMarkdown", () => {
     const markdown = convertRichTextToMarkdown(parsedRichText.parsedElements, {
       flavour: "whatsapp",
     });
-    expect(markdown).toBe("*bold*\n\n_italic_");
+    expect(markdown).toBe("*bold*\n\n_italic_\nunderlined");
   });
 
   it("should convert variable link correctly", () => {
@@ -140,13 +152,19 @@ describe("convertRichTextToMarkdown", () => {
       },
     ];
     const parsedRichText = parseVariablesInRichText(richText, {
-      variables: [{ id: "1", name: "URL", value: "https://example.com" }],
+      variables: [
+        {
+          id: "1",
+          name: "URL",
+          value: "https://example.com?test=test&val=val",
+        },
+      ],
       sessionStore: new SessionStore(),
       takeLatestIfList: false,
     });
     const markdown = convertRichTextToMarkdown(parsedRichText.parsedElements);
     expect(markdown).toBe(
-      "Welcome to **AA** (Awesome Agency)\n\nhttps://example.com\n\n[Yo](https://example.com)",
+      "Welcome to **AA** (Awesome Agency)\n\nhttps://example.com?test=test&val=val\n\n[Yo](https://example.com?test=test&val=val)",
     );
   });
 });
