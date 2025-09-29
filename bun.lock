@@ -917,7 +917,7 @@
       "name": "@typebot.io/tecpet-block",
       "version": "1.0.0",
       "dependencies": {
-        "@tec.pet/tecpet-sdk": "^0.0.65",
+        "@tec.pet/tecpet-sdk": "^0.0.70",
         "@typebot.io/forge": "workspace:*",
         "@typebot.io/lib": "workspace:*",
         "ky": "1.2.4",
@@ -928,6 +928,18 @@
     },
     "packages/forge/blocks/tecpet-ai": {
       "name": "@typebot.io/tecpet-ai-block",
+      "version": "1.0.0",
+      "dependencies": {
+        "@typebot.io/forge": "workspace:*",
+        "@typebot.io/lib": "workspace:*",
+        "ky": "1.2.4",
+      },
+      "devDependencies": {
+        "@typebot.io/tsconfig": "workspace:*",
+      },
+    },
+    "packages/forge/blocks/tecpet-gateway": {
+      "name": "@typebot.io/tecpet-gateway-block",
       "version": "1.0.0",
       "dependencies": {
         "@typebot.io/forge": "workspace:*",
@@ -1006,6 +1018,7 @@
         "@typebot.io/segment-block": "workspace:*",
         "@typebot.io/tecpet-ai-block": "workspace:*",
         "@typebot.io/tecpet-block": "workspace:*",
+        "@typebot.io/tecpet-gateway-block": "workspace:*",
         "@typebot.io/together-ai-block": "workspace:*",
         "@typebot.io/zendesk-block": "workspace:*",
         "@typebot.io/zod": "workspace:*",
@@ -2879,7 +2892,7 @@
 
     "@tanstack/virtual-file-routes": ["@tanstack/virtual-file-routes@1.131.2", "", {}, "sha512-VEEOxc4mvyu67O+Bl0APtYjwcNRcL9it9B4HKbNgcBTIOEalhk+ufBl4kiqc8WP1sx1+NAaiS+3CcJBhrqaSRg=="],
 
-    "@tec.pet/tecpet-sdk": ["@tec.pet/tecpet-sdk@0.0.65", "", { "dependencies": { "axios": "^1.8.4", "chalk": "^4.1.2", "cpf-cnpj-validator": "^1.0.3", "date-fns": "^4.1.0" } }, "sha512-uRnfTlSUG391hDVZnR0Y3lc1BoG6q2F3w4+JbwTHSy4Ps5WzYPHBSRSyyH58MO9noooGPTi8FWBPF2L2GZyERg=="],
+    "@tec.pet/tecpet-sdk": ["@tec.pet/tecpet-sdk@0.0.70", "", { "dependencies": { "axios": "^1.8.4", "chalk": "^4.1.2", "cpf-cnpj-validator": "^1.0.3", "date-fns": "^4.1.0" } }, "sha512-JL5IvWXfijOIWtGUoGJDO5k7HO79DRy8grfW+8vsMtv0CNoK0Te3M00YhICCZAw1NWCoasqgJL+P7TRh37gzmg=="],
 
     "@tolgee/cli": ["@tolgee/cli@2.14.0", "", { "dependencies": { "ajv": "^8.17.1", "ansi-colors": "^4.1.3", "base32-decode": "^1.0.0", "commander": "^12.1.0", "cosmiconfig": "^9.0.0", "json5": "^2.2.3", "jsonschema": "^1.5.0", "openapi-fetch": "0.13.1", "tinyglobby": "^0.2.12", "unescape-js": "^1.1.4", "vscode-oniguruma": "^2.0.1", "vscode-textmate": "^9.1.0", "yauzl": "^3.2.0" }, "peerDependencies": { "jiti": ">= 2" }, "optionalPeers": ["jiti"], "bin": { "tolgee": "dist/cli.js" } }, "sha512-M5/VfZBaZ19lvZULdQswFVWwrn4bfaIsmyNzuM/WDpo5jFsAP7K/lyrg8H7ps4xLAWMmwy6gdy0ET0A5IYDFQg=="],
 
@@ -3008,6 +3021,8 @@
     "@typebot.io/tecpet-ai-block": ["@typebot.io/tecpet-ai-block@workspace:packages/forge/blocks/tecpet-ai"],
 
     "@typebot.io/tecpet-block": ["@typebot.io/tecpet-block@workspace:packages/forge/blocks/tecpet"],
+
+    "@typebot.io/tecpet-gateway-block": ["@typebot.io/tecpet-gateway-block@workspace:packages/forge/blocks/tecpet-gateway"],
 
     "@typebot.io/telemetry": ["@typebot.io/telemetry@workspace:packages/telemetry"],
 
