@@ -1,4 +1,3 @@
-import { env } from "@typebot.io/env";
 import { forgedBlocks } from "@typebot.io/forge-repository/definitions";
 import { parseUnknownError } from "@typebot.io/lib/parseUnknownError";
 import prisma from "@typebot.io/prisma";
@@ -53,7 +52,6 @@ export const decryptAndRefreshCredentialsData = async (
             refresh_token: refreshToken,
             client_id: client.id,
             client_secret: client.secret,
-            redirect_uri: `${env.NEXTAUTH_URL}/oauth/redirect`,
           },
         })
         .json();
