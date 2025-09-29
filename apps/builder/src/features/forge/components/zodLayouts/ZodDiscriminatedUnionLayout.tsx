@@ -1,8 +1,8 @@
-import { DropdownList } from "@/components/DropdownList";
 import type { ForgedBlockDefinition } from "@typebot.io/forge-repository/definitions";
 import type { ForgedBlock } from "@typebot.io/forge-repository/schemas";
 import { isDefined } from "@typebot.io/lib/utils";
 import type { z } from "@typebot.io/zod";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { ZodObjectLayout } from "./ZodObjectLayout";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -28,9 +28,9 @@ export const ZodDiscriminatedUnionLayout = ({
     : undefined;
   return (
     <>
-      <DropdownList
-        currentItem={data?.[discriminant]}
-        onItemSelect={(item) => onDataChange({ ...data, [discriminant]: item })}
+      <BasicSelect
+        value={data?.[discriminant]}
+        onChange={(item) => onDataChange({ ...data, [discriminant]: item })}
         items={
           [...schema._def.optionsMap.keys()].filter((key) =>
             isDefined(key),

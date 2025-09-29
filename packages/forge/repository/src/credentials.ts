@@ -11,6 +11,8 @@ import { difyAiBlock } from "@typebot.io/dify-ai-block";
 import { difyAiCredentialsSchema } from "@typebot.io/dify-ai-block/schemas";
 import { elevenlabsBlock } from "@typebot.io/elevenlabs-block";
 import { elevenlabsCredentialsSchema } from "@typebot.io/elevenlabs-block/schemas";
+import { gmailBlock } from "@typebot.io/gmail-block";
+import { gmailCredentialsSchema } from "@typebot.io/gmail-block/schemas";
 import { groqBlock } from "@typebot.io/groq-block";
 import { groqCredentialsSchema } from "@typebot.io/groq-block/schemas";
 import { mistralBlock } from "@typebot.io/mistral-block";
@@ -27,14 +29,16 @@ import { posthogBlock } from "@typebot.io/posthog-block";
 import { posthogCredentialsSchema } from "@typebot.io/posthog-block/schemas";
 import { segmentBlock } from "@typebot.io/segment-block";
 import { segmentCredentialsSchema } from "@typebot.io/segment-block/schemas";
+import { tecpetAiBlock } from "@typebot.io/tecpet-ai-block";
+import { tecpetAiCredentialsSchema } from "@typebot.io/tecpet-ai-block/schemas";
 import { tecpetBlock } from "@typebot.io/tecpet-block";
 import { tecpetCredentialsSchema } from "@typebot.io/tecpet-block/schemas";
+import { tecpetGatewayBlock } from "@typebot.io/tecpet-gateway-block";
+import { tecpetGatewayCredentialsSchema } from "@typebot.io/tecpet-gateway-block/schemas";
 import { togetherAiBlock } from "@typebot.io/together-ai-block";
 import { togetherAiCredentialsSchema } from "@typebot.io/together-ai-block/schemas";
 import { zendeskBlock } from "@typebot.io/zendesk-block";
 import { zendeskCredentialsSchema } from "@typebot.io/zendesk-block/schemas";
-import { tecpetAiBlock } from "@typebot.io/tecpet-ai-block";
-import { tecpetAiCredentialsSchema } from "@typebot.io/tecpet-ai-block/schemas";
 
 export const forgedCredentialsSchemas = {
   [openAIBlock.id]: openAICredentialsSchema,
@@ -54,5 +58,7 @@ export const forgedCredentialsSchemas = {
   [deepSeekBlock.id]: deepSeekCredentialsSchema,
   [tecpetBlock.id]: tecpetCredentialsSchema,
   [tecpetAiBlock.id]: tecpetAiCredentialsSchema,
+  [tecpetGatewayBlock.id]: tecpetGatewayCredentialsSchema,
   [blinkBlock.id]: blinkCredentialsSchema,
+  [gmailBlock.id]: gmailCredentialsSchema,
 };

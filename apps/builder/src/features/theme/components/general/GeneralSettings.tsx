@@ -1,10 +1,3 @@
-import { RadioButtons } from "@/components/inputs/RadioButtons";
-import { ChangePlanModal } from "@/features/billing/components/ChangePlanModal";
-import { LockTag } from "@/features/billing/components/LockTag";
-import { isFreePlan } from "@/features/billing/helpers/isFreePlan";
-import { useTypebot } from "@/features/editor/providers/TypebotProvider";
-import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
-import { trpc } from "@/lib/queryClient";
 import {
   Accordion,
   AccordionButton,
@@ -28,7 +21,13 @@ import type {
   ProgressBar,
   Theme,
 } from "@typebot.io/theme/schemas";
-import React from "react";
+import { RadioButtons } from "@/components/inputs/RadioButtons";
+import { ChangePlanDialog } from "@/features/billing/components/ChangePlanDialog";
+import { LockTag } from "@/features/billing/components/LockTag";
+import { isFreePlan } from "@/features/billing/helpers/isFreePlan";
+import { useTypebot } from "@/features/editor/providers/TypebotProvider";
+import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
+import { trpc } from "@/lib/queryClient";
 import { BackgroundSelector } from "./BackgroundSelector";
 import { FontForm } from "./FontForm";
 import { ProgressBarForm } from "./ProgressBarForm";
@@ -103,7 +102,7 @@ export const GeneralSettings = ({
 
   return (
     <Stack spacing={6}>
-      <ChangePlanModal
+      <ChangePlanDialog
         isOpen={isOpen}
         onClose={onClose}
         type={t("billing.limitMessage.brand")}

@@ -7,10 +7,10 @@ import type { AbTestBlock } from "@typebot.io/blocks-logic/abTest/schema";
 import type { LogicBlockType } from "@typebot.io/blocks-logic/constants";
 import type { TDraggableEvent } from "@typebot.io/events/schemas";
 import {
+  createContext,
   type Dispatch,
   type ReactNode,
   type SetStateAction,
-  createContext,
   useCallback,
   useContext,
   useEffect,
@@ -51,7 +51,7 @@ const graphDndContext = createContext<{
   setDraggedEventType: Dispatch<
     SetStateAction<TDraggableEvent["type"] | undefined>
   >;
-  //@ts-ignore
+  //@ts-expect-error
 }>({});
 
 export type NodePosition = { absolute: Coordinates; relative: Coordinates };
@@ -99,7 +99,7 @@ export const useDragDistance = ({
   isDisabled = false,
   deps = [],
 }: {
-  ref: React.MutableRefObject<HTMLDivElement | null>;
+  ref: React.MutableRefObject<HTMLElement | null>;
   onDrag: (position: { absolute: Coordinates; relative: Coordinates }) => void;
   distanceTolerance?: number;
   isDisabled?: boolean;

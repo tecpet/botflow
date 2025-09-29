@@ -10,6 +10,12 @@ import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { formatBRDate, formatISODate, parseIds } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
+export type AvailableTimeType = PaGetAvailableTimesResponse & {
+  dateISO: string; // 2025-06-11
+  dateBR: string; // 11/06/2025
+  startStop: string; // 08:00 - 10:00
+};
+
 export const getAvailableTimes = createAction({
   auth,
   baseOptions,
@@ -116,14 +122,8 @@ export const getAvailableTimes = createAction({
           : additionalsRaw
         ).forEach((id: string | number) => services.push(Number(id)));
 
-        type TimeItem = PaGetAvailableTimesResponse & {
-          dateISO: string; // 2025-06-11
-          dateBR: string; // 11/06/2025
-          startStop: string; // 08:00 - 10:00
-        };
-
         const MAX_ATTEMPTS = 10;
-        let all: TimeItem[] = [];
+        let all: AvailableTimeType[] = [];
 
         while (additionalDays < MAX_ATTEMPTS) {
           const today = new Date();
@@ -150,7 +150,7 @@ export const getAvailableTimes = createAction({
               body,
               Number(options.shopId),
             );
-            times?.forEach((t: any) =>
+            times?.forEach((t: PaGetAvailableTimesResponse) =>
               all.push({
                 ...t,
                 dateISO,

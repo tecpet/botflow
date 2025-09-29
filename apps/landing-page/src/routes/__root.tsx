@@ -1,19 +1,19 @@
-import css from "@/assets/globals.css?url";
-import { CookieConsentBot } from "@/components/CookieConsentBot";
-import { Header } from "@/components/Header";
-import { NotFound } from "@/components/NotFound";
-import { Footer } from "@/components/footer/Footer";
-import { useCookieConsentStatus } from "@/hooks/useIsCookieConsentNeeded";
-import { useTrackPageViewQuery } from "@/hooks/useTrackPageViewQuery";
 import {
+  createRootRoute,
   HeadContent,
   Outlet,
   Scripts,
-  createRootRoute,
   useNavigate,
 } from "@tanstack/react-router";
-import { serializeTypebotCookie } from "@typebot.io/telemetry/cookies/helpers";
 import { z } from "@typebot.io/zod";
+import css from "@/assets/globals.css?url";
+import { CookieConsentBot } from "@/components/CookieConsentBot";
+import { Footer } from "@/components/footer/Footer";
+import { Header } from "@/components/Header";
+import { NotFound } from "@/components/NotFound";
+import { setCookie } from "@/helpers/setCookie";
+import { useCookieConsentStatus } from "@/hooks/useIsCookieConsentNeeded";
+import { useTrackPageViewQuery } from "@/hooks/useTrackPageViewQuery";
 
 const HERO_ANIMATION_DELAY = 1800;
 
@@ -78,7 +78,7 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body>
-        <div className="flex flex-col items-stretch">
+        <div className="isolate flex flex-col items-stretch">
           <div className="fixed z-10 top-4 md:bottom-12 md:top-auto w-full">
             <Header
               onOpen={openHeader}
@@ -102,9 +102,3 @@ function RootComponent() {
     </html>
   );
 }
-
-const setCookie = (consent: "declined" | "accepted") => {
-  document.cookie = serializeTypebotCookie({
-    consent,
-  });
-};

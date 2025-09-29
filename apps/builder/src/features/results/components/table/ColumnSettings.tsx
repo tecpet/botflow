@@ -1,27 +1,28 @@
-import { EyeIcon, EyeOffIcon, GripIcon } from "@/components/icons";
-import { Flex, HStack, IconButton, Portal, Stack } from "@chakra-ui/react";
-import { Text } from "@chakra-ui/react";
+import { Flex, HStack, Stack, Text } from "@chakra-ui/react";
 import {
+  closestCenter,
   DndContext,
   type DragEndEvent,
   DragOverlay,
   type DragStartEvent,
   KeyboardSensor,
   PointerSensor,
-  closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
 import {
-  SortableContext,
   arrayMove,
+  SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { ResultHeaderCell } from "@typebot.io/results/schemas/results";
+import { Button } from "@typebot.io/ui/components/Button";
 import { useState } from "react";
+import { EyeIcon, EyeOffIcon, GripIcon } from "@/components/icons";
+import { Portal } from "@/components/Portal";
 import { HeaderIcon } from "../HeaderIcon";
 
 type Props = {
@@ -146,23 +147,27 @@ const SortableColumns = ({
       {...attributes}
     >
       <HStack overflow="hidden">
-        <IconButton
-          size="sm"
-          cursor="grab"
-          icon={<GripIcon transform="rotate(90deg)" />}
+        <Button
+          size="icon"
+          className="cursor-grab size-7"
           aria-label={"Drag"}
           variant="ghost"
           {...listeners}
-        />
+        >
+          <GripIcon transform="rotate(90deg)" />
+        </Button>
         <HeaderIcon header={header} />
         <Text noOfLines={1}>{header.label}</Text>
       </HStack>
-      <IconButton
-        icon={isHidden ? <EyeOffIcon /> : <EyeIcon />}
-        size="sm"
+      <Button
+        size="icon"
         aria-label={"Hide column"}
         onClick={onEyeClick(header.id)}
-      />
+        className="size-7"
+        variant="secondary"
+      >
+        {isHidden ? <EyeOffIcon /> : <EyeIcon />}
+      </Button>
     </Flex>
   );
 };

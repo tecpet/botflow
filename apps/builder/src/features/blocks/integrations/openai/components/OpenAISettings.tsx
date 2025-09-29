@@ -1,7 +1,3 @@
-import { DropdownList } from "@/components/DropdownList";
-import { TextInput } from "@/components/inputs";
-import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
-import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import {
   Accordion,
   AccordionButton,
@@ -22,10 +18,13 @@ import type {
   CreateSpeechOpenAIOptions,
   OpenAIBlock,
 } from "@typebot.io/blocks-integrations/openai/schema";
-import React from "react";
-import { OpenAICredentialsModal } from "./OpenAICredentialsModal";
+import { TextInput } from "@/components/inputs";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
+import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { OpenAICreateSpeechSettings } from "./audio/OpenAICreateSpeechSettings";
 import { OpenAIChatCompletionSettings } from "./createChatCompletion/OpenAIChatCompletionSettings";
+import { OpenAICredentialsDialog } from "./OpenAICredentialsDialog";
 
 type OpenAITask = (typeof openAITasks)[number];
 
@@ -48,7 +47,7 @@ export const OpenAISettings = ({
     });
   };
 
-  const updateTask = (task: OpenAITask) => {
+  const updateTask = (task: OpenAITask | undefined) => {
     onOptionsChange({
       credentialsId: options?.credentialsId,
       task,
@@ -83,7 +82,7 @@ export const OpenAISettings = ({
             onCreateNewClick={onOpen}
             credentialsName="OpenAI account"
           />
-          <OpenAICredentialsModal
+          <OpenAICredentialsDialog
             isOpen={isOpen}
             onClose={onClose}
             onNewCredentials={updateCredentialsId}
@@ -117,10 +116,10 @@ export const OpenAISettings = ({
             </AccordionItem>
           </Accordion>
 
-          <DropdownList
-            currentItem={options.task}
+          <BasicSelect
+            value={options.task}
             items={openAITasks.slice(0, -1)}
-            onItemSelect={updateTask}
+            onChange={updateTask}
             placeholder="Select task"
           />
           {options.task && (

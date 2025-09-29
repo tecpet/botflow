@@ -1,15 +1,15 @@
-import { DropdownList } from "@/components/DropdownList";
-import type { TableListItemProps } from "@/components/TableList";
-import { TextInput } from "@/components/inputs";
 import { Stack } from "@chakra-ui/react";
 import type { Cell } from "@typebot.io/blocks-integrations/googleSheets/schema";
+import { TextInput } from "@/components/inputs";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
+import type { TableListItemProps } from "@/components/TableList";
 
 export const CellWithValueStack = ({
   item,
   onItemChange,
   columns,
 }: TableListItemProps<Cell> & { columns: string[] }) => {
-  const handleColumnSelect = (column: string) => {
+  const handleColumnSelect = (column: string | undefined) => {
     if (item.column === column) return;
     onItemChange({ ...item, column });
   };
@@ -19,9 +19,9 @@ export const CellWithValueStack = ({
   };
   return (
     <Stack p="4" rounded="md" flex="1" borderWidth="1px" w="full">
-      <DropdownList
-        currentItem={item.column}
-        onItemSelect={handleColumnSelect}
+      <BasicSelect
+        value={item.column}
+        onChange={handleColumnSelect}
         items={columns}
         placeholder="Select a column"
       />

@@ -1,8 +1,8 @@
-import { publicProcedure } from "@/helpers/server/trpc";
 import { saveClientLogs as saveClientLogsFn } from "@typebot.io/bot-engine/apiHandlers/saveClientLogs";
 import { safeStringify } from "@typebot.io/lib/safeStringify";
 import { logInSessionSchema } from "@typebot.io/logs/schemas";
 import { z } from "@typebot.io/zod";
+import { publicProcedure } from "@/helpers/server/trpc";
 
 export const saveClientLogsV1 = publicProcedure
   .meta({
@@ -23,12 +23,22 @@ export const saveClientLogsV1 = publicProcedure
     }),
   )
   .output(z.object({ message: z.string() }))
-  .mutation(({ input: { sessionId, clientLogs } }) => {
-    const parsedLogs = clientLogs.map((log) => ({
-      ...log,
-      details: log.details
-        ? (safeStringify(log.details) ?? undefined)
-        : undefined,
-    }));
-    return saveClientLogsFn({ sessionId, clientLogs: parsedLogs });
-  });
+  .mutation(
+    ({
+      input: { sessionId, clientLogs },
+      ctx: { origin, iframeReferrerOrigin },
+    }) => {
+      const parsedLogs = clientLogs.map((log) => ({
+        ...log,
+        details: log.details
+          ? (safeStringify(log.details) ?? undefined)
+          : undefined,
+      }));
+      return saveClientLogsFn({
+        sessionId,
+        clientLogs: parsedLogs,
+        origin,
+        iframeReferrerOrigin,
+      });
+    },
+  );

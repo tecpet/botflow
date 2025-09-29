@@ -1,6 +1,3 @@
-import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
-import { ButtonLink } from "@/components/link";
-import { registerUrl } from "@/constants";
 import {
   chatsLimits,
   prices,
@@ -9,6 +6,9 @@ import {
 import { formatPrice } from "@typebot.io/billing/helpers/formatPrice";
 import { Plan } from "@typebot.io/prisma/enum";
 import { Button } from "@typebot.io/ui/components/Button";
+import { CtaButtonLink } from "@/components/link";
+import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
+import { registerUrl } from "@/constants";
 import {
   PerkListItem,
   PlanNamePill,
@@ -30,13 +30,13 @@ export const ProPlanCard = ({ children }: { children?: React.ReactNode }) => (
       {children}
     </div>
     <PricingCardFooter>
-      <ButtonLink
-        variant="ctaSecondary"
+      <CtaButtonLink
+        variant="secondary"
         size="lg"
         href={`${registerUrl}?subscribePlan=${Plan.PRO}`}
       >
         Subscribe now
-      </ButtonLink>
+      </CtaButtonLink>
     </PricingCardFooter>
   </PricingCardRoot>
 );
@@ -64,7 +64,11 @@ export const ProPerksList = ({ onChatsTiersClick }: ProPerksListProps) => (
         </span>
         <span className="text-xs text-gray-11">
           Extra chats:{" "}
-          <Button size="xs" variant="outline" onClick={onChatsTiersClick}>
+          <Button
+            size="xs"
+            variant="outline-secondary"
+            onClick={onChatsTiersClick}
+          >
             See tiers
           </Button>
         </span>

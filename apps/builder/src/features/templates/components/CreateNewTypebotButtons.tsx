@@ -1,23 +1,23 @@
-import { DownloadIcon, TemplateIcon, ToolIcon } from "@/components/icons";
-import { useUser } from "@/features/user/hooks/useUser";
-import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
-import { trpc } from "@/lib/queryClient";
-import { toast } from "@/lib/toast";
 import {
-  Button,
   Heading,
   Stack,
-  VStack,
   useColorModeValue,
   useDisclosure,
+  VStack,
 } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import type { Typebot } from "@typebot.io/typebot/schemas/typebot";
+import { Button } from "@typebot.io/ui/components/Button";
+import { LayoutBottomIcon } from "@typebot.io/ui/icons/LayoutBottomIcon";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import { useState } from "react";
+import { DownloadIcon, TemplateIcon } from "@/components/icons";
+import { useUser } from "@/features/user/hooks/useUser";
+import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
+import { trpc } from "@/lib/queryClient";
 import { ImportTypebotFromFileButton } from "./ImportTypebotFromFileButton";
-import { TemplatesModal } from "./TemplatesModal";
+import { TemplatesDialog } from "./TemplatesDialog";
 
 export const CreateNewTypebotButtons = () => {
   const { t } = useTranslate();
@@ -32,11 +32,6 @@ export const CreateNewTypebotButtons = () => {
     trpc.typebot.createTypebot.mutationOptions({
       onMutate: () => {
         setIsLoading(true);
-      },
-      onError: (error) => {
-        toast({
-          description: error.message,
-        });
       },
       onSuccess: (data) => {
         router.push({
@@ -53,11 +48,6 @@ export const CreateNewTypebotButtons = () => {
     trpc.typebot.importTypebot.mutationOptions({
       onMutate: () => {
         setIsLoading(true);
-      },
-      onError: (error) => {
-        toast({
-          description: error.data?.zodError ?? error.message,
-        });
       },
       onSuccess: (data) => {
         router.push({
@@ -109,60 +99,39 @@ export const CreateNewTypebotButtons = () => {
         <Heading>{t("templates.buttons.heading")}</Heading>
         <Stack w="full" spacing={6}>
           <Button
-            variant="outline"
-            w="full"
-            py="8"
-            fontSize="lg"
-            leftIcon={
-              <ToolIcon
-                color={useColorModeValue("blue.500", "blue.300")}
-                boxSize="25px"
-                mr="2"
-              />
-            }
+            variant="outline-secondary"
+            className="w-full py-8 text-lg [&_svg]:size-5 [&_svg]:text-blue-10"
             onClick={() => handleCreateSubmit()}
-            isLoading={isLoading}
+            disabled={isLoading}
+            size="lg"
           >
+            <LayoutBottomIcon />
             {t("templates.buttons.fromScratchButton.label")}
           </Button>
           <Button
-            variant="outline"
-            w="full"
-            py="8"
-            fontSize="lg"
-            leftIcon={
-              <TemplateIcon
-                color={useColorModeValue("orange.500", "orange.300")}
-                boxSize="25px"
-                mr="2"
-              />
-            }
+            variant="outline-secondary"
+            className="w-full py-8 text-lg [&_svg]:size-5 [&_svg]:text-orange-10"
             onClick={onOpen}
-            isLoading={isLoading}
+            disabled={isLoading}
+            size="lg"
           >
+            <TemplateIcon />
             {t("templates.buttons.fromTemplateButton.label")}
           </Button>
           <ImportTypebotFromFileButton
-            variant="outline"
-            w="full"
-            py="8"
-            fontSize="lg"
-            leftIcon={
-              <DownloadIcon
-                color={useColorModeValue("purple.500", "purple.300")}
-                boxSize="25px"
-                mr="2"
-              />
-            }
-            isLoading={isLoading}
+            variant="outline-secondary"
+            className="w-full py-8 text-lg [&_svg]:size-5 [&_svg]:text-purple-10"
+            disabled={isLoading}
             onNewTypebot={handleCreateSubmit}
+            size="lg"
           >
+            <DownloadIcon />
             {t("templates.buttons.importFileButton.label")}
           </ImportTypebotFromFileButton>
         </Stack>
       </Stack>
 
-      <TemplatesModal
+      <TemplatesDialog
         isOpen={isOpen}
         onClose={onClose}
         onTypebotChoose={handleCreateSubmit}

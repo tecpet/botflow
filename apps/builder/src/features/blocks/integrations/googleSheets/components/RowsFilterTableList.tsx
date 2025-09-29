@@ -1,12 +1,11 @@
-import { DropdownList } from "@/components/DropdownList";
-import { TableList } from "@/components/TableList";
 import { Flex } from "@chakra-ui/react";
 import type {
   GoogleSheetsGetOptions,
   RowsFilterComparison,
 } from "@typebot.io/blocks-integrations/googleSheets/schema";
 import { LogicalOperator } from "@typebot.io/conditions/constants";
-import React from "react";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { TableList } from "@/components/TableList";
 import { RowsFilterComparisonItem } from "./RowsFilterComparisonItem";
 
 type Props = {
@@ -27,8 +26,9 @@ export const RowsFilterTableList = ({
       comparisons,
     });
 
-  const updateLogicalOperator = (logicalOperator: LogicalOperator) =>
-    filter && onFilterChange({ ...filter, logicalOperator });
+  const updateLogicalOperator = (
+    logicalOperator: LogicalOperator | undefined,
+  ) => filter && onFilterChange({ ...filter, logicalOperator });
 
   return (
     <TableList<RowsFilterComparison>
@@ -36,9 +36,9 @@ export const RowsFilterTableList = ({
       onItemsChange={updateComparisons}
       ComponentBetweenItems={() => (
         <Flex justify="center">
-          <DropdownList
-            currentItem={filter?.logicalOperator}
-            onItemSelect={updateLogicalOperator}
+          <BasicSelect
+            value={filter?.logicalOperator}
+            onChange={updateLogicalOperator}
             items={Object.values(LogicalOperator)}
           />
         </Flex>

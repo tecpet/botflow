@@ -1,6 +1,7 @@
 import type {
   ChatbotSendingInfoItemDto,
   ChatbotSendingInfoItemTypeEnum,
+  MediaDto,
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
@@ -53,6 +54,12 @@ export const showSendingInfoItems = createAction({
   run: {
     server: async ({ options, variables }) => {
       try {
+        let infoItem: ChatbotSendingInfoItemDto | null = null;
+
+        let infoGroup = "";
+
+        let infoMedias: MediaDto[] = [];
+
         const rawSendingInfoItems: string[] = JSON.parse(
           options.sendingInfoItems as string,
         );
@@ -62,11 +69,13 @@ export const showSendingInfoItems = createAction({
             typeof item === "string" ? JSON.parse(item) : item,
           );
 
-        const infoItem = sendingInfoItem[0];
+        if (sendingInfoItem.length > 0) {
+          infoItem = sendingInfoItem[0];
 
-        const infoGroup = sendingInfoItemTypeLiteral[infoItem.type];
+          infoGroup = sendingInfoItemTypeLiteral[infoItem.type];
 
-        const infoMedias = infoItem.medias;
+          infoMedias = infoItem.medias ?? [];
+        }
 
         variables.set([{ id: options.infoGroup as string, value: infoGroup }]);
         variables.set([

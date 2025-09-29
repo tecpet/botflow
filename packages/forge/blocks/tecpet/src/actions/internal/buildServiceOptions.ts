@@ -110,13 +110,14 @@ export const buildServiceOptions = createAction({
             : "";
 
           const description = entity.description ? entity.description : "";
+          const priceDescription = price ? `A partir de: R$${price}` : "";
 
           switch (serviceSelectionValueMode) {
             case "SHOW_FROM":
-              finalDescription = `A partir de: R$${price}${description} `;
+              finalDescription = `${priceDescription}${description} `;
               break;
             case "SHOW":
-              finalDescription = `R$${price}${description} `;
+              finalDescription = `${priceDescription}${description} `;
               break;
             default:
               break;

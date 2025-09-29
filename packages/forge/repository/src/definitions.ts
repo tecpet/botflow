@@ -6,6 +6,7 @@ import { chatNodeBlock } from "@typebot.io/chat-node-block";
 import { deepSeekBlock } from "@typebot.io/deepseek-block";
 import { difyAiBlock } from "@typebot.io/dify-ai-block";
 import { elevenlabsBlock } from "@typebot.io/elevenlabs-block";
+import { gmailBlock } from "@typebot.io/gmail-block";
 import { groqBlock } from "@typebot.io/groq-block";
 import { mistralBlock } from "@typebot.io/mistral-block";
 import { nocodbBlock } from "@typebot.io/nocodb-block";
@@ -15,8 +16,9 @@ import { perplexityBlock } from "@typebot.io/perplexity-block";
 import { posthogBlock } from "@typebot.io/posthog-block";
 import { qrCodeBlock } from "@typebot.io/qrcode-block";
 import { segmentBlock } from "@typebot.io/segment-block";
-import { tecpetBlock } from "@typebot.io/tecpet-block";
 import { tecpetAiBlock } from "@typebot.io/tecpet-ai-block";
+import { tecpetBlock } from "@typebot.io/tecpet-block";
+import { tecpetGatewayBlock } from "@typebot.io/tecpet-gateway-block";
 import { togetherAiBlock } from "@typebot.io/together-ai-block";
 import { zendeskBlock } from "@typebot.io/zendesk-block";
 
@@ -40,7 +42,10 @@ export const forgedBlocks = {
   [deepSeekBlock.id]: deepSeekBlock,
   [tecpetBlock.id]: tecpetBlock,
   [tecpetAiBlock.id]: tecpetAiBlock,
+  [tecpetGatewayBlock.id]: tecpetGatewayBlock,
+
   [blinkBlock.id]: blinkBlock,
+  [gmailBlock.id]: gmailBlock,
 };
 export type ForgedBlockDefinition =
   (typeof forgedBlocks)[keyof typeof forgedBlocks];

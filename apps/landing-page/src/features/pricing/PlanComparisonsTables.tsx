@@ -1,3 +1,10 @@
+import { chatsLimits, seatsLimits } from "@typebot.io/billing/constants";
+import { formatPrice } from "@typebot.io/billing/helpers/formatPrice";
+import { parseNumberWithCommas } from "@typebot.io/lib/utils";
+import { Button } from "@typebot.io/ui/components/Button";
+import { InfinityIcon } from "@typebot.io/ui/icons/InfinityIcon";
+import { TickIcon } from "@typebot.io/ui/icons/TickIcon";
+import { cn } from "@typebot.io/ui/lib/cn";
 import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
 import {
   Table,
@@ -8,13 +15,6 @@ import {
   TableRoot,
   TableRow,
 } from "@/components/table";
-import { chatsLimits, seatsLimits } from "@typebot.io/billing/constants";
-import { formatPrice } from "@typebot.io/billing/helpers/formatPrice";
-import { parseNumberWithCommas } from "@typebot.io/lib/utils";
-import { Button } from "@typebot.io/ui/components/Button";
-import { CheckIcon } from "@typebot.io/ui/icons/CheckIcon";
-import { InfinityIcon } from "@typebot.io/ui/icons/InfinityIcon";
-import { cn } from "@typebot.io/ui/lib/cn";
 import { chatsTooltip } from "./constants";
 
 type Props = {
@@ -69,7 +69,11 @@ export const PlanComparisonTables = ({ onChatsTiersClick }: Props) => (
             <TableCell />
             <TableCell>{formatPrice(10)} per 500 chats</TableCell>
             <TableCell>
-              <Button variant="outline" size="xs" onClick={onChatsTiersClick}>
+              <Button
+                variant="outline-secondary"
+                size="xs"
+                onClick={onChatsTiersClick}
+              >
                 See tiers
               </Button>
             </TableCell>
@@ -240,7 +244,7 @@ export const PlanComparisonTables = ({ onChatsTiersClick }: Props) => (
 
 const CheckedTableCell = () => (
   <TableCell>
-    <CheckIcon className="size-4" />
+    <TickIcon className="size-4" />
   </TableCell>
 );
 

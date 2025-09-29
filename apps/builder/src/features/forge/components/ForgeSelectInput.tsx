@@ -1,6 +1,3 @@
-import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
-import { Select } from "@/components/inputs/Select";
-import { VariablesButton } from "@/features/variables/components/VariablesButton";
 import {
   FormControl,
   FormHelperText,
@@ -11,6 +8,8 @@ import {
 import type { ForgedBlockDefinition } from "@typebot.io/forge-repository/definitions";
 import type { ForgedBlock } from "@typebot.io/forge-repository/schemas";
 import type { ReactNode } from "react";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
 import { useSelectItemsQuery } from "../hooks/useSelectItemsQuery";
 
 type Props = {
@@ -69,19 +68,19 @@ export const ForgeSelectInput = ({
         </FormLabel>
       )}
       <HStack spacing="0">
-        <Select
-          items={items}
-          selectedItem={defaultValue}
-          onSelect={onChange}
+        <BasicSelect
+          items={
+            (items ?? []) as {
+              label: ReactNode;
+              value: string;
+            }[]
+          }
+          value={defaultValue}
+          onChange={onChange}
+          includeVariables={withVariableButton}
           placeholder={placeholder}
+          className="flex-1"
         />
-        {withVariableButton ? (
-          <VariablesButton
-            onSelectVariable={(variable) => {
-              onChange(`{{${variable.name}}}`);
-            }}
-          />
-        ) : null}
       </HStack>
       {helperText && <FormHelperText mt="0">{helperText}</FormHelperText>}
     </FormControl>

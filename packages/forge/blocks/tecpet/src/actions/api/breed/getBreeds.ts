@@ -30,8 +30,8 @@ export const getBreeds = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    breedsIds: option.string.layout({
-      label: "Raças Ids",
+    breedValues: option.string.layout({
+      label: "Valores de raça",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -51,11 +51,17 @@ export const getBreeds = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({ breeds, breedsIds, breedsNames, petBreed, petSRD }) => {
+  getSetVariableIds: ({
+    breeds,
+    breedValues,
+    breedsNames,
+    petBreed,
+    petSRD,
+  }) => {
     const variables = [];
 
     if (breeds) variables.push(breeds);
-    if (breedsIds) variables.push(breedsIds);
+    if (breedValues) variables.push(breedValues);
     if (breedsNames) variables.push(breedsNames);
     if (petBreed) variables.push(petBreed);
     if (petSRD) variables.push(petSRD);
@@ -96,9 +102,9 @@ export const getBreeds = createAction({
             variables.set([{ id: options.breeds, value: similarBreeds }]);
           }
 
-          if (options.breedsIds) {
+          if (options.breedValues) {
             variables.set([
-              { id: options.breedsIds, value: similarBreeds.map((b) => b.id) },
+              { id: options.breedValues, value: similarBreeds.map((b) => b) },
             ]);
           }
 
@@ -113,7 +119,7 @@ export const getBreeds = createAction({
 
           if (similarBreeds.length === 1) {
             variables.set([
-              { id: options.petBreed as string, value: similarBreeds[0].id },
+              { id: options.petBreed as string, value: similarBreeds[0] },
             ]);
           }
         }

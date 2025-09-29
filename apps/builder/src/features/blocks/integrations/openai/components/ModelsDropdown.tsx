@@ -1,8 +1,8 @@
-import { Select } from "@/components/inputs/Select";
-import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
-import { trpc } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
 import { defaultOpenAIOptions } from "@typebot.io/blocks-integrations/openai/constants";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
+import { trpc } from "@/lib/queryClient";
 
 type Props = {
   baseUrl?: string;
@@ -39,10 +39,10 @@ export const ModelsDropdown = ({
   );
 
   return (
-    <Select
-      items={data?.models}
-      selectedItem={defaultValue}
-      onSelect={onChange}
+    <BasicSelect
+      items={data?.models ?? []}
+      value={defaultValue}
+      onChange={onChange}
       placeholder="Select a model"
     />
   );

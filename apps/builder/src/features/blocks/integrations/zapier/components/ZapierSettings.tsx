@@ -1,11 +1,12 @@
-import { ExternalLinkIcon } from "@/components/icons";
-import { Alert, AlertIcon, Button, Link, Stack, Text } from "@chakra-ui/react";
+import { Alert, AlertIcon, Stack, Text } from "@chakra-ui/react";
 import type {
   HttpRequest,
   HttpRequestBlock,
 } from "@typebot.io/blocks-integrations/httpRequest/schema";
 import type { ZapierBlock } from "@typebot.io/blocks-integrations/zapier/schema";
-import React, { useRef } from "react";
+import { useRef } from "react";
+import { ButtonLink } from "@/components/ButtonLink";
+import { ExternalLinkIcon } from "@/components/icons";
 import { HttpRequestAdvancedConfigForm } from "../../httpRequest/components/HttpRequestAdvancedConfigForm";
 
 type Props = {
@@ -44,18 +45,16 @@ export const ZapierSettings = ({
         <Alert status={url ? "success" : "info"} rounded="md">
           <AlertIcon />
           {url ? (
-            <>Your zap is correctly configured 🚀</>
+            "Your zap is correctly configured 🚀"
           ) : (
             <Stack>
               <Text>Head up to Zapier to configure this block:</Text>
-              <Button
-                as={Link}
+              <ButtonLink
                 href="https://zapier.com/apps/typebot/integrations"
-                isExternal
-                colorScheme="orange"
+                target="_blank"
               >
-                <Text mr="2">Zapier</Text> <ExternalLinkIcon />
-              </Button>
+                Zapier <ExternalLinkIcon />
+              </ButtonLink>
             </Stack>
           )}
         </Alert>

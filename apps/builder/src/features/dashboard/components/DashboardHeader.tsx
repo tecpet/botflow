@@ -1,12 +1,4 @@
-import { EmojiOrImageIcon } from "@/components/EmojiOrImageIcon";
-import { HardDriveIcon, SettingsIcon } from "@/components/icons";
-import { ParentModalProvider } from "@/features/graph/providers/ParentModalProvider";
-import { useUser } from "@/features/user/hooks/useUser";
-import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
-import { WorkspaceDropdown } from "@/features/workspace/components/WorkspaceDropdown";
-import { WorkspaceSettingsModal } from "@/features/workspace/components/WorkspaceSettingsModal";
 import {
-  Button,
   Flex,
   HStack,
   useColorModeValue,
@@ -14,9 +6,16 @@ import {
 } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { isNotDefined } from "@typebot.io/lib/utils";
+import { Button } from "@typebot.io/ui/components/Button";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import { useState } from "react";
+import { EmojiOrImageIcon } from "@/components/EmojiOrImageIcon";
+import { HardDriveIcon, SettingsIcon } from "@/components/icons";
+import { useUser } from "@/features/user/hooks/useUser";
+import { WorkspaceDropdown } from "@/features/workspace/components/WorkspaceDropdown";
+import { WorkspaceSettingsDialog } from "@/features/workspace/components/WorkspaceSettingsDialog";
+import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 
 export const DashboardHeader = () => {
   const { t } = useTranslate();
@@ -55,31 +54,29 @@ export const DashboardHeader = () => {
       >
         <Link href="/typebots" data-testid="typebot-logo">
           <EmojiOrImageIcon
-            boxSize="30px"
             icon={workspace?.icon}
             defaultIcon={HardDriveIcon}
           />
         </Link>
         <HStack>
           {user && workspace && !workspace.isPastDue && (
-            <ParentModalProvider>
-              <WorkspaceSettingsModal
-                isOpen={isOpen}
-                onClose={onClose}
-                user={user}
-                workspace={workspace}
-                defaultTab={
-                  isRedirectFromCredentialsCreation ? "credentials" : undefined
-                }
-              />
-            </ParentModalProvider>
+            <WorkspaceSettingsDialog
+              isOpen={isOpen}
+              onClose={onClose}
+              user={user}
+              workspace={workspace}
+              defaultTab={
+                isRedirectFromCredentialsCreation ? "credentials" : undefined
+              }
+            />
           )}
           {!workspace?.isPastDue && (
             <Button
-              leftIcon={<SettingsIcon />}
+              variant="secondary"
               onClick={onOpen}
-              isLoading={isNotDefined(workspace) || isLoggingOut}
+              disabled={isNotDefined(workspace) || isLoggingOut}
             >
+              <SettingsIcon />
               {t("dashboard.header.settingsButton.label")}
             </Button>
           )}

@@ -1,5 +1,18 @@
+import {
+  Flex,
+  Heading,
+  HStack,
+  Stack,
+  useColorModeValue,
+  Wrap,
+} from "@chakra-ui/react";
+import { useTranslate } from "@tolgee/react";
+import { env } from "@typebot.io/env";
+import { isDefined, isNotDefined } from "@typebot.io/lib/utils";
+import { Plan } from "@typebot.io/prisma/enum";
+import { Button } from "@typebot.io/ui/components/Button";
+import { TrashIcon } from "@typebot.io/ui/icons/TrashIcon";
 import { Seo } from "@/components/Seo";
-import { TrashIcon } from "@/components/icons";
 import { LockTag } from "@/features/billing/components/LockTag";
 import { UpgradeButton } from "@/features/billing/components/UpgradeButton";
 import { hasProPerks } from "@/features/billing/helpers/hasProPerks";
@@ -10,24 +23,10 @@ import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { isCloudProdInstance } from "@/helpers/isCloudProdInstance";
 import { toast } from "@/lib/toast";
-import {
-  Flex,
-  HStack,
-  Heading,
-  IconButton,
-  Stack,
-  Text,
-  Wrap,
-  useColorModeValue,
-} from "@chakra-ui/react";
-import { useTranslate } from "@tolgee/react";
-import { env } from "@typebot.io/env";
-import { isDefined, isNotDefined } from "@typebot.io/lib/utils";
-import { Plan } from "@typebot.io/prisma/enum";
 import { parseDefaultPublicId } from "../helpers/parseDefaultPublicId";
 import { isPublicDomainAvailableQuery } from "../queries/isPublicDomainAvailableQuery";
+import { integrationsList } from "./deploy/DeployButton";
 import { EditableUrl } from "./EditableUrl";
-import { integrationsList } from "./embeds/EmbedButton";
 
 export const SharePage = () => {
   const { t } = useTranslate();
@@ -122,12 +121,14 @@ export const SharePage = () => {
                     isValid={checkIfPathnameIsValid}
                     onPathnameChange={handlePathnameChange}
                   />
-                  <IconButton
-                    icon={<TrashIcon />}
+                  <Button
+                    className="size-7 [&_svg]:size-3"
                     aria-label="Remove custom URL"
-                    size="xs"
+                    size="icon"
                     onClick={() => handleCustomDomainChange(null)}
-                  />
+                  >
+                    <TrashIcon />
+                  </Button>
                   {workspace?.id && (
                     <DomainStatusIcon
                       domain={typebot.customDomain.split("/")[0]}
@@ -139,22 +140,19 @@ export const SharePage = () => {
               {currentUserMode === "write" &&
               isNotDefined(typebot?.customDomain) &&
               env.NEXT_PUBLIC_VERCEL_VIEWER_PROJECT_NAME ? (
-                <>
-                  {hasProPerks(workspace) ? (
-                    <CustomDomainsDropdown
-                      onCustomDomainSelect={handleCustomDomainChange}
-                    />
-                  ) : (
-                    <UpgradeButton
-                      colorScheme="gray"
-                      limitReachedType={t("billing.limitMessage.customDomain")}
-                      excludedPlans={[Plan.STARTER]}
-                    >
-                      <Text mr="2">{t("customDomain.add")}</Text>{" "}
-                      <LockTag plan={Plan.PRO} />
-                    </UpgradeButton>
-                  )}
-                </>
+                hasProPerks(workspace) ? (
+                  <CustomDomainsDropdown
+                    onCustomDomainSelect={handleCustomDomainChange}
+                  />
+                ) : (
+                  <UpgradeButton
+                    limitReachedType={t("billing.limitMessage.customDomain")}
+                    excludedPlans={[Plan.STARTER]}
+                  >
+                    {t("customDomain.add")}
+                    <LockTag plan={Plan.PRO} />
+                  </UpgradeButton>
+                )
               ) : null}
             </Stack>
           </Stack>

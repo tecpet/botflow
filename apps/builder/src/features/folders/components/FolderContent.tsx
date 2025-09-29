@@ -1,23 +1,21 @@
+import {
+  Flex,
+  Heading,
+  HStack,
+  Skeleton,
+  Stack,
+  useEventListener,
+  Wrap,
+} from "@chakra-ui/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import type { Prisma } from "@typebot.io/prisma/types";
+import { useEffect, useState } from "react";
+import { Portal } from "@/components/Portal";
 import { useTypebots } from "@/features/dashboard/hooks/useTypebots";
 import type { TypebotInDashboard } from "@/features/dashboard/types";
 import type { NodePosition } from "@/features/graph/providers/GraphDndProvider";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { trpc } from "@/lib/queryClient";
-import { toast } from "@/lib/toast";
-import {
-  Flex,
-  HStack,
-  Heading,
-  Portal,
-  Skeleton,
-  Stack,
-  Wrap,
-  useEventListener,
-} from "@chakra-ui/react";
-import { useQuery } from "@tanstack/react-query";
-import { useMutation } from "@tanstack/react-query";
-import type { Prisma } from "@typebot.io/prisma/types";
-import React, { useEffect, useState } from "react";
 import { useTypebotDnd } from "../TypebotDndProvider";
 import { BackButton } from "./BackButton";
 import { CreateBotButton } from "./CreateBotButton";
@@ -61,9 +59,6 @@ export const FolderContent = ({ folder }: Props) => {
 
   const { mutate: createFolder } = useMutation(
     trpc.folders.createFolder.mutationOptions({
-      onError: (error) => {
-        toast({ description: error.message });
-      },
       onSuccess: () => {
         refetchFolders();
       },
@@ -72,9 +67,6 @@ export const FolderContent = ({ folder }: Props) => {
 
   const { mutate: updateTypebot } = useMutation(
     trpc.typebot.updateTypebot.mutationOptions({
-      onError: (error) => {
-        toast({ description: error.message });
-      },
       onSuccess: () => {
         refetchTypebots();
       },
@@ -182,7 +174,7 @@ export const FolderContent = ({ folder }: Props) => {
             {currentUserMode !== "guest" && (
               <CreateBotButton
                 folderId={folder?.id}
-                isLoading={isTypebotLoading}
+                disabled={isTypebotLoading}
               />
             )}
             {isFolderLoading && <ButtonSkeleton />}
@@ -205,7 +197,10 @@ export const FolderContent = ({ folder }: Props) => {
                   draggedTypebot={draggedTypebot}
                   onTypebotUpdated={refetchTypebots}
                   onDrag={handleTypebotDrag(typebot)}
-                  isReadOnly={typebot.accessRight !== "write"}
+                  isReadOnly={
+                    typebot.accessRight !== "write" &&
+                    currentUserMode !== "write"
+                  }
                 />
               ))}
           </Wrap>

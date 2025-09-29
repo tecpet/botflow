@@ -6,8 +6,8 @@ import { updateSession } from "@typebot.io/chat-session/queries/updateSession";
 import type { SessionState } from "@typebot.io/chat-session/schemas";
 import { decryptV2 } from "@typebot.io/credentials/decryptV2";
 import { getCredentials } from "@typebot.io/credentials/getCredentials";
-import { forgedBlocks } from "@typebot.io/forge-repository/definitions";
 import type { AsyncVariableStore } from "@typebot.io/forge/types";
+import { forgedBlocks } from "@typebot.io/forge-repository/definitions";
 import { getBlockById } from "@typebot.io/groups/helpers/getBlockById";
 import { parseUnknownError } from "@typebot.io/lib/parseUnknownError";
 import { isDefined } from "@typebot.io/lib/utils";
@@ -175,7 +175,7 @@ export const getMessageStream = async ({
       },
     };
     const { stream, error } = await action.run.stream.run({
-      credentials: decryptedCredentials,
+      credentials: decryptedCredentials as any,
       options: deepParseVariables(block.options, {
         variables: newSessionState.typebotsQueue[0].typebot.variables,
         sessionStore,

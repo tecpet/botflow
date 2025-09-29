@@ -1,4 +1,3 @@
-import { getTestAsset } from "@/test/utils/playwright";
 import { createId } from "@paralleldrive/cuid2";
 import test, { expect } from "@playwright/test";
 import type {
@@ -7,6 +6,7 @@ import type {
 } from "@typebot.io/chat-api/schemas";
 import { importTypebotInDatabase } from "@typebot.io/playwright/databaseActions";
 import prisma from "@typebot.io/prisma";
+import { getTestAsset } from "@/test/utils/playwright";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -74,22 +74,7 @@ test("API chat execution should work on preview bot", async ({ request }) => {
 
     expect(messages[0].content.richText).toStrictEqual([
       {
-        children: [
-          { text: "Nice to meet you " },
-          {
-            type: "inline-variable",
-            children: [
-              {
-                type: "p",
-                children: [
-                  {
-                    text: "John",
-                  },
-                ],
-              },
-            ],
-          },
-        ],
+        children: [{ text: "Nice to meet you " }, { text: "John" }],
         type: "p",
       },
     ]);
@@ -147,17 +132,7 @@ test("API chat execution should work on published bot", async ({ request }) => {
         children: [
           { text: "Nice to meet you " },
           {
-            type: "inline-variable",
-            children: [
-              {
-                type: "p",
-                children: [
-                  {
-                    text: "John",
-                  },
-                ],
-              },
-            ],
+            text: "John",
           },
         ],
       },
@@ -180,17 +155,7 @@ test("API chat execution should work on published bot", async ({ request }) => {
         children: [
           { text: "My magic number is " },
           {
-            type: "inline-variable",
-            children: [
-              {
-                type: "p",
-                children: [
-                  {
-                    text: "42",
-                  },
-                ],
-              },
-            ],
+            text: "42",
           },
         ],
         type: "p",
@@ -285,7 +250,6 @@ test("API chat execution should work on published bot", async ({ request }) => {
         type: "p",
       },
     ]);
-    expect(messages[2].content.richText.length).toBeGreaterThan(0);
   });
   await test.step("Starting with a message when typebot starts with input should proceed", async () => {
     const response = await (

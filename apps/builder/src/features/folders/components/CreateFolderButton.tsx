@@ -1,12 +1,12 @@
-import { FolderPlusIcon } from "@/components/icons";
-import { ChangePlanModal } from "@/features/billing/components/ChangePlanModal";
+import { HStack, Text, useDisclosure } from "@chakra-ui/react";
+import { useTranslate } from "@tolgee/react";
+import { Plan } from "@typebot.io/prisma/enum";
+import { Button } from "@typebot.io/ui/components/Button";
+import { FolderAddIcon } from "@typebot.io/ui/icons/FolderAddIcon";
+import { ChangePlanDialog } from "@/features/billing/components/ChangePlanDialog";
 import { LockTag } from "@/features/billing/components/LockTag";
 import { isFreePlan } from "@/features/billing/helpers/isFreePlan";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
-import { Button, HStack, Text, useDisclosure } from "@chakra-ui/react";
-import { useTranslate } from "@tolgee/react";
-import { Plan } from "@typebot.io/prisma/enum";
-import React from "react";
 
 type Props = { isLoading: boolean; onClick: () => void };
 
@@ -20,21 +20,24 @@ export const CreateFolderButton = ({ isLoading, onClick }: Props) => {
     onClick();
   };
   return (
-    <Button
-      leftIcon={<FolderPlusIcon color="blue.500" />}
-      onClick={handleClick}
-      isLoading={isLoading}
-      colorScheme="white"
-    >
-      <HStack>
-        <Text>{t("folders.createFolderButton.label")}</Text>
-        {isFreePlan(workspace) && <LockTag plan={Plan.STARTER} />}
-      </HStack>
-      <ChangePlanModal
+    <>
+      <Button
+        onClick={handleClick}
+        disabled={isLoading}
+        variant="outline-secondary"
+        className="bg-gray-1"
+      >
+        <FolderAddIcon className="text-blue-10" />
+        <HStack>
+          <Text>{t("folders.createFolderButton.label")}</Text>
+          {isFreePlan(workspace) && <LockTag plan={Plan.STARTER} />}
+        </HStack>
+      </Button>
+      <ChangePlanDialog
         isOpen={isOpen}
         onClose={onClose}
         type={t("billing.limitMessage.folder")}
       />
-    </Button>
+    </>
   );
 };

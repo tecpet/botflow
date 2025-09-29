@@ -1,7 +1,3 @@
-import { DropdownList } from "@/components/DropdownList";
-import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
 import {
   Accordion,
   AccordionButton,
@@ -23,7 +19,10 @@ import {
   rememberUserStorages,
 } from "@typebot.io/settings/constants";
 import type { Settings, SystemMessages } from "@typebot.io/settings/schemas";
-import React from "react";
+import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
+import { MoreInfoTooltip } from "@/components/MoreInfoTooltip";
+import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
 import { SystemMessagesForm } from "./SystemMessagesForm";
 
 type Props = {
@@ -133,11 +132,12 @@ export const GeneralSettingsForm = ({
               </Stack>
             </MoreInfoTooltip>
           </FormLabel>
-          <DropdownList
-            currentItem={generalSettings?.rememberUser?.storage ?? "session"}
-            onItemSelect={updateRememberUserStorage}
+          <BasicSelect
+            value={generalSettings?.rememberUser?.storage}
+            defaultValue={defaultSettings.general.rememberUser.storage}
+            onChange={updateRememberUserStorage}
             items={rememberUserStorages}
-          ></DropdownList>
+          />
         </FormControl>
       </SwitchWithRelatedSettings>
       <Accordion allowToggle>

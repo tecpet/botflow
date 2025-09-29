@@ -1,17 +1,15 @@
-import { trpc } from "@/lib/queryClient";
 import {
   Alert,
   AlertIcon,
-  HStack,
   Heading,
+  HStack,
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import { Plan } from "@typebot.io/prisma/enum";
 import type { Workspace } from "@typebot.io/workspaces/schemas";
-import React from "react";
+import { useSubscriptionQuery } from "../hooks/useSubscriptionQuery";
 import { BillingPortalButton } from "./BillingPortalButton";
 import { PlanTag } from "./PlanTag";
 
@@ -22,11 +20,7 @@ type Props = {
 export const CurrentSubscriptionSummary = ({ workspace }: Props) => {
   const { t } = useTranslate();
 
-  const { data } = useQuery(
-    trpc.billing.getSubscription.queryOptions({
-      workspaceId: workspace.id,
-    }),
-  );
+  const { data } = useSubscriptionQuery(workspace.id);
 
   const isSubscribed =
     (workspace.plan === Plan.STARTER || workspace.plan === Plan.PRO) &&
@@ -57,8 +51,8 @@ export const CurrentSubscriptionSummary = ({ workspace }: Props) => {
       {isSubscribed && (
         <BillingPortalButton
           workspaceId={workspace.id}
-          colorScheme={
-            data?.subscription?.status === "past_due" ? "blue" : undefined
+          variant={
+            data?.subscription?.status === "past_due" ? "default" : "secondary"
           }
         />
       )}

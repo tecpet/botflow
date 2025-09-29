@@ -1,11 +1,11 @@
+import type { ContinueChatResponse } from "@typebot.io/chat-api/schemas";
+import { Standard } from "@typebot.io/react";
+import { defaultBackgroundColor } from "@typebot.io/theme/constants";
 import { useEditor } from "@/features/editor/providers/EditorProvider";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { useGraph } from "@/features/graph/providers/GraphProvider";
 import { useUser } from "@/features/user/hooks/useUser";
 import { toast } from "@/lib/toast";
-import type { ContinueChatResponse } from "@typebot.io/chat-api/schemas";
-import { Standard } from "@typebot.io/react";
-import { defaultBackgroundColor } from "@typebot.io/theme/constants";
 
 export const WebPreview = () => {
   const { user } = useUser();
@@ -16,8 +16,8 @@ export const WebPreview = () => {
   const handleNewLogs = (logs: ContinueChatResponse["logs"]) => {
     logs?.forEach((log) => {
       toast({
-        context: log.context,
-        status: log.status as "success" | "error" | "info",
+        title: log.context,
+        type: log.status as "success" | "error" | "info",
         description: log.description,
         details: log.details,
       });
@@ -29,7 +29,7 @@ export const WebPreview = () => {
 
   return (
     <Standard
-      key={`web-preview${startPreviewFrom?.id ?? ""}`}
+      key={`web-preview-${startPreviewFrom?.id ?? ""}`}
       typebot={typebot}
       sessionId={user ? `${typebot.id}-${user.id}` : undefined}
       startFrom={

@@ -1,32 +1,44 @@
 import * as React from "react";
 import { cn } from "../lib/cn";
-import { type VariantProps, cva } from "../lib/cva";
+import { cva, cx, type VariantProps } from "../lib/cva";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-colors data-[focus-visible]:ring-1 data-[focus-visible]:ring-orange-8 data-[aria-disabled=true]:pointer-events-none data-[aria-disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 disabled:pointer-events-none disabled:opacity-50",
+  cx(
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors cursor-pointer select-none flex-shrink-0",
+    "focus-visible:ring-2 focus-visible:ring-orange-8 outline-none",
+    // We don't use `disabled:` so that the styling works with custom asChild elements
+    "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
+  ),
   {
     variants: {
       variant: {
         default:
-          "bg-orange-9 hover:bg-orange-10 active:bg-orange-11 text-gray-1",
+          "bg-orange-9 hover:bg-orange-10 active:bg-orange-11 text-gray-1 dark:text-gray-12",
         secondary: "bg-gray-3 hover:bg-gray-4 active:bg-gray-5",
-        outline: "bg-transparent border border-gray-8 text-gray-12",
-        ghost: "text-gray-12 bg-transparent hover:bg-gray-4 active:bg-gray-5",
-        link: "text-primary underline-offset-4 hover:underline",
-        cta: "text-white bg-gradient-to-b border border-[#C4461D] from-[#FF8963] to-[#FF5A25] to-[57%] shadow-[inset_0_3px_2px_0_rgba(255,255,255,0.25)] active:from-[#E44A19] active:to-[#EF744C] active:from-[43%] active:to-[100%] active:shadow-[inset_0_-2px_2px_0_rgba(255,255,255,0.17)] before:bg-transparent hover:before:bg-white/50 before:w-1/4 before:absolute before:-left-[40%] hover:before:left-[120%] before:transition-[left] before:duration-0 hover:before:duration-700 before:blur-md before:-rotate-45 before:aspect-[1/2]",
-        ctaSecondary:
-          "text-white bg-gradient-to-b border border-gray-12 from-[#282828] to-gray-12 to-[57%] shadow-[inset_0_3px_2px_0_rgba(255,255,255,0.10)] active:from-gray-12 active:to-[#282828] active:from-[43%] active:to-[100%] active:shadow-[inset_0_-3px_2px_0_rgba(255,255,255,0.10)] before:bg-transparent hover:before:bg-white/30 before:w-1/4 before:absolute before:-left-[40%] hover:before:left-[120%] before:transition-[left] before:duration-0 hover:before:duration-700 before:blur-md before:-rotate-45 before:aspect-[1/2] ",
+        outline: "bg-transparent border border-orange-8 text-orange-11",
+        "outline-secondary":
+          "bg-transparent border border-gray-7 text-gray-12 hover:bg-gray-2 active:bg-gray-4",
+        ghost:
+          "text-gray-12 bg-transparent hover:bg-gray-4 active:bg-gray-5 border border-transparent",
+        destructive:
+          "bg-red-9 hover:bg-red-10 active:bg-red-11 text-gray-1 dark:text-gray-12",
       },
       size: {
         default: "h-9 px-4 py-2",
-        xs: "h-6 px-2 rounded-md text-xs",
-        sm: "h-8 rounded-md px-3 text-sm",
-        lg: "h-11 px-6",
+        xs: "h-6 px-2 text-xs",
+        sm: "h-8 px-3",
+        lg: "h-11 px-6 rounded-lg text-base",
+        icon: "size-9 leading-none",
+      },
+      iconStyle: {
+        auto: "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        none: "",
       },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
+      iconStyle: "auto",
     },
   },
 );
@@ -35,34 +47,17 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { className, variant, size, ...props },
-  ref,
-) {
-  const buttonElement = (
-    <button
-      className={cn(
-        buttonVariants({ variant, size, className }),
-        variant?.includes("cta") && "w-full",
-      )}
-      ref={ref}
-      {...props}
-    />
-  );
-
-  if (variant === "cta" || variant === "ctaSecondary")
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, iconStyle, ...props }, ref) => {
     return (
-      <div
-        className={cn(
-          "overflow-hidden rounded-lg relative isolate",
-          (size === "sm" || size === "xs") && "rounded-md",
-        )}
-      >
-        {buttonElement}
-      </div>
+      <button
+        {...props}
+        ref={ref}
+        className={cn(buttonVariants({ variant, size, iconStyle }), className)}
+        data-disabled={props.disabled}
+      />
     );
-
-  return buttonElement;
-});
+  },
+);
 
 export { Button, buttonVariants };

@@ -1,3 +1,4 @@
+import type { PaBreedResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
 
@@ -21,6 +22,18 @@ export const verifySimilarBreedOptionSelected = createAction({
       helperText: "Encaminha para escolha de porte e pelo",
       inputType: "variableDropdown",
     }),
+    petSize: option.string.layout({
+      label: "Porte do Pet",
+      isRequired: false,
+      helperText: "Define o valor de porte da raça selecionada",
+      inputType: "variableDropdown",
+    }),
+    petHair: option.string.layout({
+      label: "Pelo do pet",
+      isRequired: false,
+      helperText: "Define o valor de pelo da raça selecionada",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({ selectedBreed, showOtherBreeds, petBreed }) => {
     const variables = [];
@@ -38,10 +51,17 @@ export const verifySimilarBreedOptionSelected = createAction({
 
         const rawSelectedBreed = options.selectedBreed;
 
-        const selectedBreed = JSON.parse(rawSelectedBreed as string);
+        const selectedBreed: PaBreedResponse = JSON.parse(
+          rawSelectedBreed as string,
+        );
 
-        if (!selectedBreed) {
+        if (!selectedBreed.id) {
           showOtherBreeds = true;
+        } else if (selectedBreed.id) {
+          variables.set([
+            { id: options.petHair as string, value: selectedBreed.hair },
+            { id: options.petSize as string, value: selectedBreed.size },
+          ]);
         }
 
         if (showOtherBreeds) {

@@ -1,10 +1,11 @@
-import { FileIcon } from "@/components/icons";
-import { trpc } from "@/lib/queryClient";
-import { Button, Flex, HStack, IconButton, Text } from "@chakra-ui/react";
+import { Flex, HStack, Text } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { env } from "@typebot.io/env";
 import { isDefined } from "@typebot.io/lib/utils";
-import React, { useEffect, useState } from "react";
+import { Button } from "@typebot.io/ui/components/Button";
+import { useEffect, useState } from "react";
+import { FileIcon } from "@/components/icons";
+import { trpc } from "@/lib/queryClient";
 import { GoogleSheetsLogo } from "./GoogleSheetsLogo";
 
 declare const window: any;
@@ -102,22 +103,25 @@ export const GoogleSpreadsheetPicker = ({
           <GoogleSheetsLogo />
           <Text fontWeight="medium">{spreadsheetData.name}</Text>
         </HStack>
-        <IconButton
-          size="sm"
-          icon={<FileIcon />}
+        <Button
+          size="icon"
           onClick={createPicker}
-          isLoading={!isPickerInitialized}
+          disabled={!isPickerInitialized}
           aria-label={"Pick another spreadsheet"}
-        />
+          variant="secondary"
+        >
+          <FileIcon />
+        </Button>
       </Flex>
     );
   return (
     <Button
       onClick={createPicker}
-      isLoading={
+      disabled={
         !isPickerInitialized ||
         (isDefined(spreadsheetId) && status === "pending")
       }
+      variant="secondary"
     >
       Pick a spreadsheet
     </Button>

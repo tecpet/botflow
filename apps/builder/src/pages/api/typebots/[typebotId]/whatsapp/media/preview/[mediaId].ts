@@ -1,5 +1,3 @@
-import { getAuthenticatedUser } from "@/features/auth/helpers/getAuthenticatedUser";
-import { isReadWorkspaceFobidden } from "@/features/workspace/helpers/isReadWorkspaceFobidden";
 import { env } from "@typebot.io/env";
 import {
   methodNotAllowed,
@@ -9,6 +7,8 @@ import {
 import prisma from "@typebot.io/prisma";
 import { downloadMedia } from "@typebot.io/whatsapp/downloadMedia";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { getAuthenticatedUser } from "@/features/auth/helpers/getAuthenticatedUser";
+import { isReadWorkspaceFobidden } from "@/features/workspace/helpers/isReadWorkspaceFobidden";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === "GET") {
@@ -49,7 +49,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const { file, mimeType } = await downloadMedia({
       mediaId,
-      systemUserAccessToken: env.META_SYSTEM_USER_TOKEN,
+      credentials: {
+        provider: "meta",
+        systemUserAccessToken: env.META_SYSTEM_USER_TOKEN,
+        phoneNumberId: env.WHATSAPP_PREVIEW_FROM_PHONE_NUMBER_ID ?? "",
+      },
     });
 
     res.setHeader("Content-Type", mimeType);

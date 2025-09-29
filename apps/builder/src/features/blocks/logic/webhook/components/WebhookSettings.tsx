@@ -1,19 +1,9 @@
-import { CopyButton } from "@/components/CopyButton";
-import { TableList, type TableListItemProps } from "@/components/TableList";
-import { TextLink } from "@/components/TextLink";
-import { CodeEditor } from "@/components/inputs/CodeEditor";
-import { DataVariableInputs } from "@/features/blocks/integrations/httpRequest/components/ResponseMappingInputs";
-import { computeDeepKeysMappingSuggestionList } from "@/features/blocks/integrations/httpRequest/helpers/computeDeepKeysMappingSuggestionList";
-import { useTypebot } from "@/features/editor/providers/TypebotProvider";
-import { useUser } from "@/features/user/hooks/useUser";
-import { toast } from "@/lib/toast";
 import {
   Accordion,
   AccordionButton,
   AccordionIcon,
   AccordionItem,
   AccordionPanel,
-  Button,
   FormControl,
   FormHelperText,
   Input,
@@ -33,8 +23,18 @@ import type { ResponseVariableMapping } from "@typebot.io/blocks-integrations/ht
 import type { WebhookBlock } from "@typebot.io/blocks-logic/webhook/schema";
 import { env } from "@typebot.io/env";
 import { parseUnknownError } from "@typebot.io/lib/parseUnknownError";
+import { Button } from "@typebot.io/ui/components/Button";
 import usePartySocket from "partysocket/react";
 import { useMemo, useState } from "react";
+import { CopyButton } from "@/components/CopyButton";
+import { CodeEditor } from "@/components/inputs/CodeEditor";
+import { TableList, type TableListItemProps } from "@/components/TableList";
+import { TextLink } from "@/components/TextLink";
+import { DataVariableInputs } from "@/features/blocks/integrations/httpRequest/components/ResponseMappingInputs";
+import { computeDeepKeysMappingSuggestionList } from "@/features/blocks/integrations/httpRequest/helpers/computeDeepKeysMappingSuggestionList";
+import { useTypebot } from "@/features/editor/providers/TypebotProvider";
+import { useUser } from "@/features/user/hooks/useUser";
+import { toast } from "@/lib/toast";
 
 type Props = {
   blockId: string;
@@ -122,7 +122,6 @@ export const WebhookSettings = ({
                   />
                   <InputRightElement width="60px">
                     <CopyButton
-                      size="sm"
                       textToCopy={`${urlBase}/web/executeTestWebhook`}
                     />
                   </InputRightElement>
@@ -131,8 +130,7 @@ export const WebhookSettings = ({
             )}
             <Button
               onClick={listenForTestEvent}
-              colorScheme="orange"
-              isLoading={websocketStatus === "opened"}
+              disabled={websocketStatus === "opened"}
             >
               Listen for test event
             </Button>
@@ -188,7 +186,6 @@ export const WebhookSettings = ({
                 />
                 <InputRightElement width="60px">
                   <CopyButton
-                    size="sm"
                     textToCopy={`${urlBase}/results/{resultId}/executeWebhook`}
                   />
                 </InputRightElement>

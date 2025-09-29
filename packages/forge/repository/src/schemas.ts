@@ -13,6 +13,8 @@ import { difyAiBlock } from "@typebot.io/dify-ai-block";
 import { difyAiBlockSchema } from "@typebot.io/dify-ai-block/schemas";
 import { elevenlabsBlock } from "@typebot.io/elevenlabs-block";
 import { elevenlabsBlockSchema } from "@typebot.io/elevenlabs-block/schemas";
+import { gmailBlock } from "@typebot.io/gmail-block";
+import { gmailBlockSchema } from "@typebot.io/gmail-block/schemas";
 import { groqBlock } from "@typebot.io/groq-block";
 import { groqBlockSchema } from "@typebot.io/groq-block/schemas";
 import { mistralBlock } from "@typebot.io/mistral-block";
@@ -31,15 +33,17 @@ import { qrCodeBlock } from "@typebot.io/qrcode-block";
 import { qrCodeBlockSchema } from "@typebot.io/qrcode-block/schemas";
 import { segmentBlock } from "@typebot.io/segment-block";
 import { segmentBlockSchema } from "@typebot.io/segment-block/schemas";
+import { tecpetAiBlock } from "@typebot.io/tecpet-ai-block";
+import { tecpetAiBlockSchema } from "@typebot.io/tecpet-ai-block/schemas";
 import { tecpetBlock } from "@typebot.io/tecpet-block";
 import { tecpetBlockSchema } from "@typebot.io/tecpet-block/schemas";
+import { tecpetGatewayBlock } from "@typebot.io/tecpet-gateway-block";
+import { tecpetGatewayBlockSchema } from "@typebot.io/tecpet-gateway-block/schemas";
 import { togetherAiBlock } from "@typebot.io/together-ai-block";
 import { togetherAiBlockSchema } from "@typebot.io/together-ai-block/schemas";
 import { zendeskBlock } from "@typebot.io/zendesk-block";
 import { zendeskBlockSchema } from "@typebot.io/zendesk-block/schemas";
 import { z } from "@typebot.io/zod";
-import { tecpetAiBlock } from "@typebot.io/tecpet-ai-block";
-import { tecpetAiBlockSchema } from "@typebot.io/tecpet-ai-block/schemas";
 
 
 export const forgedBlockSchemas = {
@@ -63,6 +67,8 @@ export const forgedBlockSchemas = {
   [tecpetBlock.id]: tecpetBlockSchema,
   [blinkBlock.id]: blinkBlockSchema,
   [tecpetAiBlock.id]: tecpetAiBlockSchema,
+  [tecpetGatewayBlock.id]: tecpetGatewayBlockSchema,
+  [gmailBlock.id]: gmailBlockSchema,
 } as const;
 
 export const forgedBlockSchema = z.discriminatedUnion("type", [
@@ -85,6 +91,8 @@ export const forgedBlockSchema = z.discriminatedUnion("type", [
   deepSeekBlockSchema,
   tecpetBlockSchema,
   tecpetAiBlockSchema,
+  tecpetGatewayBlockSchema,
   blinkBlockSchema,
+  gmailBlockSchema,
 ]);
 export type ForgedBlock = z.infer<typeof forgedBlockSchema>;
