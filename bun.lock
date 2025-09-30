@@ -638,7 +638,7 @@
         "partysocket": "1.0.2",
         "postcss": "8.5.3",
         "solid-element": "1.9.1",
-        "solid-js": "1.9.5",
+        "solid-js": "1.9.8",
         "tailwindcss": "3.4.17",
         "tsup": "8.5.0",
       },
@@ -5601,7 +5601,7 @@
 
     "solid-element": ["solid-element@1.9.1", "", { "dependencies": { "component-register": "^0.8.7" }, "peerDependencies": { "solid-js": "^1.9.3" } }, "sha512-baJy6Qz27oAUgkPlqOf3Y+7RsBiuVQrS51Nrh1ddDbrqrNPvJbIvehpUsTzLNFb2ZHIoHuNnDg330go/ZKcRdg=="],
 
-    "solid-js": ["solid-js@1.9.5", "", { "dependencies": { "csstype": "^3.1.0", "seroval": "^1.1.0", "seroval-plugins": "^1.1.0" } }, "sha512-ogI3DaFcyn6UhYhrgcyRAMbu/buBJitYQASZz5WzfQVPP10RD2AbCoRZ517psnezrasyCbWzIxZ6kVqet768xw=="],
+    "solid-js": ["solid-js@1.9.8", "", { "dependencies": { "csstype": "^3.1.0", "seroval": "~1.3.0", "seroval-plugins": "~1.3.0" } }, "sha512-zF9Whfqk+s8wWuyDKnE7ekl+dJburjdZq54O6X1k4XChA57uZ5FOauYAa0s4I44XkBOM3CZmPrZC0DGjH9fKjQ=="],
 
     "sonner": ["sonner@1.7.4", "", { "peerDependencies": { "react": "^18.0.0 || ^19.0.0 || ^19.0.0-rc", "react-dom": "^18.0.0 || ^19.0.0 || ^19.0.0-rc" } }, "sha512-DIS8z4PfJRbIyfVFDVnK9rO3eYDtse4Omcm6bt0oEr5/jtLgysmjuBl1frJ9E/EQZrFmKx2A8m/s5s9CRXIzhw=="],
 
@@ -6542,6 +6542,8 @@
     "@tanstack/react-start-plugin/zod": ["zod@3.25.73", "", {}, "sha512-fuIKbQAWQl22Ba5d1quwEETQYjqnpKVyZIWAhbnnHgnDd3a+z4YgEfkI5SZ2xMELnLAXo/Flk2uXgysZNf0uaA=="],
 
     "@tanstack/react-start-server/h3": ["h3@1.13.0", "", { "dependencies": { "cookie-es": "^1.2.2", "crossws": ">=0.2.0 <0.4.0", "defu": "^6.1.4", "destr": "^2.0.3", "iron-webcrypto": "^1.2.1", "ohash": "^1.1.4", "radix3": "^1.1.2", "ufo": "^1.5.4", "uncrypto": "^0.1.3", "unenv": "^1.10.0" } }, "sha512-vFEAu/yf8UMUcB4s43OaDaigcqpQd14yanmOsn+NcRX3/guSKncyE2rOYhq8RIchgJrPSs/QiIddnTTR1ddiAg=="],
+
+    "@tanstack/router-devtools-core/solid-js": ["solid-js@1.9.5", "", { "dependencies": { "csstype": "^3.1.0", "seroval": "^1.1.0", "seroval-plugins": "^1.1.0" } }, "sha512-ogI3DaFcyn6UhYhrgcyRAMbu/buBJitYQASZz5WzfQVPP10RD2AbCoRZ517psnezrasyCbWzIxZ6kVqet768xw=="],
 
     "@tanstack/router-generator/prettier": ["prettier@3.6.2", "", { "bin": { "prettier": "bin/prettier.cjs" } }, "sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ=="],
 
