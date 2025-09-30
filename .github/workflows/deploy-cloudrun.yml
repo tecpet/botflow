@@ -2,12 +2,13 @@ name: Deploy to Cloud Run
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master2 ]
 
 env:
   PROJECT_ID: botflow-builder
   REGION: us-west1
   REPOSITORY: us-west1-docker.pkg.dev/tecpet-cloud/botflow
+  BRANCH: master2
 
 jobs:
   deploy:
@@ -24,9 +25,9 @@ jobs:
     steps:
       - name: 🔧 Configurar variáveis do scope
         run: |
-          echo "SERVICE_NAME=botflow-${{ matrix.scope }}" >> $GITHUB_ENV
-          echo "IMAGE_NAME=botflow-${{ matrix.scope }}" >> $GITHUB_ENV
-          echo "SCOPE=${{ matrix.scope }}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=botflow-${{ matrix.scope }}-dev" >> $GITHUB_ENV
+          echo "IMAGE_NAME=botflow-${{ matrix.scope }}-dev" >> $GITHUB_ENV
+          echo "SCOPE=${{ matrix.scope }}-dev" >> $GITHUB_ENV
 
       - name: 🔄 Checkout do repositório
         uses: actions/checkout@v4
@@ -64,7 +65,7 @@ jobs:
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           echo "TAG_NAME=v$NEW_VERSION" >> $GITHUB_ENV
-          git push origin master --follow-tags
+          git push origin ${{ env.BRANCH }} --follow-tags
           echo "🚀 Nova versão: $NEW_VERSION"
 
       - name: 🔍 Obter versão atual
