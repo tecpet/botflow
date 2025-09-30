@@ -8,7 +8,7 @@ env:
   PROJECT_ID: botflow-builder
   REGION: us-west1
   REPOSITORY: us-west1-docker.pkg.dev/tecpet-cloud/botflow
-  BRANCH: new-master
+  BRANCH: master-old
 
 jobs:
   deploy:
