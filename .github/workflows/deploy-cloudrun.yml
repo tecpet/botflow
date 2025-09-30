@@ -102,8 +102,8 @@ jobs:
           username: oauth2accesstoken
           password: ${{ steps.auth.outputs.access_token }}
 
-      - name: 🏗️ Build e push da imagem Docker
-        if: steps.check-changes.outputs.skip == 'false'
+      - name: 🏗️ Build e push da imagem Docker (Builder)
+        if: steps.check-changes.outputs.skip == 'false' && matrix.scope == 'builder'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -117,6 +117,20 @@ jobs:
           cache-to: |
             type=gha,mode=max
             type=registry,ref=${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:cache,mode=max
+          tags: |
+            ${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }}
+            ${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: 🏗️ Build e push da imagem Docker (Viewer - Sem Cache)
+        if: steps.check-changes.outputs.skip == 'false' && matrix.scope == 'viewer'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          no-cache: true
+          build-args: |
+            SCOPE=${{ env.SCOPE }}
           tags: |
             ${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }}
             ${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
