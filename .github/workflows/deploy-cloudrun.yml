@@ -27,7 +27,7 @@ jobs:
         run: |
           echo "SERVICE_NAME=botflow-${{ matrix.scope }}-dev" >> $GITHUB_ENV
           echo "IMAGE_NAME=botflow-${{ matrix.scope }}-dev" >> $GITHUB_ENV
-          echo "SCOPE=${{ matrix.scope }}-dev" >> $GITHUB_ENV
+          echo "SCOPE=${{ matrix.scope }}" >> $GITHUB_ENV
 
       - name: 🔄 Checkout do repositório
         uses: actions/checkout@v4
