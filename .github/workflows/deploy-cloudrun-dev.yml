@@ -1,0 +1,165 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ master-work ]
+
+env:
+  PROJECT_ID: botflow-builder
+  REGION: us-west1
+  REPOSITORY: us-west1-docker.pkg.dev/tecpet-cloud/botflow
+  BRANCH: master-work
+
+jobs:
+  deploy:
+    name: Build, Release e Deploy (${{ matrix.scope }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scope: [builder, viewer]
+
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: 🔧 Configurar variáveis do scope
+        run: |
+          echo "SERVICE_NAME=botflow-${{ matrix.scope }}-dev" >> $GITHUB_ENV
+          echo "IMAGE_NAME=botflow-${{ matrix.scope }}" >> $GITHUB_ENV
+          echo "SCOPE=${{ matrix.scope }}" >> $GITHUB_ENV
+
+      - name: 🔄 Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔧 Usar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 🧠 Configurar Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 🔍 Verificar se há mudanças desde a última tag
+        id: check-changes
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            CHANGES=$(git log "$LAST_TAG"..HEAD --oneline | wc -l)
+            if [ "$CHANGES" -eq 0 ]; then
+              echo "No changes since last tag. Skipping release."
+              echo "skip=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+          echo "skip=false" >> $GITHUB_OUTPUT
+
+      - name: 🚀 Bump version e criar tag
+        if: steps.check-changes.outputs.skip == 'false' && matrix.scope == 'builder'
+        run: |
+          npm version patch
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "TAG_NAME=v$NEW_VERSION" >> $GITHUB_ENV
+          git push origin ${{ env.BRANCH }} --follow-tags
+          echo "🚀 Nova versão: $NEW_VERSION"
+
+      - name: 🔍 Obter versão atual
+        if: steps.check-changes.outputs.skip == 'false' && matrix.scope == 'viewer'
+        run: |
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "TAG_NAME=v$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: 📜 Gerar changelog simples
+        if: steps.check-changes.outputs.skip == 'false' && matrix.scope == 'builder'
+        run: |
+          echo "🚀 Nova versão v${{ env.NEW_VERSION }}" > changelog.md
+          echo "" >> changelog.md
+          git log $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")..HEAD --pretty=format:"- %s" --no-merges >> changelog.md || echo "- Release inicial" > changelog.md
+
+      - name: 🔐 Autenticar no Google Cloud
+        if: steps.check-changes.outputs.skip == 'false'
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          token_format: access_token
+
+      - name: 🛠️ Configurar Docker Buildx
+        if: steps.check-changes.outputs.skip == 'false'
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🐳 Configurar Docker para Artifact Registry
+        if: steps.check-changes.outputs.skip == 'false'
+        uses: docker/login-action@v3
+        with:
+          registry: us-west1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - name: 🏗️ Build e push da imagem Docker
+        if: steps.check-changes.outputs.skip == 'false'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          build-args: |
+            SCOPE=${{ env.SCOPE }}
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:cache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:cache,mode=max
+          tags: |
+            ${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }}
+            ${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: 🚀 Deploy no Cloud Run
+        if: steps.check-changes.outputs.skip == 'false'
+        run: |
+          echo "🚀 Fazendo deploy no Cloud Run..."
+          IMAGE_URI="${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }}"
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image=$IMAGE_URI \
+            --region=${{ env.REGION }}
+          
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "✅ Deploy realizado com sucesso!"
+
+      - name: 🌐 Obter URL do Cloud Run
+        if: steps.check-changes.outputs.skip == 'false'
+        id: url
+        run: |
+          URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: 🚀 Criar release no GitHub
+        if: steps.check-changes.outputs.skip == 'false' && matrix.scope == 'builder'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: 🎉 Release ${{ env.TAG_NAME }}
+          body_path: changelog.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📋 Resumo do deployment
+        if: steps.check-changes.outputs.skip == 'false'
+        run: |
+          echo "🎉 Deploy do ${{ matrix.scope }} realizado com sucesso!"
+          echo "📦 Versão: ${{ env.NEW_VERSION }}"
+          echo "🔧 Scope: ${{ matrix.scope }}"
+          echo "🐳 Imagem: ${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.NEW_VERSION }}"
+          echo "🌐 URL: ${{ steps.url.outputs.url }}"
+          if [ "${{ matrix.scope }}" == "builder" ]; then
+            echo "📝 Release: https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG_NAME }}"
+          fi
