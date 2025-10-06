@@ -1,8 +1,9 @@
 name: Monthly job
 
 on:
-  schedule:
-    - cron: "30 6 1 * *"
+  push:
+    tags:
+      - "INACTIVATE"
 
 jobs:
   clean:
