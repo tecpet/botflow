@@ -9,6 +9,7 @@ env:
   REGION: us-west1
   REPOSITORY: us-west1-docker.pkg.dev/tecpet-cloud/botflow
   BRANCH: list-rollback
+  NEW_VERSION: dev
 
 jobs:
   deploy:
