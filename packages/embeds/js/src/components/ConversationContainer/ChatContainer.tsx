@@ -678,6 +678,7 @@ const addNewChunk =
   };
 
 const sanitizeMessages = (messages: ContinueChatResponse["messages"]) => {
+  console.log('MESSAGES', messages);
   return messages.filter((message) => {
     return (
       message.type !== "text" ||
