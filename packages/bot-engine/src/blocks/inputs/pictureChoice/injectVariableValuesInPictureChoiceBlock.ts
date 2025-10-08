@@ -56,18 +56,6 @@ export const injectVariableValuesInPictureChoiceBlock = (
         ? [pictureSrcsVariable.value]
         : pictureSrcsVariable.value;
 
-    const valuesVariable = block.options.dynamicItems.valuesVariableId
-      ? (variables.find(
-          (variable) =>
-            variable.id === block.options?.dynamicItems?.valuesVariableId &&
-            isDefined(variable.value),
-        ) as VariableWithValue | undefined)
-      : undefined;
-    const valuesVariableValues =
-      typeof valuesVariable?.value === "string"
-        ? [valuesVariable.value]
-        : valuesVariable?.value;
-
     return {
       ...deepParseVariables(block, { variables, sessionStore }),
       items: variableValues.filter(isDefined).map((pictureSrc, idx) => ({
@@ -75,7 +63,6 @@ export const injectVariableValuesInPictureChoiceBlock = (
         blockId: block.id,
         pictureSrc,
         title: titlesVariableValues?.[idx] ?? "",
-        value: valuesVariableValues?.[idx] ?? "",
         description: descriptionsVariableValues?.[idx] ?? "",
       })),
     };

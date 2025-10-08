@@ -20,7 +20,6 @@ export const PictureChoiceNode = ({ block, indices }: Props) => {
 
   return (
     <Stack w="90%">
-      {block.options?.dynamicItems?.isEnabled && dynamicVariableName ? (
         <Wrap spacing={1}>
           <Text>
             {t("blocks.inputs.picture.settings.dynamicVariables.display.label")}
@@ -34,9 +33,6 @@ export const PictureChoiceNode = ({ block, indices }: Props) => {
             )}
           </Text>
         </Wrap>
-      ) : (
-        <ItemNodesList block={block} indices={indices} />
-      )}
       {block.options?.variableId ? (
         <SetVariableLabel
           variableId={block.options.variableId}

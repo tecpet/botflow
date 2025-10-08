@@ -53,15 +53,6 @@ export const PictureChoiceSettings = ({ options, onOptionsChange }: Props) => {
       },
     });
 
-  const updateDynamicItemsValuesVariable = (variable?: Variable) =>
-    onOptionsChange({
-      ...options,
-      dynamicItems: {
-        ...options?.dynamicItems,
-        valuesVariableId: variable?.id,
-      },
-    });
-
   const updateDynamicItemsDescriptionsVariable = (variable?: Variable) =>
     onOptionsChange({
       ...options,
@@ -130,15 +121,6 @@ export const PictureChoiceSettings = ({ options, onOptionsChange }: Props) => {
           <VariableSearchInput
             initialVariableId={options?.dynamicItems?.titlesVariableId}
             onSelectVariable={updateDynamicItemsTitlesVariable}
-          />
-        </Stack>
-        <Stack>
-          <FormLabel mb="0" htmlFor="variable">
-            {t("blocks.inputs.picture.settings.dynamicItems.titles.value")}
-          </FormLabel>
-          <VariableSearchInput
-            initialVariableId={options?.dynamicItems?.valuesVariableId}
-            onSelectVariable={updateDynamicItemsValuesVariable}
           />
         </Stack>
         <Stack>
