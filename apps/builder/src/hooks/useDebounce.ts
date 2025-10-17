@@ -1,12 +1,11 @@
 import { useEffect } from "react";
 import { useDebouncedCallback } from "use-debounce";
 
-const defaultDebounceTimeout = 1000;
-
 export const useDebounce = <Args extends unknown[], Return>(
   fn: (...args: Args) => Return,
+  debounceTimeout: number,
 ) => {
-  const debouncedFn = useDebouncedCallback(fn, defaultDebounceTimeout);
+  const debouncedFn = useDebouncedCallback(fn, debounceTimeout);
 
   useEffect(
     () => () => {

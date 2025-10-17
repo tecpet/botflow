@@ -1,8 +1,9 @@
 import { Stack } from "@chakra-ui/react";
 import { defaultRedirectOptions } from "@typebot.io/blocks-logic/redirect/constants";
 import type { RedirectBlock } from "@typebot.io/blocks-logic/redirect/schema";
-import { TextInput } from "@/components/inputs";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Switch } from "@typebot.io/ui/components/Switch";
+import { TextInput } from "@/components/inputs/TextInput";
 
 type Props = {
   options: RedirectBlock["options"];
@@ -24,11 +25,13 @@ export const RedirectSettings = ({ options, onOptionsChange }: Props) => {
         placeholder="Type a URL..."
         onChange={handleUrlChange}
       />
-      <SwitchWithLabel
-        label="Open in new tab"
-        initialValue={options?.isNewTab ?? defaultRedirectOptions.isNewTab}
-        onCheckChange={handleIsNewTabChange}
-      />
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={options?.isNewTab ?? defaultRedirectOptions.isNewTab}
+          onCheckedChange={handleIsNewTabChange}
+        />
+        <Field.Label>Open in new tab</Field.Label>
+      </Field.Root>
     </Stack>
   );
 };

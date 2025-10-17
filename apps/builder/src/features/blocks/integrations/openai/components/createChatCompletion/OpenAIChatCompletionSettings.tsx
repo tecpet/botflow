@@ -1,14 +1,8 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
+import { Stack, Text } from "@chakra-ui/react";
 import type { ChatCompletionOpenAIOptions } from "@typebot.io/blocks-integrations/openai/schema";
-import { NumberInput } from "@/components/inputs";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Field } from "@typebot.io/ui/components/Field";
+import { BasicNumberInput } from "@/components/inputs/BasicNumberInput";
 import { TableList } from "@/components/TableList";
 import { TextLink } from "@/components/TextLink";
 import { ModelsDropdown } from "../ModelsDropdown";
@@ -82,16 +76,15 @@ export const OpenAIChatCompletionSettings = ({
             type="gpt"
             onChange={updateModel}
           />
-          <Accordion allowMultiple>
-            <AccordionItem>
-              <AccordionButton>
+          <Accordion.Root>
+            <Accordion.Item>
+              <Accordion.Trigger>
                 <Text w="full" textAlign="left">
                   Messages
                 </Text>
-                <AccordionIcon />
-              </AccordionButton>
+              </Accordion.Trigger>
 
-              <AccordionPanel pt="4">
+              <Accordion.Panel>
                 <TableList
                   initialItems={options.messages}
                   onItemsChange={updateMessages}
@@ -101,35 +94,35 @@ export const OpenAIChatCompletionSettings = ({
                 >
                   {(props) => <ChatCompletionMessageItem {...props} />}
                 </TableList>
-              </AccordionPanel>
-            </AccordionItem>
-            <AccordionItem>
-              <AccordionButton>
+              </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item>
+              <Accordion.Trigger>
                 <Text w="full" textAlign="left">
                   Advanced settings
                 </Text>
-                <AccordionIcon />
-              </AccordionButton>
-              <AccordionPanel>
-                <NumberInput
-                  label="Temperature"
-                  placeholder="1"
-                  max={2}
-                  min={0}
-                  step={0.1}
-                  defaultValue={options.advancedSettings?.temperature}
-                  onValueChange={updateTemperature}
-                />
-              </AccordionPanel>
-            </AccordionItem>
-            <AccordionItem>
-              <AccordionButton>
+              </Accordion.Trigger>
+              <Accordion.Panel>
+                <Field.Root>
+                  <Field.Label>Temperature</Field.Label>
+                  <BasicNumberInput
+                    placeholder="1"
+                    max={2}
+                    min={0}
+                    step={0.1}
+                    defaultValue={options.advancedSettings?.temperature}
+                    onValueChange={updateTemperature}
+                  />
+                </Field.Root>
+              </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item>
+              <Accordion.Trigger>
                 <Text w="full" textAlign="left">
                   Save answer
                 </Text>
-                <AccordionIcon />
-              </AccordionButton>
-              <AccordionPanel pt="4">
+              </Accordion.Trigger>
+              <Accordion.Panel>
                 <TableList
                   initialItems={options.responseMapping}
                   onItemsChange={updateResponseMapping}
@@ -138,9 +131,9 @@ export const OpenAIChatCompletionSettings = ({
                 >
                   {(props) => <ChatCompletionResponseItem {...props} />}
                 </TableList>
-              </AccordionPanel>
-            </AccordionItem>
-          </Accordion>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion.Root>
         </>
       )}
     </Stack>

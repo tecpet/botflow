@@ -1,15 +1,11 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Stack,
-} from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
 import { defaultWaitOptions } from "@typebot.io/blocks-logic/wait/constants";
 import type { WaitBlock } from "@typebot.io/blocks-logic/wait/schema";
-import { TextInput } from "@/components/inputs";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Field } from "@typebot.io/ui/components/Field";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
+import { TextInput } from "@/components/inputs/TextInput";
 
 type Props = {
   options: WaitBlock["options"];
@@ -32,24 +28,26 @@ export const WaitSettings = ({ options, onOptionsChange }: Props) => {
         defaultValue={options?.secondsToWaitFor}
         onChange={handleSecondsChange}
       />
-      <Accordion allowToggle>
-        <AccordionItem>
-          <AccordionButton justifyContent="space-between">
-            Advanced
-            <AccordionIcon />
-          </AccordionButton>
-          <AccordionPanel py="4">
-            <SwitchWithLabel
-              label="Pause the flow"
-              moreInfoContent="When enabled, the flow is paused until the client sends another message. This is automatic on the web bot."
-              initialValue={
-                options?.shouldPause ?? defaultWaitOptions.shouldPause
-              }
-              onCheckChange={updateShouldPause}
-            />
-          </AccordionPanel>
-        </AccordionItem>
-      </Accordion>
+      <Accordion.Root>
+        <Accordion.Item>
+          <Accordion.Trigger>Advanced</Accordion.Trigger>
+          <Accordion.Panel>
+            <Field.Root className="flex-row items-center">
+              <Switch
+                checked={options?.shouldPause ?? defaultWaitOptions.shouldPause}
+                onCheckedChange={updateShouldPause}
+              />
+              <Field.Label>
+                Pause the flow{" "}
+                <MoreInfoTooltip>
+                  When enabled, the flow is paused until the client sends
+                  another message. This is automatic on the web bot.
+                </MoreInfoTooltip>
+              </Field.Label>
+            </Field.Root>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion.Root>
     </Stack>
   );
 };

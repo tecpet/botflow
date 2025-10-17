@@ -1,6 +1,5 @@
 import {
   HStack,
-  Image,
   SimpleGrid,
   Stack,
   Text,
@@ -10,7 +9,7 @@ import { useTranslate } from "@tolgee/react";
 import { Button } from "@typebot.io/ui/components/Button";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ColorPicker } from "../ColorPicker";
-import { TextInput } from "../inputs";
+import { TextInput } from "../inputs/TextInput";
 import { iconNames } from "./iconNames";
 
 const batchSize = 200;
@@ -200,5 +199,5 @@ const Icon = ({ name, color }: { name: string; color: string }) => {
 
   if (!svg) return null;
 
-  return <Image src={dataUri} alt={name} w="full" h="full" />;
+  return <img src={dataUri} alt={name} className="size-full" />;
 };

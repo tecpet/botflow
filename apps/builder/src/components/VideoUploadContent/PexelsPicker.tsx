@@ -1,19 +1,18 @@
 import {
-  Alert,
-  AlertIcon,
   Box,
   Flex,
   Grid,
   GridItem,
   HStack,
-  Image,
-  Link,
-  Spinner,
   Stack,
   Text,
 } from "@chakra-ui/react";
 import { env } from "@typebot.io/env";
 import { isDefined } from "@typebot.io/lib/utils";
+import { Alert } from "@typebot.io/ui/components/Alert";
+import { LoaderCircleIcon } from "@typebot.io/ui/icons/LoaderCircleIcon";
+import { TriangleAlertIcon } from "@typebot.io/ui/icons/TriangleAlertIcon";
+import { cx } from "@typebot.io/ui/lib/cva";
 import {
   createClient,
   type ErrorResponse,
@@ -21,8 +20,8 @@ import {
   type Videos,
 } from "pexels";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { TextInput } from "../inputs";
 import { BasicSelect } from "../inputs/BasicSelect";
+import { TextInput } from "../inputs/TextInput";
 import { PexelsLogo } from "../logos/PexelsLogo";
 import { TextLink } from "../TextLink";
 
@@ -145,9 +144,9 @@ export const PexelsPicker = ({ onVideoSelect }: Props) => {
               width="full"
             />
           </Stack>
-          <Link isExternal href={`https://www.pexels.com`}>
+          <a target="_blank" href={`https://www.pexels.com`} rel="noopener">
             <PexelsLogo width="100px" height="40px" />
-          </Link>
+          </a>
         </HStack>
         <HStack w="full">
           <BasicSelect
@@ -171,10 +170,10 @@ export const PexelsPicker = ({ onVideoSelect }: Props) => {
         </HStack>
       </Stack>
       {isDefined(error) && (
-        <Alert status="error">
-          <AlertIcon />
-          {error}
-        </Alert>
+        <Alert.Root variant="error">
+          <TriangleAlertIcon />
+          <Alert.Description>{error}</Alert.Description>
+        </Alert.Root>
       )}
       <Stack overflowY="auto" maxH="400px" ref={scrollContainer}>
         {videos.length > 0 && (
@@ -194,7 +193,7 @@ export const PexelsPicker = ({ onVideoSelect }: Props) => {
         )}
         {isFetching && (
           <Flex justifyContent="center" py="4">
-            <Spinner />
+            <LoaderCircleIcon className="animate-spin" />
           </Flex>
         )}
       </Stack>
@@ -242,16 +241,14 @@ const PexelsVideo = ({ video, onClick }: PexelsVideoProps) => {
       onMouseLeave={() => setIsImageHovered(false)}
     >
       {
-        <Image
-          objectFit="cover"
+        <img
+          className={cx(
+            "object-cover size-full cursor-pointer rounded-md aspect-[4/3]",
+            video.height < video.width ? "size-full" : undefined,
+          )}
           src={thumbnailImage}
           alt={`Pexels Video ${video.id}`}
           onClick={onClick}
-          rounded="md"
-          h={video.height < video.width ? "100%" : undefined}
-          w={video.height < video.width ? "100%" : undefined}
-          aspectRatio={4 / 3}
-          cursor="pointer"
         />
       }
       <Box

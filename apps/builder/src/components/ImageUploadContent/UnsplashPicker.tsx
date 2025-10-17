@@ -1,28 +1,25 @@
 import {
-  Alert,
-  AlertIcon,
   Box,
   Flex,
   Grid,
   GridItem,
   HStack,
-  Image,
-  Link,
-  Spinner,
   Stack,
   Text,
   useColorModeValue,
 } from "@chakra-ui/react";
 import { env } from "@typebot.io/env";
 import { isDefined } from "@typebot.io/lib/utils";
+import { Alert } from "@typebot.io/ui/components/Alert";
+import { LoaderCircleIcon } from "@typebot.io/ui/icons/LoaderCircleIcon";
+import { TriangleAlertIcon } from "@typebot.io/ui/icons/TriangleAlertIcon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createApi } from "unsplash-js";
 import type { Basic as UnsplashPhoto } from "unsplash-js/dist/methods/photos/types";
-import { TextInput } from "../inputs";
+import { TextInput } from "../inputs/TextInput";
 import { UnsplashLogo } from "../logos/UnsplashLogo";
 import { TextLink } from "../TextLink";
 
-/* eslint-disable @next/next/no-img-element */
 const api = createApi({
   accessKey: env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY ?? "",
 });
@@ -145,18 +142,19 @@ export const UnsplashPicker = ({ imageSize, onImageSelect }: Props) => {
           forceDebounce
           width="full"
         />
-        <Link
-          isExternal
+        <a
+          target="_blank"
           href={`https://unsplash.com/?utm_source=${env.NEXT_PUBLIC_UNSPLASH_APP_NAME}&utm_medium=referral`}
+          rel="noopener"
         >
           <UnsplashLogo width="80px" fill={unsplashLogoFillColor} />
-        </Link>
+        </a>
       </HStack>
       {isDefined(error) && (
-        <Alert status="error">
-          <AlertIcon />
-          {error}
-        </Alert>
+        <Alert.Root variant="error">
+          <TriangleAlertIcon />
+          <Alert.Description>{error}</Alert.Description>
+        </Alert.Root>
       )}
       <Stack overflowY="auto" maxH="400px" ref={scrollContainer}>
         {images.length > 0 && (
@@ -179,7 +177,7 @@ export const UnsplashPicker = ({ imageSize, onImageSelect }: Props) => {
         )}
         {isFetching && (
           <Flex justifyContent="center" py="4">
-            <Spinner />
+            <LoaderCircleIcon className="animate-spin" />
           </Flex>
         )}
       </Stack>
@@ -204,14 +202,11 @@ const UnsplashImage = ({ image, onClick }: UnsplashImageProps) => {
       onMouseLeave={() => setIsImageHovered(false)}
       h="full"
     >
-      <Image
-        objectFit="cover"
+      <img
         src={urls.thumb}
         alt={alt_description ?? "Unsplash image"}
+        className="object-cover h-full cursor-pointer rounded-md"
         onClick={onClick}
-        rounded="md"
-        h="100%"
-        cursor="pointer"
       />
       <Box
         pos="absolute"

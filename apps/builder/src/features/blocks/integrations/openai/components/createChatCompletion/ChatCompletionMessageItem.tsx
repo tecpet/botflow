@@ -6,9 +6,9 @@ import {
 } from "@typebot.io/blocks-integrations/openai/constants";
 import type { ChatCompletionOpenAIOptions } from "@typebot.io/blocks-integrations/openai/schema";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { Textarea } from "@/components/inputs";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { DebouncedTextareaWithVariablesButton } from "@/components/inputs/DebouncedTextarea";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import type { TableListItemProps } from "@/components/TableList";
 
 type Props = TableListItemProps<
@@ -87,17 +87,16 @@ const ChatCompletionMessageItemContent = ({
     case "user":
     case "system":
       return (
-        <Textarea
+        <DebouncedTextareaWithVariablesButton
           defaultValue={item.content}
-          onChange={onChangeSingleMessageContent}
+          onValueChange={onChangeSingleMessageContent}
           placeholder="Content"
-          minH="150px"
         />
       );
     case "Dialogue":
       return (
         <Stack alignItems="flex-end">
-          <VariableSearchInput
+          <VariablesCombobox
             initialVariableId={item.dialogueVariableId}
             onSelectVariable={onChangeDialogueVariableId}
             placeholder="Dialogue variable"

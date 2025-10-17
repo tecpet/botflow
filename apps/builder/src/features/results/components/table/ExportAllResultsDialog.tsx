@@ -8,13 +8,16 @@ import { parseBlockIdVariableIdMap } from "@typebot.io/results/parseBlockIdVaria
 import { parseColumnsOrder } from "@typebot.io/results/parseColumnsOrder";
 import { parseResultHeader } from "@typebot.io/results/parseResultHeader";
 import type { Typebot } from "@typebot.io/typebot/schemas/typebot";
+import { Alert } from "@typebot.io/ui/components/Alert";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Dialog } from "@typebot.io/ui/components/Dialog";
+import { Field } from "@typebot.io/ui/components/Field";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
+import { InformationSquareIcon } from "@typebot.io/ui/icons/InformationSquareIcon";
 import { unparse } from "papaparse";
 import { useState } from "react";
-import { AlertInfo } from "@/components/AlertInfo";
 import { DownloadIcon } from "@/components/icons";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { trpc, trpcClient } from "@/lib/queryClient";
 import { toast } from "@/lib/toast";
@@ -57,14 +60,14 @@ export const ExportAllResultsDialog = ({ isOpen, onClose }: Props) => {
       timeFilter: "allTime",
     });
     const allResults = [];
-    let cursor: string | undefined;
+    let cursor: any = 0;
     setExportProgressValue(0);
     do {
       try {
         const { results, nextCursor } = await queryClient.fetchQuery(
           trpc.results.getResults.queryOptions({
             typebotId,
-            limit: 100,
+            limit: 500,
             cursor,
             timeFilter: "allTime",
           }),
@@ -151,17 +154,26 @@ export const ExportAllResultsDialog = ({ isOpen, onClose }: Props) => {
       <Dialog.Popup className="max-w-md">
         <Dialog.Title>Export all results</Dialog.Title>
         <Dialog.CloseButton />
-        <SwitchWithLabel
-          label="Include deleted blocks"
-          moreInfoContent="Blocks from previous bot version that have been deleted"
-          initialValue={false}
-          onCheckChange={setAreDeletedBlocksIncluded}
-        />
-        {totalResults > 2000 ? (
-          <AlertInfo>The export may take a while.</AlertInfo>
-        ) : (
-          <AlertInfo>The export may take up to 1 minute.</AlertInfo>
-        )}
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={areDeletedBlocksIncluded}
+            onCheckedChange={setAreDeletedBlocksIncluded}
+          />
+          <Field.Label>
+            Include deleted blocks{" "}
+            <MoreInfoTooltip>
+              Blocks from previous bot version that have been deleted
+            </MoreInfoTooltip>
+          </Field.Label>
+        </Field.Root>
+        <Alert.Root>
+          <InformationSquareIcon />
+          <Alert.Description>
+            {totalResults > 2000
+              ? "The export may take a while."
+              : "The export may take up to 1 minute."}
+          </Alert.Description>
+        </Alert.Root>
         {isExportLoading && (
           <Stack>
             <Text>Fetching all results...</Text>

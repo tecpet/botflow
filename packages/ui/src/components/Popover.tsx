@@ -21,17 +21,19 @@ const Root = ({
 }) => (
   <PopoverPrimitive.Root
     open={isOpen}
-    onOpenChange={(open, event) => {
+    onOpenChange={(open, details) => {
       if (!open) {
-        if (!onClose || !event) return;
+        if (!onClose || !details) return;
         if (
           isOpen !== undefined &&
-          (event.target as HTMLElement)?.closest("[data-base-ui-click-trigger]")
+          (details.event.target as HTMLElement)?.closest(
+            "[data-base-ui-click-trigger]",
+          )
         )
           return;
-        onClose(event);
+        onClose(details.event);
       } else {
-        onOpen?.(event);
+        onOpen?.(details.event);
       }
     }}
     onOpenChangeComplete={(open) => (open ? undefined : onCloseComplete?.())}
@@ -41,13 +43,16 @@ const Root = ({
 
 const Trigger = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Trigger>,
-  PopoverPrimitive.Trigger.Props
->(({ children, className, ...props }, ref) => (
+  Omit<PopoverPrimitive.Trigger.Props, "nativeButton" | "render"> & {
+    render?: (props: any) => React.ReactElement | React.ReactElement;
+  }
+>(({ className, render, children, ...props }, ref) => (
   <PopoverPrimitive.Trigger
     {...props}
     className={className}
     ref={ref}
     nativeButton={false}
+    render={render ?? <span />}
   >
     {children}
   </PopoverPrimitive.Trigger>

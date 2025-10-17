@@ -1,28 +1,18 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Flex,
-  FormLabel,
-  HStack,
-  Stack,
-  Switch,
-  Text,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { Flex, HStack, Stack, Text, useDisclosure } from "@chakra-ui/react";
 import { defaultSendEmailOptions } from "@typebot.io/blocks-integrations/sendEmail/constants";
 import type { SendEmailBlock } from "@typebot.io/blocks-integrations/sendEmail/schema";
 import { env } from "@typebot.io/env";
 import { isNotEmpty } from "@typebot.io/lib/utils";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Field } from "@typebot.io/ui/components/Field";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
 import type { Workspace } from "@typebot.io/workspaces/schemas";
-import { Textarea, TextInput } from "@/components/inputs";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { DebouncedTextareaWithVariablesButton } from "@/components/inputs/DebouncedTextarea";
+import { TextInput } from "@/components/inputs/TextInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import { isFreePlan } from "@/features/billing/helpers/isFreePlan";
 import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
@@ -144,15 +134,10 @@ export const SendEmailSettings = ({ options, onOptionsChange }: Props) => {
         defaultValue={options?.recipients?.join(", ")}
         placeholder="email1@gmail.com, email2@gmail.com"
       />
-      <Accordion allowToggle>
-        <AccordionItem>
-          <AccordionButton>
-            <HStack justifyContent="space-between" w="full">
-              <Text>Advanced</Text>
-              <AccordionIcon />
-            </HStack>
-          </AccordionButton>
-          <AccordionPanel as={Stack}>
+      <Accordion.Root>
+        <Accordion.Item>
+          <Accordion.Trigger>Advanced</Accordion.Trigger>
+          <Accordion.Panel>
             <TextInput
               label="Reply to:"
               onChange={handleReplyToChange}
@@ -171,23 +156,30 @@ export const SendEmailSettings = ({ options, onOptionsChange }: Props) => {
               defaultValue={options?.bcc?.join(", ") ?? ""}
               placeholder="email1@gmail.com, email2@gmail.com"
             />
-          </AccordionPanel>
-        </AccordionItem>
-      </Accordion>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion.Root>
 
       <TextInput
         label="Subject:"
         onChange={handleSubjectChange}
         defaultValue={options?.subject ?? ""}
       />
-      <SwitchWithLabel
-        label={"Custom content"}
-        moreInfoContent="By default, the email body will be a recap of what has been collected so far. You can override it with this option."
-        initialValue={
-          options?.isCustomBody ?? defaultSendEmailOptions.isCustomBody
-        }
-        onCheckChange={handleIsCustomBodyChange}
-      />
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={
+            options?.isCustomBody ?? defaultSendEmailOptions.isCustomBody
+          }
+          onCheckedChange={handleIsCustomBodyChange}
+        />
+        <Field.Label>
+          Custom content{" "}
+          <MoreInfoTooltip>
+            By default, the email body will be a recap of what has been
+            collected so far. You can override it with this option.
+          </MoreInfoTooltip>
+        </Field.Label>
+      </Field.Root>
       {options?.isCustomBody && (
         <Stack>
           <Flex justifyContent="space-between">
@@ -195,11 +187,10 @@ export const SendEmailSettings = ({ options, onOptionsChange }: Props) => {
             <HStack>
               <Text fontSize="sm">Text</Text>
               <Switch
-                size="sm"
-                isChecked={
+                checked={
                   options.isBodyCode ?? defaultSendEmailOptions.isBodyCode
                 }
-                onChange={handleIsBodyCodeChange}
+                onCheckedChange={handleIsBodyCodeChange}
               />
               <Text fontSize="sm">Code</Text>
             </HStack>
@@ -212,29 +203,24 @@ export const SendEmailSettings = ({ options, onOptionsChange }: Props) => {
               withLineNumbers={true}
             />
           ) : (
-            <Textarea
-              data-testid="body-input"
-              minH="300px"
-              onChange={handleBodyChange}
+            <DebouncedTextareaWithVariablesButton
+              onValueChange={handleBodyChange}
               defaultValue={options.body ?? ""}
             />
           )}
-          <Stack pb="4">
-            <HStack>
-              <FormLabel m="0" htmlFor="variable">
-                Attach files:
-              </FormLabel>
+          <Field.Root className="pb-4">
+            <Field.Label>
+              Attach files
               <MoreInfoTooltip>
                 The selected variable should have previously collected files
                 from the File upload input block.
               </MoreInfoTooltip>
-            </HStack>
-
-            <VariableSearchInput
+            </Field.Label>
+            <VariablesCombobox
               initialVariableId={options?.attachmentsVariableId}
               onSelectVariable={handleChangeAttachmentVariable}
             />
-          </Stack>
+          </Field.Root>
         </Stack>
       )}
 

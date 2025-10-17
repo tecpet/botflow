@@ -2,11 +2,13 @@ import { FormLabel, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultRatingInputOptions } from "@typebot.io/blocks-inputs/rating/constants";
 import type { RatingInputBlock } from "@typebot.io/blocks-inputs/rating/schema";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { NumberInput, TextInput } from "@/components/inputs";
+import { BasicNumberInput } from "@/components/inputs/BasicNumberInput";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { TextInput } from "@/components/inputs/TextInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
   options: RatingInputBlock["options"];
@@ -87,23 +89,30 @@ export const RatingInputSettings = ({ options, onOptionsChange }: Props) => {
       </Stack>
 
       {buttonType === "Numbers" && (
-        <NumberInput
-          defaultValue={options?.startsAt ?? defaultRatingInputOptions.startsAt}
-          onValueChange={updateStartsAt}
-          label="Starts at"
-          direction="row"
-        />
+        <Field.Root className="flex-row">
+          <Field.Label>Starts at</Field.Label>
+          <BasicNumberInput
+            defaultValue={
+              options?.startsAt ?? defaultRatingInputOptions.startsAt
+            }
+            onValueChange={updateStartsAt}
+          />
+        </Field.Root>
       )}
 
       {buttonType === "Icons" && (
-        <SwitchWithLabel
-          label={t("blocks.inputs.rating.settings.customIcon.label")}
-          initialValue={
-            options?.customIcon?.isEnabled ??
-            defaultRatingInputOptions.customIcon.isEnabled
-          }
-          onCheckChange={handleCustomIconCheck}
-        />
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={
+              options?.customIcon?.isEnabled ??
+              defaultRatingInputOptions.customIcon.isEnabled
+            }
+            onCheckedChange={handleCustomIconCheck}
+          />
+          <Field.Label>
+            {t("blocks.inputs.rating.settings.customIcon.label")}
+          </Field.Label>
+        </Field.Root>
       )}
       {buttonType === "Icons" && options?.customIcon?.isEnabled && (
         <TextInput
@@ -136,14 +145,15 @@ export const RatingInputSettings = ({ options, onOptionsChange }: Props) => {
           "blocks.inputs.rating.settings.extremelyLikely.placeholder.label",
         )}
       />
-      <SwitchWithLabel
-        label={t("blocks.inputs.rating.settings.oneClickSubmit.label")}
-        moreInfoContent={t(
-          "blocks.inputs.rating.settings.oneClickSubmit.infoText.label",
-        )}
-        initialValue={isOneClickSubmitEnabled}
-        onCheckChange={handleOneClickSubmitChange}
-      />
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={isOneClickSubmitEnabled}
+          onCheckedChange={handleOneClickSubmitChange}
+        />
+        <Field.Label>
+          {t("blocks.inputs.rating.settings.oneClickSubmit.label")}
+        </Field.Label>
+      </Field.Root>
       {!isOneClickSubmitEnabled && (
         <TextInput
           label={t("blocks.inputs.settings.button.label")}
@@ -153,16 +163,15 @@ export const RatingInputSettings = ({ options, onOptionsChange }: Props) => {
           onChange={handleButtonLabelChange}
         />
       )}
-      <Stack>
-        <FormLabel mb="0" htmlFor="variable">
+      <Field.Root>
+        <Field.Label>
           {t("blocks.inputs.settings.saveAnswer.label")}
-        </FormLabel>
-        <VariableSearchInput
-          className="flex-1"
+        </Field.Label>
+        <VariablesCombobox
           initialVariableId={options?.variableId}
           onSelectVariable={handleVariableChange}
         />
-      </Stack>
+      </Field.Root>
     </Stack>
   );
 };

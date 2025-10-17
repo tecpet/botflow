@@ -1,12 +1,12 @@
-import { FormLabel, Stack } from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultDateInputOptions } from "@typebot.io/blocks-inputs/date/constants";
 import type { DateInputBlock } from "@typebot.io/blocks-inputs/date/schema";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { TextInput } from "@/components/inputs";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
+import { TextInput } from "@/components/inputs/TextInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
   options: DateInputBlock["options"];
@@ -43,32 +43,44 @@ export const DateInputSettings = ({ options, onOptionsChange }: Props) => {
 
   return (
     <Stack spacing={4}>
-      <SwitchWithRelatedSettings
-        label={t("blocks.inputs.date.settings.isRange.label")}
-        initialValue={options?.isRange ?? defaultDateInputOptions.isRange}
-        onCheckChange={updateIsRange}
-      >
-        <TextInput
-          label={t("blocks.inputs.date.settings.from.label")}
-          defaultValue={
-            options?.labels?.from ?? defaultDateInputOptions.labels.from
-          }
-          onChange={updateFromLabel}
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={options?.isRange ?? defaultDateInputOptions.isRange}
+            onCheckedChange={updateIsRange}
+          />
+          <Field.Label className="font-medium">
+            {t("blocks.inputs.date.settings.isRange.label")}
+          </Field.Label>
+        </Field.Root>
+        {(options?.isRange ?? defaultDateInputOptions.isRange) && (
+          <>
+            <TextInput
+              label={t("blocks.inputs.date.settings.from.label")}
+              defaultValue={
+                options?.labels?.from ?? defaultDateInputOptions.labels.from
+              }
+              onChange={updateFromLabel}
+            />
+            <TextInput
+              label={t("blocks.inputs.date.settings.to.label")}
+              defaultValue={
+                options?.labels?.to ?? defaultDateInputOptions.labels.to
+              }
+              onChange={updateToLabel}
+            />
+          </>
+        )}
+      </Field.Container>
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={options?.hasTime ?? defaultDateInputOptions.hasTime}
+          onCheckedChange={updateHasTime}
         />
-        <TextInput
-          label={t("blocks.inputs.date.settings.to.label")}
-          defaultValue={
-            options?.labels?.to ??
-            t("blocks.inputs.date.settings.toInputValue.label")
-          }
-          onChange={updateToLabel}
-        />
-      </SwitchWithRelatedSettings>
-      <SwitchWithLabel
-        label={t("blocks.inputs.date.settings.withTime.label")}
-        initialValue={options?.hasTime ?? defaultDateInputOptions.hasTime}
-        onCheckChange={updateHasTime}
-      />
+        <Field.Label>
+          {t("blocks.inputs.date.settings.withTime.label")}
+        </Field.Label>
+      </Field.Root>
       <TextInput
         label={t("blocks.inputs.settings.button.label")}
         defaultValue={
@@ -102,15 +114,15 @@ export const DateInputSettings = ({ options, onOptionsChange }: Props) => {
         placeholder={options?.hasTime ? "dd/MM/yyyy HH:mm" : "dd/MM/yyyy"}
         onChange={updateFormat}
       />
-      <Stack>
-        <FormLabel mb="0" htmlFor="variable">
+      <Field.Root>
+        <Field.Label>
           {t("blocks.inputs.settings.saveAnswer.label")}
-        </FormLabel>
-        <VariableSearchInput
+        </Field.Label>
+        <VariablesCombobox
           initialVariableId={options?.variableId}
           onSelectVariable={updateVariable}
         />
-      </Stack>
+      </Field.Root>
     </Stack>
   );
 };

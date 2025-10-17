@@ -1,14 +1,4 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  FormControl,
-  FormLabel,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
+import { FormControl, FormLabel, Stack, Text } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import {
   defaultNumberInputButtonLabel,
@@ -24,11 +14,14 @@ import {
   type NumberInputBlock,
   numberInputOptionsSchema,
 } from "@typebot.io/blocks-inputs/number/schema";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Field } from "@typebot.io/ui/components/Field";
 import type { Variable } from "@typebot.io/variables/schemas";
 import { useEffect } from "react";
-import { NumberInput, TextInput } from "@/components/inputs";
+import { BasicNumberInput } from "@/components/inputs/BasicNumberInput";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { TextInput } from "@/components/inputs/TextInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import { currencies } from "../../payment/currencies";
 
 type Props = {
@@ -102,30 +95,37 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
         defaultValue={options?.labels?.button ?? defaultNumberInputButtonLabel}
         onChange={handleButtonLabelChange}
       />
-      <NumberInput
-        label={t("blocks.inputs.settings.min.label")}
-        defaultValue={options?.min}
-        onValueChange={handleMinChange}
-      />
-      <NumberInput
-        label={t("blocks.inputs.settings.max.label")}
-        defaultValue={options?.max}
-        onValueChange={handleMaxChange}
-      />
-      <NumberInput
-        label={t("blocks.inputs.number.settings.step.label")}
-        defaultValue={options?.step}
-        onValueChange={handleStepChange}
-      />
-      <Accordion allowToggle>
-        <AccordionItem>
-          <AccordionButton>
+      <Field.Root>
+        <Field.Label>{t("blocks.inputs.settings.min.label")}</Field.Label>
+        <BasicNumberInput
+          defaultValue={options?.min}
+          onValueChange={handleMinChange}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>{t("blocks.inputs.settings.max.label")}</Field.Label>
+        <BasicNumberInput
+          defaultValue={options?.max}
+          onValueChange={handleMaxChange}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.number.settings.step.label")}
+        </Field.Label>
+        <BasicNumberInput
+          defaultValue={options?.step}
+          onValueChange={handleStepChange}
+        />
+      </Field.Root>
+      <Accordion.Root>
+        <Accordion.Item>
+          <Accordion.Trigger>
             <Text w="full" textAlign="left">
               {t("blocks.inputs.number.settings.format.label")}
             </Text>
-            <AccordionIcon />
-          </AccordionButton>
-          <AccordionPanel>
+          </Accordion.Trigger>
+          <Accordion.Panel>
             <BasicSelect
               items={Object.values(NumberInputStyle).map((style) => ({
                 label: t(numberStyleTranslationKeys[style]),
@@ -176,18 +176,18 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
                 onChange={handleLocaleChange}
               />
             </FormControl>
-          </AccordionPanel>
-        </AccordionItem>
-      </Accordion>
-      <Stack>
-        <FormLabel mb="0" htmlFor="variable">
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion.Root>
+      <Field.Root>
+        <Field.Label>
           {t("blocks.inputs.settings.saveAnswer.label")}
-        </FormLabel>
-        <VariableSearchInput
+        </Field.Label>
+        <VariablesCombobox
           initialVariableId={options?.variableId}
           onSelectVariable={handleVariableChange}
         />
-      </Stack>
+      </Field.Root>
     </Stack>
   );
 };

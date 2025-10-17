@@ -4,12 +4,14 @@ import type { PictureChoiceItem } from "@typebot.io/blocks-inputs/pictureChoice/
 import { LogicalOperator } from "@typebot.io/conditions/constants";
 import type { Condition } from "@typebot.io/conditions/schemas";
 import { Button } from "@typebot.io/ui/components/Button";
+import { Field } from "@typebot.io/ui/components/Field";
 import { Popover } from "@typebot.io/ui/components/Popover";
+import { Switch } from "@typebot.io/ui/components/Switch";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import { ImageUploadContent } from "@/components/ImageUploadContent";
-import { Textarea, TextInput } from "@/components/inputs";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
+import { DebouncedTextareaWithVariablesButton } from "@/components/inputs/DebouncedTextarea";
+import { TextInput } from "@/components/inputs/TextInput";
 import { ConditionForm } from "@/features/blocks/logic/condition/components/ConditionForm";
-import { useOpenControls } from "@/hooks/useOpenControls";
 
 type Props = {
   workspaceId: string;
@@ -99,11 +101,20 @@ export const PictureChoiceItemSettings = ({
         defaultValue={item.title}
         onChange={updateTitle}
       />
-      <Textarea
-        label={t("blocks.inputs.settings.description.label")}
-        defaultValue={item.description}
-        onChange={updateDescription}
-      />
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.settings.description.label")}
+        </Field.Label>
+        <Field.Control
+          render={(props) => (
+            <DebouncedTextareaWithVariablesButton
+              {...props}
+              defaultValue={item.description}
+              onValueChange={updateDescription}
+            />
+          )}
+        />
+      </Field.Root>
       <TextInput
         label={t("blocks.inputs.internalValue.label")}
         moreInfoTooltip={t(
@@ -112,21 +123,28 @@ export const PictureChoiceItemSettings = ({
         defaultValue={item.value}
         onChange={updateValue}
       />
-      <SwitchWithRelatedSettings
-        label={t("blocks.inputs.settings.displayCondition.label")}
-        initialValue={item.displayCondition?.isEnabled ?? false}
-        onCheckChange={updateIsDisplayConditionEnabled}
-      >
-        <ConditionForm
-          condition={
-            item.displayCondition?.condition ?? {
-              comparisons: [],
-              logicalOperator: LogicalOperator.AND,
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={item.displayCondition?.isEnabled ?? false}
+            onCheckedChange={updateIsDisplayConditionEnabled}
+          />
+          <Field.Label className="font-medium">
+            {t("blocks.inputs.settings.displayCondition.label")}
+          </Field.Label>
+        </Field.Root>
+        {(item.displayCondition?.isEnabled ?? false) && (
+          <ConditionForm
+            condition={
+              item.displayCondition?.condition ?? {
+                comparisons: [],
+                logicalOperator: LogicalOperator.AND,
+              }
             }
-          }
-          onConditionChange={updateDisplayCondition}
-        />
-      </SwitchWithRelatedSettings>
+            onConditionChange={updateDisplayCondition}
+          />
+        )}
+      </Field.Container>
     </Stack>
   );
 };

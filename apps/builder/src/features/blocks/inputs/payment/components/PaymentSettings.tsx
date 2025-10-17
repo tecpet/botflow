@@ -1,14 +1,4 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  HStack,
-  Stack,
-  Text,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { HStack, Stack, Text, useDisclosure } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import {
   defaultPaymentInputOptions,
@@ -18,9 +8,10 @@ import type {
   PaymentAddress,
   PaymentInputBlock,
 } from "@typebot.io/blocks-inputs/payment/schema";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
 import { useMemo } from "react";
-import { TextInput } from "@/components/inputs";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { TextInput } from "@/components/inputs/TextInput";
 import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { currencies } from "../currencies";
@@ -174,13 +165,12 @@ export const PaymentSettings = ({ options, onOptionsChange }: Props) => {
           options?.labels?.success ?? defaultPaymentInputOptions.labels.success
         }
       />
-      <Accordion allowToggle>
-        <AccordionItem>
-          <AccordionButton justifyContent="space-between">
+      <Accordion.Root>
+        <Accordion.Item>
+          <Accordion.Trigger>
             {t("blocks.inputs.payment.settings.additionalInformation.label")}
-            <AccordionIcon />
-          </AccordionButton>
-          <AccordionPanel py={4} as={Stack} spacing="6">
+          </Accordion.Trigger>
+          <Accordion.Panel>
             <TextInput
               label={t("blocks.inputs.settings.description.label")}
               defaultValue={options?.additionalInformation?.description}
@@ -217,9 +207,9 @@ export const PaymentSettings = ({ options, onOptionsChange }: Props) => {
               address={options?.additionalInformation?.address}
               onAddressChange={updateAddress}
             />
-          </AccordionPanel>
-        </AccordionItem>
-      </Accordion>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion.Root>
 
       <CreateStripeCredentialsDialog
         isOpen={isOpen}

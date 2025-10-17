@@ -1,11 +1,12 @@
-import { FormLabel, Stack } from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultPictureChoiceOptions } from "@typebot.io/blocks-inputs/pictureChoice/constants";
 import type { PictureChoiceBlock } from "@typebot.io/blocks-inputs/pictureChoice/schema";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { TextInput } from "@/components/inputs";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
+import { TextInput } from "@/components/inputs/TextInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
   options?: PictureChoiceBlock["options"];
@@ -64,87 +65,114 @@ export const PictureChoiceSettings = ({ options, onOptionsChange }: Props) => {
 
   return (
     <Stack spacing={4}>
-      <SwitchWithRelatedSettings
-        label={t("blocks.inputs.settings.isSearchable.label")}
-        initialValue={
-          options?.isSearchable ?? defaultPictureChoiceOptions.isSearchable
-        }
-        onCheckChange={updateIsSearchable}
-      >
-        <TextInput
-          label={t("blocks.inputs.settings.input.placeholder.label")}
-          defaultValue={
-            options?.searchInputPlaceholder ??
-            defaultPictureChoiceOptions.searchInputPlaceholder
-          }
-          onChange={updateSearchInputPlaceholder}
-        />
-      </SwitchWithRelatedSettings>
-      <SwitchWithRelatedSettings
-        label={t("blocks.inputs.settings.multipleChoice.label")}
-        initialValue={
-          options?.isMultipleChoice ??
-          defaultPictureChoiceOptions.isMultipleChoice
-        }
-        onCheckChange={updateIsMultiple}
-      >
-        <TextInput
-          label={t("blocks.inputs.settings.submitButton.label")}
-          defaultValue={
-            options?.buttonLabel ?? defaultPictureChoiceOptions.buttonLabel
-          }
-          onChange={updateButtonLabel}
-        />
-      </SwitchWithRelatedSettings>
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={
+              options?.isSearchable ?? defaultPictureChoiceOptions.isSearchable
+            }
+            onCheckedChange={updateIsSearchable}
+          />
+          <Field.Label className="font-medium">
+            {t("blocks.inputs.settings.isSearchable.label")}
+          </Field.Label>
+        </Field.Root>
+        {(options?.isSearchable ??
+          defaultPictureChoiceOptions.isSearchable) && (
+          <TextInput
+            label={t("blocks.inputs.settings.input.placeholder.label")}
+            defaultValue={
+              options?.searchInputPlaceholder ??
+              defaultPictureChoiceOptions.searchInputPlaceholder
+            }
+            onChange={updateSearchInputPlaceholder}
+          />
+        )}
+      </Field.Container>
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={
+              options?.isMultipleChoice ??
+              defaultPictureChoiceOptions.isMultipleChoice
+            }
+            onCheckedChange={updateIsMultiple}
+          />
+          <Field.Label className="font-medium">
+            {t("blocks.inputs.settings.multipleChoice.label")}
+          </Field.Label>
+        </Field.Root>
+        {(options?.isMultipleChoice ??
+          defaultPictureChoiceOptions.isMultipleChoice) && (
+          <TextInput
+            label={t("blocks.inputs.settings.submitButton.label")}
+            defaultValue={
+              options?.buttonLabel ?? defaultPictureChoiceOptions.buttonLabel
+            }
+            onChange={updateButtonLabel}
+          />
+        )}
+      </Field.Container>
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={
+              options?.dynamicItems?.isEnabled ??
+              defaultPictureChoiceOptions.dynamicItems.isEnabled
+            }
+            onCheckedChange={updateIsDynamicItemsEnabled}
+          />
+          <Field.Label className="font-medium">
+            {t("blocks.inputs.picture.settings.dynamicItems.label")}
+          </Field.Label>
+        </Field.Root>
+        {(options?.dynamicItems?.isEnabled ??
+          defaultPictureChoiceOptions.dynamicItems.isEnabled) && (
+          <>
+            <Field.Root>
+              <Field.Label>
+                {t("blocks.inputs.picture.settings.dynamicItems.images.label")}
+              </Field.Label>
+              <VariablesCombobox
+                initialVariableId={options?.dynamicItems?.pictureSrcsVariableId}
+                onSelectVariable={updateDynamicItemsPictureSrcsVariable}
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>
+                {t("blocks.inputs.picture.settings.dynamicItems.titles.label")}
+              </Field.Label>
+              <VariablesCombobox
+                initialVariableId={options?.dynamicItems?.titlesVariableId}
+                onSelectVariable={updateDynamicItemsTitlesVariable}
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>
+                {t(
+                  "blocks.inputs.picture.settings.dynamicItems.descriptions.label",
+                )}
+              </Field.Label>
+              <VariablesCombobox
+                initialVariableId={
+                  options?.dynamicItems?.descriptionsVariableId
+                }
+                onSelectVariable={updateDynamicItemsDescriptionsVariable}
+              />
+            </Field.Root>
+          </>
+        )}
+      </Field.Container>
 
-      <SwitchWithRelatedSettings
-        label={t("blocks.inputs.picture.settings.dynamicItems.label")}
-        initialValue={
-          options?.dynamicItems?.isEnabled ??
-          defaultPictureChoiceOptions.dynamicItems.isEnabled
-        }
-        onCheckChange={updateIsDynamicItemsEnabled}
-      >
-        <Stack>
-          <FormLabel mb="0" htmlFor="variable">
-            {t("blocks.inputs.picture.settings.dynamicItems.images.label")}
-          </FormLabel>
-          <VariableSearchInput
-            initialVariableId={options?.dynamicItems?.pictureSrcsVariableId}
-            onSelectVariable={updateDynamicItemsPictureSrcsVariable}
-          />
-        </Stack>
-        <Stack>
-          <FormLabel mb="0" htmlFor="variable">
-            {t("blocks.inputs.picture.settings.dynamicItems.titles.label")}
-          </FormLabel>
-          <VariableSearchInput
-            initialVariableId={options?.dynamicItems?.titlesVariableId}
-            onSelectVariable={updateDynamicItemsTitlesVariable}
-          />
-        </Stack>
-        <Stack>
-          <FormLabel mb="0" htmlFor="variable">
-            {t(
-              "blocks.inputs.picture.settings.dynamicItems.descriptions.label",
-            )}
-          </FormLabel>
-          <VariableSearchInput
-            initialVariableId={options?.dynamicItems?.descriptionsVariableId}
-            onSelectVariable={updateDynamicItemsDescriptionsVariable}
-          />
-        </Stack>
-      </SwitchWithRelatedSettings>
-
-      <Stack>
-        <FormLabel mb="0" htmlFor="variable">
+      <Field.Root>
+        <Field.Label>
           {t("blocks.inputs.settings.saveAnswer.label")}
-        </FormLabel>
-        <VariableSearchInput
+        </Field.Label>
+        <VariablesCombobox
           initialVariableId={options?.variableId}
           onSelectVariable={updateSaveVariable}
         />
-      </Stack>
+      </Field.Root>
     </Stack>
   );
 };

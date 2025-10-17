@@ -1,14 +1,9 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Box,
-  Stack,
-} from "@chakra-ui/react";
+import { Box, Stack } from "@chakra-ui/react";
 import type { GoogleAnalyticsBlock } from "@typebot.io/blocks-integrations/googleAnalytics/schema";
-import { NumberInput, TextInput } from "@/components/inputs";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Field } from "@typebot.io/ui/components/Field";
+import { BasicNumberInput } from "@/components/inputs/BasicNumberInput";
+import { TextInput } from "@/components/inputs/TextInput";
 
 type Props = {
   options?: GoogleAnalyticsBlock["options"];
@@ -57,17 +52,14 @@ export const GoogleAnalyticsSettings = ({
         placeholder="Example: conversion"
         onChange={updateAction}
       />
-      <Accordion allowToggle>
-        <AccordionItem>
-          <h2>
-            <AccordionButton>
-              <Box flex="1" textAlign="left">
-                Advanced
-              </Box>
-              <AccordionIcon />
-            </AccordionButton>
-          </h2>
-          <AccordionPanel pb={4} as={Stack} spacing="6">
+      <Accordion.Root>
+        <Accordion.Item>
+          <Accordion.Trigger>
+            <Box flex="1" textAlign="left">
+              Advanced
+            </Box>
+          </Accordion.Trigger>
+          <Accordion.Panel>
             <TextInput
               label="Event category:"
               defaultValue={options?.category}
@@ -80,13 +72,14 @@ export const GoogleAnalyticsSettings = ({
               placeholder="Example: Campaign Z"
               onChange={updateLabel}
             />
-            <NumberInput
-              direction="column"
-              label="Event value:"
-              defaultValue={options?.value}
-              placeholder="Example: 0"
-              onValueChange={updateValue}
-            />
+            <Field.Root>
+              <Field.Label>Event value:</Field.Label>
+              <BasicNumberInput
+                defaultValue={options?.value}
+                onValueChange={updateValue}
+                placeholder="Example: 0"
+              />
+            </Field.Root>
             <TextInput
               label="Send to:"
               moreInfoTooltip="Useful to send a conversion event to Google Ads"
@@ -94,9 +87,9 @@ export const GoogleAnalyticsSettings = ({
               placeholder="Example: AW-123456789"
               onChange={updateSendTo}
             />
-          </AccordionPanel>
-        </AccordionItem>
-      </Accordion>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion.Root>
     </Stack>
   );
 };

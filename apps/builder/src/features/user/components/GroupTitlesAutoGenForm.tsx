@@ -7,13 +7,13 @@ import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { defaultGroupTitleGenPrompt } from "@typebot.io/user/constants";
 import type { GroupTitlesAutoGeneration } from "@typebot.io/user/schemas";
 import { useState } from "react";
-import { Textarea } from "@/components/inputs";
+import { BasicAutocompleteInput } from "@/components/inputs/BasicAutocompleteInput";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { DebouncedTextarea } from "@/components/inputs/DebouncedTextarea";
 import { CredentialsCreateDialog } from "@/features/credentials/components/CredentialsCreateDialog";
 import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
 import { BlockIcon } from "@/features/editor/components/BlockIcon";
 import { BlockLabel } from "@/features/editor/components/BlockLabel";
-import { AutocompleteInput } from "@/features/forge/components/ForgeAutocompleteInput";
 import { ForgeSelectInput } from "@/features/forge/components/ForgeSelectInput";
 import { useForgedBlock } from "@/features/forge/hooks/useForgedBlock";
 
@@ -88,7 +88,7 @@ export const GroupTitlesAutoGenForm = ({
           />
         )}
         {blockDef && credentialsId && actionDef?.aiGenerate && (
-          <HStack>
+          <HStack gap={0}>
             {actionDef.aiGenerate.models.type === "dynamic" ? (
               <ForgeSelectInput
                 defaultValue={model}
@@ -105,7 +105,7 @@ export const GroupTitlesAutoGenForm = ({
                 }}
               />
             ) : (
-              <AutocompleteInput
+              <BasicAutocompleteInput
                 items={actionDef.aiGenerate.models.items}
                 defaultValue={model}
                 onChange={(value) => {
@@ -121,16 +121,22 @@ export const GroupTitlesAutoGenForm = ({
           </HStack>
         )}
       </HStack>
-      <Textarea
-        label="Prompt:"
-        withVariableButton={false}
-        defaultValue={prompt ?? defaultGroupTitleGenPrompt}
-        onChange={(value) => {
-          onChange({
-            prompt: value,
-          });
-        }}
-      />
+      <Field.Root>
+        <Field.Label>Prompt:</Field.Label>
+        <Field.Control
+          render={(props) => (
+            <DebouncedTextarea
+              {...props}
+              defaultValue={prompt ?? defaultGroupTitleGenPrompt}
+              onValueChange={(value) => {
+                onChange({
+                  prompt: value,
+                });
+              }}
+            />
+          )}
+        />
+      </Field.Root>
       <CredentialsCreateDialog
         type={credsCreatingType as Credentials["type"]}
         scope="user"

@@ -1,11 +1,4 @@
-import {
-  Alert,
-  AlertIcon,
-  FormLabel,
-  Stack,
-  Tag,
-  Text,
-} from "@chakra-ui/react";
+import { Stack, Tag, Text } from "@chakra-ui/react";
 import { isInputBlock } from "@typebot.io/blocks-core/helpers";
 import {
   defaultSetVariableOptions,
@@ -17,13 +10,19 @@ import {
 import type { SetVariableBlock } from "@typebot.io/blocks-logic/setVariable/schema";
 import { timeZones } from "@typebot.io/lib/timeZones";
 import { isDefined } from "@typebot.io/lib/utils";
+import { Alert } from "@typebot.io/ui/components/Alert";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Label } from "@typebot.io/ui/components/Label";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Radio, RadioGroup } from "@typebot.io/ui/components/RadioGroup";
+import { Switch } from "@typebot.io/ui/components/Switch";
+import { InformationSquareIcon } from "@typebot.io/ui/icons/InformationSquareIcon";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { Textarea, TextInput } from "@/components/inputs";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
-import { RadioButtons } from "@/components/inputs/RadioButtons";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { DebouncedTextareaWithVariablesButton } from "@/components/inputs/DebouncedTextarea";
+import { TextInput } from "@/components/inputs/TextInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import { WhatsAppLogo } from "@/components/logos/WhatsAppLogo";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 
@@ -77,16 +76,13 @@ export const SetVariableSettings = ({ options, onOptionsChange }: Props) => {
 
   return (
     <Stack spacing={4}>
-      <Stack>
-        <FormLabel mb="0" htmlFor="variable-search">
-          Search or create variable:
-        </FormLabel>
-        <VariableSearchInput
+      <Field.Root>
+        <Field.Label>Search or create variable:</Field.Label>
+        <VariablesCombobox
           onSelectVariable={updateVariableId}
           initialVariableId={options?.variableId}
-          id="variable-search"
         />
-      </Stack>
+      </Field.Root>
 
       <Stack spacing="4">
         <Stack>
@@ -107,13 +103,20 @@ export const SetVariableSettings = ({ options, onOptionsChange }: Props) => {
         </Stack>
 
         {selectedVariable && !isSessionOnly && !isLinkedToAnswer && (
-          <SwitchWithLabel
-            key={selectedVariable.id}
-            label="Save in results"
-            moreInfoContent="By default, the variable is saved only for the user chat session. Check this option if you want to also store the variable in the typebot Results table."
-            initialValue={!selectedVariable.isSessionVariable}
-            onCheckChange={updateIsSessionVariable}
-          />
+          <Field.Root className="flex-row items-center">
+            <Switch
+              checked={!selectedVariable.isSessionVariable}
+              onCheckedChange={updateIsSessionVariable}
+            />
+            <Field.Label>
+              Save in results{" "}
+              <MoreInfoTooltip>
+                By default, the variable is saved only for the user chat
+                session. Check this option if you want to also store the
+                variable in the typebot Results table.
+              </MoreInfoTooltip>
+            </Field.Label>
+          </Field.Root>
         )}
         <SetVariableValue options={options} onOptionsChange={onOptionsChange} />
       </Stack>
@@ -222,26 +225,40 @@ const SetVariableValue = ({
     case undefined:
       return (
         <>
-          <SwitchWithLabel
-            label="Execute on client"
-            moreInfoContent="Check this if you need access to client-only variables like `window` or `document`."
-            initialValue={
-              options?.isExecutedOnClient ??
-              defaultSetVariableOptions.isExecutedOnClient
-            }
-            onCheckChange={updateClientExecution}
-          />
+          <Field.Root className="flex-row items-center">
+            <Switch
+              checked={
+                options?.isExecutedOnClient ??
+                defaultSetVariableOptions.isExecutedOnClient
+              }
+              onCheckedChange={updateClientExecution}
+            />
+            <Field.Label>
+              Execute on client{" "}
+              <MoreInfoTooltip>
+                Check this if you need access to client-only variables like
+                `window` or `document`.
+              </MoreInfoTooltip>
+            </Field.Label>
+          </Field.Root>
           <Stack>
-            <RadioButtons
-              size="sm"
-              options={["Text", "Code"]}
+            <RadioGroup
+              onValueChange={(value) => updateIsCode(value as "Text" | "Code")}
               defaultValue={
                 (options?.isCode ?? defaultSetVariableOptions.isCode)
                   ? "Code"
                   : "Text"
               }
-              onSelect={updateIsCode}
-            />
+            >
+              <Label className="hover:bg-gray-2/50 rounded-md p-2 border flex-1 flex justify-center">
+                <Radio value="Text" className="hidden" />
+                Text
+              </Label>
+              <Label className="hover:bg-gray-2/50 rounded-md p-2 border flex-1 flex justify-center">
+                <Radio value="Code" className="hidden" />
+                Code
+              </Label>
+            </RadioGroup>
             {options?.isCode ? (
               <Stack>
                 <TextInput
@@ -256,17 +273,18 @@ const SetVariableValue = ({
                   lang="javascript"
                   withLineNumbers={true}
                 />
-                <VariableSearchInput
-                  label="Save error"
-                  initialVariableId={options.saveErrorInVariableId}
-                  onSelectVariable={updateSaveErrorInVariableId}
-                />
+                <Field.Root>
+                  <Field.Label>Save error</Field.Label>
+                  <VariablesCombobox
+                    initialVariableId={options.saveErrorInVariableId}
+                    onSelectVariable={updateSaveErrorInVariableId}
+                  />
+                </Field.Root>
               </Stack>
             ) : (
-              <Textarea
+              <DebouncedTextareaWithVariablesButton
                 defaultValue={options?.expressionToEvaluate ?? ""}
-                onChange={updateExpression}
-                width="full"
+                onValueChange={updateExpression}
               />
             )}
           </Stack>
@@ -275,7 +293,7 @@ const SetVariableValue = ({
     case "Pop":
     case "Shift":
       return (
-        <VariableSearchInput
+        <VariablesCombobox
           initialVariableId={options.saveItemInVariableId}
           onSelectVariable={updateListVariableId}
           placeholder={
@@ -286,17 +304,17 @@ const SetVariableValue = ({
     case "Map item with same index": {
       return (
         <Stack p="2" rounded="md" borderWidth={1}>
-          <VariableSearchInput
+          <VariablesCombobox
             initialVariableId={options.mapListItemParams?.baseItemVariableId}
             onSelectVariable={updateItemVariableId}
             placeholder="Base item"
           />
-          <VariableSearchInput
+          <VariablesCombobox
             initialVariableId={options.mapListItemParams?.baseListVariableId}
             onSelectVariable={updateBaseListVariableId}
             placeholder="Base list"
           />
-          <VariableSearchInput
+          <VariablesCombobox
             initialVariableId={options.mapListItemParams?.targetListVariableId}
             onSelectVariable={updateTargetListVariableId}
             placeholder="Target list"
@@ -305,41 +323,46 @@ const SetVariableValue = ({
       );
     }
     case "Append value(s)": {
-      return <Textarea defaultValue={options.item} onChange={updateItem} />;
+      return (
+        <DebouncedTextareaWithVariablesButton
+          defaultValue={options.item}
+          onValueChange={updateItem}
+        />
+      );
     }
     case "Moment of the day": {
       return (
-        <Alert fontSize="sm">
-          <AlertIcon />
-          <Text>
+        <Alert.Root>
+          <InformationSquareIcon />
+          <Alert.Description>
             Will return either <Tag size="sm">morning</Tag>,{" "}
             <Tag size="sm">afternoon</Tag>,<Tag size="sm">evening</Tag> or{" "}
             <Tag size="sm">night</Tag> based on the current user time.
-          </Text>
-        </Alert>
+          </Alert.Description>
+        </Alert.Root>
       );
     }
 
     case "Environment name": {
       return (
-        <Alert fontSize="sm">
-          <AlertIcon />
-          <Text>
+        <Alert.Root>
+          <InformationSquareIcon />
+          <Alert.Description>
             Will return either <Tag size="sm">web</Tag> or{" "}
             <Tag size="sm">whatsapp</Tag>.
-          </Text>
-        </Alert>
+          </Alert.Description>
+        </Alert.Root>
       );
     }
     case "Device type": {
       return (
-        <Alert fontSize="sm">
-          <AlertIcon />
-          <Text>
+        <Alert.Root>
+          <InformationSquareIcon />
+          <Alert.Description>
             Will return either <Tag size="sm">desktop</Tag>,{" "}
             <Tag size="sm">tablet</Tag> or <Tag size="sm">mobile</Tag>.
-          </Text>
-        </Alert>
+          </Alert.Description>
+        </Alert.Root>
       );
     }
     case "Now":
