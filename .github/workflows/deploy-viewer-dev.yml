@@ -13,7 +13,8 @@ env:
   GKE_LOCATION: "us-central1"
   ARTIFACT_REGISTRY: "us-central1-docker.pkg.dev"
   IMAGE_NAME: "botflow-viewer"
-  K8S_MANIFEST_DIR: "k8s/dev"
+  K8S_MANIFEST_DIR: "k8s/dev/viewer/"
+  K8S_NAMESPACE: "tecpet-dev-app"
 
 jobs:
   build-and-push:
@@ -82,4 +83,4 @@ jobs:
 
     - name: "Deploy to GKE"
       run: |
-        kubectl apply -f "${{ env.K8S_MANIFEST_DIR }}/viewer-app.yaml" -n tecpet-dev-app
+        kubectl apply -f "${{ env.K8S_MANIFEST_DIR }}" -n ${{ env.K8S_NAMESPACE }}
