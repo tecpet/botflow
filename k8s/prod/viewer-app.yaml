@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: botflow-viewer-app
+  annotations:
+    secret.reloader.stakater.com/reload: "botflow-viewer-secrets"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: botflow-viewer-app
+  template:
+    metadata:
+      labels:
+        app: botflow-viewer-app
+        department: backend
+        environment: PROD
+    spec:
+      containers:
+      - name: botflow-viewer-app
+        image: IMAGE_PLACEHOLDER
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PORT
+          value: "3000"
+        envFrom:
+        - secretRef:
+            name: botflow-viewer-secrets
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+        resources:
+          requests:
+            cpu: "2000m"
+            memory: "2Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cloud.google.com/backend-config: '{"ports": {"80":"botflow-viewer-backendconfig"}}'
+  name: botflow-viewer-service
+spec:
+  type: ClusterIP
+  selector:
+    app: botflow-viewer-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
