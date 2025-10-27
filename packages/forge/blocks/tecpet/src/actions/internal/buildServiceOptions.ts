@@ -105,7 +105,7 @@ export const buildServiceOptions = createAction({
       try {
         const buildDescription = (entity: any) => {
           let finalDescription = "";
-          const price = entity.price
+          const price: string = entity.price
             ? `${formatAsCurrency(entity.price)}\n`
             : "";
 
@@ -125,18 +125,21 @@ export const buildServiceOptions = createAction({
           return finalDescription;
         };
 
-        const combosRaw =
+        const combosRaw: string[] =
           typeof options.combos === "string"
             ? JSON.parse(options.combos)
             : (options.combos as any);
-        const categoriesAndServicesRaw =
+
+        const categoriesAndServicesRaw: string[] =
           typeof options.categoriesAndServices === "string"
             ? JSON.parse(options.categoriesAndServices)
             : (options.categoriesAndServices as any);
 
-        const combos = combosRaw.map(JSON.parse);
+        const combos = combosRaw.map((combo) => JSON.parse(combo));
 
-        const categoriesAndServices = categoriesAndServicesRaw.map(JSON.parse);
+        const categoriesAndServices = categoriesAndServicesRaw.map((service) =>
+          JSON.parse(service),
+        );
 
         const serviceSelectionValueMode = options.serviceSelectionValueMode;
 
