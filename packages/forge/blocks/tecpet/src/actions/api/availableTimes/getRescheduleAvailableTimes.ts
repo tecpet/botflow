@@ -64,11 +64,17 @@ export const getRescheduleAvailableTimes = createAction({
 
         const booking: PaGetBookingResponse = JSON.parse(rawBooking as string);
 
-        const services: number[] = booking.services.map(
-          (service) => service.id,
-        );
+        const services: number[] = booking?.services
+          ? booking?.services?.map(
+              (service: { id: number; name: string }) => service.id,
+            )
+          : [];
 
-        const combos: number[] = booking.combos.map((combo) => combo.id);
+        const combos: number[] = booking?.combos
+          ? booking?.combos?.map(
+              (combo: { id: number; name: string }) => combo?.id,
+            )
+          : [];
 
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
