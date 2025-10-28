@@ -10,4 +10,4 @@ spec:
     requestPath: /
   customRequestHeaders:
     headers:
-    - "x-forwarded-host: {host_header}"
+    - "x-forwarded-host: botflow-viewer.tecpet.dev"
