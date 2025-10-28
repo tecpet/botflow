@@ -31,12 +31,20 @@ spec:
           httpGet:
             path: /
             port: 3000
+            httpHeaders:
+            - name: "X-Forwarded-Host"
+              value: "botflow-viewer.tecpet.dev"
           initialDelaySeconds: 240
           periodSeconds: 15
         livenessProbe:
           httpGet:
             path: /
             port: 3000
+            httpHeaders:
+            - name: "X-Forwarded-Host"
+              value: "botflow-viewer.tecpet.dev"
+          initialDelaySeconds: 240
+          periodSeconds: 15
         resources:
           requests:
             cpu: "500m"
