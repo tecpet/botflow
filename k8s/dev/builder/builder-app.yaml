@@ -29,13 +29,13 @@ spec:
             name: botflow-builder-secrets
         readinessProbe:
           httpGet:
-            path: /
+            path: /api/health
             port: 3000
           initialDelaySeconds: 240
           periodSeconds: 15
         livenessProbe:
           httpGet:
-            path: /
+            path: /api/health
             port: 3000
         resources:
           requests:

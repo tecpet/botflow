@@ -8,4 +8,4 @@ spec:
     checkIntervalSec: 30
     port: 3000
     type: HTTP
-    requestPath: /signin
+    requestPath: /api/health
