@@ -2,6 +2,7 @@ apiVersion: cloud.google.com/v1
 kind: BackendConfig
 metadata:
   name: botflow-builder-backendconfig
+  namespace: tecpet-dev-app
 spec:
   healthCheck:
     checkIntervalSec: 30
