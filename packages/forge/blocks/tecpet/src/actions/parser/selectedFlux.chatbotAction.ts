@@ -221,8 +221,18 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    allowCancelMessage: option.string.layout({
+      label: "Mensagem de cancelar agendamento",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
     allowChangeDateAndTime: option.string.layout({
       label: "Mudar data e horário do agendamento",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    allowChangeDateAndTimeMessage: option.string.layout({
+      label: "Mensagem de reagendamento",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -271,6 +281,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     timeSelectionBehaviorTimeDisplayMode,
     allowCancel,
     allowChangeDateAndTime,
+    allowCancelMessage,
+    allowChangeDateAndTimeMessage,
   }) => {
     const variables = [];
 
@@ -326,6 +338,9 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     if (showSendingInfo) variables.push(showSendingInfo);
     if (allowCancel) variables.push(allowCancel);
     if (allowChangeDateAndTime) variables.push(allowChangeDateAndTime);
+    if (allowCancelMessage) variables.push(allowCancelMessage);
+    if (allowChangeDateAndTimeMessage)
+      variables.push(allowChangeDateAndTimeMessage);
 
     return variables;
   },
@@ -370,19 +385,25 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
 
         /* ----- Edit booking ----- */
 
-        variables.set([
-          {
-            id: options.allowCancel as string,
-            value: editBooking?.allowCancel,
-          },
-        ]);
+        const editBookingVariables = [
+          [options.allowCancel as string, editBooking?.allowCancel],
+          [
+            options.allowCancelMessage as string,
+            editBooking?.allowCancel.message,
+          ],
+          [
+            options.allowChangeDateAndTime as string,
+            editBooking?.allowChangeDateAndTime,
+          ],
+          [
+            options.allowChangeDateAndTimeMessage as string,
+            editBooking?.allowChangeDateAndTime.message,
+          ],
+        ];
 
-        variables.set([
-          {
-            id: options.allowChangeDateAndTime as string,
-            value: editBooking?.allowChangeDateAndTime,
-          },
-        ]);
+        editBookingVariables.forEach(([id, value]) =>
+          setVar(id as string, value),
+        );
 
         /* ---- Pet Info ---- */
 
