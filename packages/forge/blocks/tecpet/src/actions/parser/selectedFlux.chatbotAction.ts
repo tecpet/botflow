@@ -386,18 +386,18 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
         /* ----- Edit booking ----- */
 
         const editBookingVariables = [
-          [options.allowCancel as string, editBooking?.allowCancel],
+          [options.allowCancel as string, editBooking?.allowCancel.enabled],
           [
             options.allowCancelMessage as string,
-            editBooking?.allowCancel.message,
+            editBooking?.allowCancel?.message,
           ],
           [
             options.allowChangeDateAndTime as string,
-            editBooking?.allowChangeDateAndTime,
+            editBooking?.allowChangeDateAndTime?.enabled,
           ],
           [
             options.allowChangeDateAndTimeMessage as string,
-            editBooking?.allowChangeDateAndTime.message,
+            editBooking?.allowChangeDateAndTime?.message,
           ],
         ];
 
