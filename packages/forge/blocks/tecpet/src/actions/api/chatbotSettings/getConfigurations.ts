@@ -141,6 +141,10 @@ export const getConfigurations = createAction({
                 id: options.newClientMessage as string,
                 value: result.newClientMessage,
               },
+              {
+                id: options.registeredClientMessage as string,
+                value: result.registeredClientMessage,
+              },
               { id: options.aiEnabled as string, value: result.aiEnabled },
               {
                 id: options.aiPersonality as string,
