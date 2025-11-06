@@ -13,7 +13,7 @@ import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 export type AvailableTimeType = PaGetAvailableTimesResponse & {
   dateISO: string; // 2025-06-11
   dateBR: string; // 11/06/2025
-  startStop: string; // 08:00 - 10:00
+  scheduleStartTime: string; // 08:00
 };
 
 export const getAvailableTimes = createAction({
@@ -155,7 +155,7 @@ export const getAvailableTimes = createAction({
                 ...t,
                 dateISO,
                 dateBR: formatBRDate(dateISO),
-                startStop: `${t.start} - ${t.stop}`,
+                scheduleStartTime: `${t.start}`,
               }),
             );
           }

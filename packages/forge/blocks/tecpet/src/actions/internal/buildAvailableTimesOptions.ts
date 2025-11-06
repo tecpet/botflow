@@ -1,3 +1,4 @@
+import type { PaGetAvailableTimesResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
 import type { AvailableTimeType } from "../api/availableTimes/getAvailableTimes";
@@ -62,17 +63,22 @@ export const buildAvailableTimesOptions = createAction({
   run: {
     server: async ({ options, variables }) => {
       try {
-        const availableTimesRaw: AvailableTimeType[] =
+        const availableTimesRaw: string[] =
           JSON.parse(options.availableTimes as string) ?? [];
 
-        const availableTimes = availableTimesRaw.map((item) =>
+        const availableTimes: Array<
+          PaGetAvailableTimesResponse & AvailableTimeType
+        > = availableTimesRaw.map((item) =>
           typeof item === "string" ? JSON.parse(item) : item,
         );
 
         availableTimes.push({
           id: "OTHER",
-          startStop: "PREFIRO OUTRA DATA",
+          scheduleStartTime: "PREFIRO OUTRA DATA",
           dateBR: "",
+          start: "",
+          dateISO: "",
+          stop: "",
         });
 
         variables.set([
@@ -82,7 +88,7 @@ export const buildAvailableTimesOptions = createAction({
           },
           {
             id: options.availableTimesStartAndStop as string,
-            value: availableTimes.map((t) => t.startStop),
+            value: availableTimes.map((t) => t.scheduleStartTime),
           },
           {
             id: options.availableTimesDates as string,

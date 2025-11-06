@@ -26,6 +26,7 @@ import { buildClientPetsSummary } from "./actions/internal/buildClientPetsSummar
 import { buildEmployeeOptions } from "./actions/internal/buildEmployeeOptions";
 import { buildSelectedAdditionals } from "./actions/internal/buildSelectedAdditionals";
 import { buildServiceOptions } from "./actions/internal/buildServiceOptions";
+import { showGuidanceOptions } from "./actions/internal/showGuidanceOptions";
 import { showSendingInfoItems } from "./actions/internal/showSendingInfoItems";
 import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedFlux.chatbotAction";
 import { parseSelectedFluxSettings } from "./actions/parser/selectedFlux.settings";
@@ -46,6 +47,7 @@ const buildActions = [
   buildAvailableTimesOptions,
   buildEmployeeOptions,
   showSendingInfoItems,
+  showGuidanceOptions,
   buildClientBookingsSummary,
   buildClientPetsSummary,
 ];

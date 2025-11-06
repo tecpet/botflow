@@ -210,6 +210,12 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       inputType: "variableDropdown",
     }),
 
+    guidanceOptions: option.string.layout({
+      label: "Direcionamento para cliente",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
     showSendingInfo: option.string.layout({
       label: "Mostrar informações para cliente",
       placeholder: "Selecione",
@@ -380,6 +386,15 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
           {
             id: options.sendingInfoItems as string,
             value: sendingInfoVariable,
+          },
+        ]);
+
+        const guidanceOptions = chatbotActionConfig.guidanceOptions;
+
+        variables.set([
+          {
+            id: options.guidanceOptions as string,
+            value: guidanceOptions,
           },
         ]);
 

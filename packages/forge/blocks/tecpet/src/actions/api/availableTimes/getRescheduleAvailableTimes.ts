@@ -124,7 +124,7 @@ export const getRescheduleAvailableTimes = createAction({
                 ...t,
                 dateISO,
                 dateBR: formatBRDate(dateISO),
-                startStop: `${t.start} - ${t.stop}`,
+                scheduleStartTime: `${t.start}`,
               }),
             );
           }
