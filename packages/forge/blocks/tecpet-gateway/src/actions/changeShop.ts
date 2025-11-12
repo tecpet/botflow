@@ -25,7 +25,7 @@ export const changeShop = createAction({
     server: async ({ credentials, options, variables, logs }) => {
       try {
         await ky
-          .post(`${credentials.baseUrl}/action`, {
+          .post(`${credentials.baseUrl}/session/changeShop`, {
             json: {
               sessionId: options.sessionId,
               shopId: options.shopId,
