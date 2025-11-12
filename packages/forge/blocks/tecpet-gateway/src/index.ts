@@ -4,6 +4,7 @@ import { endChat } from "./actions/endChat";
 import { talkToAttendant } from "./actions/talkToAttendant";
 import { auth } from "./auth";
 import { TecpetLogo } from "./logo";
+import { changeShop } from "./actions/changeShop";
 
 export const tecpetGatewayBlock = createBlock({
   id: "tecpet-gateway",
@@ -11,5 +12,5 @@ export const tecpetGatewayBlock = createBlock({
   tags: [],
   LightLogo: TecpetLogo,
   auth,
-  actions: [talkToAttendant, endChat],
+  actions: [talkToAttendant, endChat, changeShop],
 });
