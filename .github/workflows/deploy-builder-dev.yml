@@ -3,7 +3,7 @@ name: Build and Deploy botflow-builder to GKE (DEV)
 on:
   push:
     branches:
-      - gcp-cicd
+      - dev
 
 env:
   GCP_PROJECT_ID: "techpet-dev-01"
