@@ -29,18 +29,26 @@ spec:
             name: botflow-viewer-secrets
         readinessProbe:
           httpGet:
-            path: /
+            path: /api/health
             port: 3000
-          initialDelaySeconds: 15
-          periodSeconds: 10
+            httpHeaders:
+            - name: "X-Forwarded-Host"
+              value: "botflow-viewer.tec.pet"
+          initialDelaySeconds: 240
+          periodSeconds: 15
         livenessProbe:
           httpGet:
-            path: /
+            path: /api/health
             port: 3000
+            httpHeaders:
+            - name: "X-Forwarded-Host"
+              value: "botflow-viewer.tec.pet"
+          initialDelaySeconds: 240
+          periodSeconds: 15
         resources:
           requests:
-            cpu: "2000m"
-            memory: "2Gi"
+            cpu: "500m"
+            memory: "1Gi"
 
 ---
 apiVersion: v1
