@@ -2,12 +2,13 @@ apiVersion: cloud.google.com/v1
 kind: BackendConfig
 metadata:
   name: botflow-viewer-backendconfig
+  namespace: tecpet-prod-app
 spec:
   healthCheck:
     checkIntervalSec: 30
     port: 3000
     type: HTTP
-    requestPath: /
+    requestPath: /api/health
   customRequestHeaders:
     headers:
     - "x-forwarded-host: botflow-viewer.tec.pet"
