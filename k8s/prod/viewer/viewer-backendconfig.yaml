@@ -1,0 +1,13 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: botflow-viewer-backendconfig
+spec:
+  healthCheck:
+    checkIntervalSec: 30
+    port: 3000
+    type: HTTP
+    requestPath: /
+  customRequestHeaders:
+    headers:
+    - "x-forwarded-host: botflow-viewer.tec.pet"

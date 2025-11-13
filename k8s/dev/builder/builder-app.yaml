@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: botflow-builder-app
+  annotations:
+    secret.reloader.stakater.com/reload: "botflow-builder-secrets"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: botflow-builder-app
+  template:
+    metadata:
+      labels:
+        app: botflow-builder-app
+        department: backend
+        environment: DEV
+    spec:
+      containers:
+      - name: botflow-builder-app
+        image: IMAGE_PLACEHOLDER
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PORT
+          value: "3000"
+        envFrom:
+        - secretRef:
+            name: botflow-builder-secrets
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 240
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cloud.google.com/backend-config: '{"ports": {"80":"botflow-builder-backendconfig"}}'
+  name: botflow-builder-service
+spec:
+  type: ClusterIP
+  selector:
+    app: botflow-builder-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000

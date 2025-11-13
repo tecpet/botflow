@@ -1,0 +1,86 @@
+name: Build and Deploy botflow-viewer to GKE (DEV)
+
+on:
+  push:
+    branches:
+      - gcp-cicd
+
+env:
+  GCP_PROJECT_ID: "techpet-dev-01"
+  GCP_WORKLOAD_IDENTITY_PROVIDER: "projects/98980100661/locations/global/workloadIdentityPools/github-actions-pool-2/providers/github-actions-provider"
+  GCP_SERVICE_ACCOUNT: "github-actions-runner@techpet-dev-01.iam.gserviceaccount.com"
+  GKE_CLUSTER: "dev-gke-autopilot-cluster"
+  GKE_LOCATION: "us-central1"
+  ARTIFACT_REGISTRY: "us-central1-docker.pkg.dev"
+  IMAGE_NAME: "botflow-viewer"
+  K8S_MANIFEST_DIR: "k8s/dev/viewer/"
+  K8S_NAMESPACE: "tecpet-dev-app"
+
+jobs:
+  build-and-push:
+    name: Build and Push to Artifact Registry
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    outputs:
+      IMAGE_TAG: ${{ steps.build-push.outputs.IMAGE_TAG }}
+
+    steps:
+    - name: "Checkout Repository"
+      uses: actions/checkout@v4
+
+    - name: "Authenticate to Google Cloud"
+      uses: "google-github-actions/auth@v2"
+      with:
+        workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+    - name: "Set up Cloud SDK"
+      uses: "google-github-actions/setup-gcloud@v2"
+
+    - name: "Configure Docker"
+      run: gcloud auth configure-docker ${{ env.ARTIFACT_REGISTRY }}
+
+    - name: "Build and Push Docker Image"
+      id: build-push
+      run: |
+        IMAGE_TAG="${{ env.ARTIFACT_REGISTRY }}/${{ env.GCP_PROJECT_ID }}/techpet-dev-01-tecpet-main/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+        docker build -t $IMAGE_TAG . --build-arg SCOPE=viewer
+        docker push $IMAGE_TAG
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  deploy:
+    name: Deploy to GKE
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: "Checkout Repository"
+      uses: actions/checkout@v4
+
+    - name: "Authenticate to Google Cloud"
+      uses: "google-github-actions/auth@v2"
+      with:
+        workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+    - name: "Set up Cloud SDK"
+      uses: "google-github-actions/setup-gcloud@v2"
+
+    - name: "Install gke-gcloud-auth-plugin"
+      run: gcloud components install gke-gcloud-auth-plugin
+
+    - name: "Get GKE Credentials"
+      run: gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --region ${{ env.GKE_LOCATION }}
+
+    - name: "Update Kubernetes Manifests"
+      run: |
+        sed -i "s|IMAGE_PLACEHOLDER|${{ needs.build-and-push.outputs.IMAGE_TAG }}|g" "${{ env.K8S_MANIFEST_DIR }}/viewer-app.yaml"
+
+    - name: "Deploy to GKE"
+      run: |
+        kubectl apply -f "${{ env.K8S_MANIFEST_DIR }}" -n ${{ env.K8S_NAMESPACE }}
