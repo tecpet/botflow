@@ -3,7 +3,7 @@ name: Build and Deploy botflow-viewer to GKE (PROD)
 on:
   push:
     branches:
-      - main
+      - master
 
 env:
   GCP_PROJECT_ID: "techpet-prod-01"
