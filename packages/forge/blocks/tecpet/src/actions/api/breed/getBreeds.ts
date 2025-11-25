@@ -90,11 +90,14 @@ export const getBreeds = createAction({
 
         if (breeds && breeds.length > 0) {
           const similarBreeds: {
-            [k: string]: string | boolean;
+            [k: string]: string;
             name: string;
           }[] = getSimilarBreeds(breedName, breeds);
 
-          similarBreeds.push({ id: false, name: "OUTRO" });
+          similarBreeds.push({
+            id: petSRD.id.toString(),
+            name: "SRD - Sem Raça Definida",
+          });
 
           variables.set([{ id: options.petSRD as string, value: petSRD.id }]);
 

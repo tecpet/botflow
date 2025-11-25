@@ -103,9 +103,7 @@ export const editPet = createAction({
 
         const body: PaEditPetInput = {
           weigth: Number(options.petWeight),
-          genre: (options.petGender === "Macho"
-            ? "MALE"
-            : "FEMALE") as GenderType,
+          genre: options.petGender as GenderType,
           hair: options.petHair as BillingItemType,
           size: options.petSize as BillingItemType,
         };

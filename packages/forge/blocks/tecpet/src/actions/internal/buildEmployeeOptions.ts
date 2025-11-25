@@ -84,7 +84,7 @@ export const buildEmployeeOptions = createAction({
             employeeIndications.push({
               id: employee.id,
               name: employee.name,
-              serviceCategoryType: category.type,
+              serviceCategoryId: category.id,
             });
           }
         });
@@ -97,7 +97,7 @@ export const buildEmployeeOptions = createAction({
           {
             id: options.employeeValues as string,
             value: employeeIndications.map((e) => {
-              return { id: e.id, serviceCategoryType: e.serviceCategoryType };
+              return { id: e.id, serviceCategoryId: e.serviceCategoryId };
             }),
           },
           {

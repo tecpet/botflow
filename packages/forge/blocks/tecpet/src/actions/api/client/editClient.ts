@@ -29,11 +29,6 @@ export const editClient = createAction({
       isRequired: true,
       helperText: "Cpf do cliente",
     }),
-    clientBirthDate: option.string.layout({
-      label: "Nascimento do cliente",
-      isRequired: true,
-      helperText: "Nascimento do cliente",
-    }),
     editedClientName: option.string.layout({
       label: "Nome do cliente editado",
       placeholder: "Selecione",
@@ -64,10 +59,8 @@ export const editClient = createAction({
     return variables;
   },
   run: {
-    server: async ({ credentials, options, variables, logs }) => {
+    server: async ({ credentials, options, variables }) => {
       try {
-        const rawBirthDate = options.clientBirthDate;
-
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
           credentials.apiKey,
@@ -77,10 +70,6 @@ export const editClient = createAction({
           name: options.clientName ?? "",
           cpf: options.clientCpf ?? "",
         };
-
-        rawBirthDate
-          ? (body["birthDate"] = rawBirthDate)
-          : (body.birthDate = undefined);
 
         const editedClient: PaClientResponse = await tecpetSdk.client.edit(
           Number(options.clientId),
