@@ -77,6 +77,11 @@ export const getAvailableTimes = createAction({
       helperText: "Dias para adicionar",
       inputType: "variableDropdown",
     }),
+    noTimesAvailable: option.string.layout({
+      label: "Input de dias adicionais",
+      helperText: "Dias para adicionar",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({ availableTimes, inputAdditionalDays }) => {
     const variables = [];
@@ -122,10 +127,18 @@ export const getAvailableTimes = createAction({
           : additionalsRaw
         ).forEach((id: string | number) => services.push(Number(id)));
 
-        const MAX_ATTEMPTS = 10;
+        const MAX_ATTEMPTS = 10; // As tentativas máximas vao ser o total dividido pelos dias adicionais no caso são 5 que seria 10/2;
         let all: AvailableTimeType[] = [];
 
         while (additionalDays < MAX_ATTEMPTS) {
+          if (additionalDays > MAX_ATTEMPTS) {
+            variables.set([
+              { id: options.noTimesAvailable as string, value: true },
+            ]);
+
+            break;
+          }
+
           const today = new Date();
 
           if (showOtherDates) today.setDate(today.getDate() + additionalDays);
