@@ -40,36 +40,24 @@ export const getBreeds = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    petBreed: option.string.layout({
-      label: "Raça Pet",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
     petSRD: option.string.layout({
       label: "SRD - Sem raça definida",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({
-    breeds,
-    breedValues,
-    breedsNames,
-    petBreed,
-    petSRD,
-  }) => {
+  getSetVariableIds: ({ breeds, breedValues, breedsNames, petSRD }) => {
     const variables = [];
 
     if (breeds) variables.push(breeds);
     if (breedValues) variables.push(breedValues);
     if (breedsNames) variables.push(breedsNames);
-    if (petBreed) variables.push(petBreed);
     if (petSRD) variables.push(petSRD);
 
     return variables;
   },
   run: {
-    server: async ({ credentials, options, variables, logs }) => {
+    server: async ({ credentials, options, variables }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
@@ -99,7 +87,7 @@ export const getBreeds = createAction({
             name: "SRD - Sem Raça Definida",
           });
 
-          variables.set([{ id: options.petSRD as string, value: petSRD.id }]);
+          variables.set([{ id: options.petSRD as string, value: petSRD }]);
 
           if (options.breeds) {
             variables.set([{ id: options.breeds, value: similarBreeds }]);
@@ -117,12 +105,6 @@ export const getBreeds = createAction({
                 id: options.breedsNames,
                 value: similarBreeds.map((b) => b.name),
               },
-            ]);
-          }
-
-          if (similarBreeds.length === 1) {
-            variables.set([
-              { id: options.petBreed as string, value: similarBreeds[0] },
             ]);
           }
         }

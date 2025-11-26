@@ -50,11 +50,6 @@ export const createPet = createAction({
       isRequired: true,
       helperText: "Pelo do Pet",
     }),
-    birthDate: option.string.layout({
-      label: "Aniversário do Pet",
-      isRequired: true,
-      helperText: "Aniversário do Pet",
-    }),
     pet: option.string.layout({
       label: "Pet",
       placeholder: "Selecione",
@@ -96,7 +91,6 @@ export const createPet = createAction({
           genre: (options?.gender ?? "MALE") as GenderType,
           size: options?.size as BillingItemType,
           hair: options?.hair as BillingItemType,
-          birthDate: new Date(options.birthDate ?? ""),
         };
 
         const pet: PaPetResponse = (await tecpetSdk.pet.create(

@@ -6,71 +6,54 @@ export const verifySimilarBreedOptionSelected = createAction({
   baseOptions,
   name: "Verificar raça similiar selecionada",
   options: option.object({
-    selectedBreed: option.string.layout({
-      label: "Opção de raça selecionada",
+    similarBreeds: option.string.layout({
+      label: "Raças similares encontradas",
       isRequired: true,
-      helperText: "Raça selecionado",
+      helperText: "Raças semelhantes",
+    }),
+    petSRD: option.string.layout({
+      label: "SRD",
+      isRequired: true,
+      helperText: "Sem raça definida",
     }),
     petBreed: option.string.layout({
-      label: "Raça do Pet",
+      label: "Raça Pet",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    showOtherBreeds: option.string.layout({
-      label: "Escolher outras raças",
-      isRequired: true,
-      helperText: "Encaminha para escolha de porte e pelo",
-      inputType: "variableDropdown",
-    }),
-    petSize: option.string.layout({
-      label: "Porte do Pet",
-      isRequired: false,
-      helperText: "Define o valor de porte da raça selecionada",
-      inputType: "variableDropdown",
-    }),
-    petHair: option.string.layout({
-      label: "Pelo do pet",
-      isRequired: false,
-      helperText: "Define o valor de pelo da raça selecionada",
-      inputType: "variableDropdown",
-    }),
   }),
-  getSetVariableIds: ({ selectedBreed, showOtherBreeds, petBreed }) => {
+  getSetVariableIds: ({ similarBreeds }) => {
     const variables = [];
 
-    if (selectedBreed) variables.push(selectedBreed);
-    if (showOtherBreeds) variables.push(showOtherBreeds);
-    if (petBreed) variables.push(petBreed);
+    if (similarBreeds) variables.push(similarBreeds);
 
     return variables;
   },
   run: {
-    server: async ({ options, variables, logs }) => {
+    server: async ({ options, variables }) => {
       try {
-        let showOtherBreeds = false;
+        const rawSimilarBreeds = JSON.parse(options.similarBreeds as string);
 
-        const rawSelectedBreed = options.selectedBreed;
+        const petSRD = JSON.parse(options.petSRD as string);
 
-        const selectedBreed: PaBreedResponse = JSON.parse(
-          rawSelectedBreed as string,
+        const similarBreeds: PaBreedResponse[] = rawSimilarBreeds.map(
+          (breed: PaBreedResponse) =>
+            typeof breed === "string" ? JSON.parse(breed) : breed,
         );
 
-        if (!selectedBreed.id) {
-          showOtherBreeds = true;
-        } else if (selectedBreed.id) {
+        const petSRDIndex = similarBreeds.findIndex((breed) => {
+          breed.id === petSRD.id;
+        });
+
+        similarBreeds.splice(petSRDIndex, 1);
+
+        if (similarBreeds.length === 1) {
           variables.set([
-            { id: options.petHair as string, value: selectedBreed.hair },
-            { id: options.petSize as string, value: selectedBreed.size },
+            { id: options.petBreed as string, value: similarBreeds[0] },
           ]);
+        } else {
+          variables.set([{ id: options.petBreed as string, value: petSRD }]);
         }
-
-        if (showOtherBreeds) {
-          variables.set([{ id: options.petBreed as string, value: null }]);
-        }
-
-        variables.set([
-          { id: options.showOtherBreeds as string, value: showOtherBreeds },
-        ]);
       } catch (error) {
         console.error(error);
       }
