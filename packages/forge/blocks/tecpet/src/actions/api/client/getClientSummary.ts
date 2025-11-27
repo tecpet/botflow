@@ -70,7 +70,9 @@ export const getClientSummary = createAction({
           )) as PaClientSummaryResponse;
 
         if (response && options.client) {
-          variables.set([{ id: options.client as string, value: response }]);
+          variables.set([
+            { id: options.client as string, value: response.client },
+          ]);
           variables.set([
             {
               id: options.hasAnyBookings as string,
