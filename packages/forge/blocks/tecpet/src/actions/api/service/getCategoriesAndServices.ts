@@ -62,6 +62,8 @@ export const getCategoriesAndServices = createAction({
         if (options.segmentType === "PET_SHOP") {
           serviceCategoryTypes = [
             "BATH",
+            "GROOM",
+            "CUSTOM",
             "ADDITIONAL",
           ] as ServiceCategoryType[];
         }
@@ -69,6 +71,7 @@ export const getCategoriesAndServices = createAction({
         if (options.segmentType === "CLINIC") {
           serviceCategoryTypes = [
             "CLINIC",
+            "CUSTOM",
             "ADDITIONAL",
           ] as ServiceCategoryType[];
         }

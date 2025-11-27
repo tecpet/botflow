@@ -78,7 +78,7 @@ export const getPets = createAction({
             }
 
             petsResponse.push({
-              id: "new" as string,
+              id: "",
               name: "Cadastrar novo pet",
             });
 
