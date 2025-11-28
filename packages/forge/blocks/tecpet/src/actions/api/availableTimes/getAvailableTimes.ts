@@ -26,6 +26,11 @@ export const getAvailableTimes = createAction({
       isRequired: true,
       helperText: "Id da loja",
     }),
+    bookingId: option.string.layout({
+      label: "Agendamento selecionado",
+      isRequired: false,
+      helperText: "Agendamento",
+    }),
     combosIds: option.string.layout({
       label: "Id dos combos disponiveis",
       isRequired: true,
@@ -46,15 +51,9 @@ export const getAvailableTimes = createAction({
       isRequired: true,
       helperText: "Segmento",
     }),
-    selectedServices: option.string.layout({
-      label: "Serviços selecionados",
-      isRequired: true,
-      helperText: "Serviços selecionados",
-    }),
-    selectedAdditionals: option.string.layout({
-      label: "Serviços adicionais selecionados",
-      isRequired: true,
-      helperText: "Serviços adicionais selecionados",
+    selectedService: option.string.layout({
+      label: "Serviço selecionado",
+      helperText: "Serviço selecionado",
     }),
     availableTimes: option.string.layout({
       label: "Array de horarios disponiveis",
@@ -101,9 +100,28 @@ export const getAvailableTimes = createAction({
         );
 
         const rawAdditionalDays = options.getAdditionalDays;
-        const parsedSelectedService: ServiceOptionType = JSON.parse(
-          options.selectedServices as string,
-        );
+
+        const bookingId = JSON.parse(options.bookingId as string);
+
+        let services: number[] = [];
+        let combos: number[] = [];
+
+        if (bookingId) {
+          services = parseIds(options.servicesIds);
+          combos = parseIds(options.combosIds);
+        } else {
+          const parsedSelectedService: ServiceOptionType = JSON.parse(
+            options.selectedService as string,
+          );
+
+          const serviceIds = parseIds(options.servicesIds);
+          const comboIds = parseIds(options.combosIds);
+
+          const selectedId = Number(parsedSelectedService.id);
+
+          services = serviceIds.includes(selectedId) ? [selectedId] : [];
+          combos = comboIds.includes(selectedId) ? [selectedId] : [];
+        }
 
         let additionalDays = rawAdditionalDays ? Number(rawAdditionalDays) : 0;
 
@@ -112,20 +130,6 @@ export const getAvailableTimes = createAction({
         if (showOtherDates) {
           additionalDays += 2;
         }
-
-        const serviceIds = parseIds(options.servicesIds);
-        const comboIds = parseIds(options.combosIds);
-
-        const selectedId = Number(parsedSelectedService.id);
-
-        const services = serviceIds.includes(selectedId) ? [selectedId] : [];
-        const combos = comboIds.includes(selectedId) ? [selectedId] : [];
-
-        const additionalsRaw = options.selectedAdditionals ?? "[]";
-        (typeof additionalsRaw === "string"
-          ? JSON.parse(additionalsRaw)
-          : additionalsRaw
-        ).forEach((id: string | number) => services.push(Number(id)));
 
         const MAX_ATTEMPTS = 10; // As tentativas máximas vao ser o total dividido pelos dias adicionais no caso são 5 que seria 10/2;
         let all: AvailableTimeType[] = [];
