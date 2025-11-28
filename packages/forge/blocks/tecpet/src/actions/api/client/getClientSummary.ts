@@ -76,31 +76,41 @@ export const getClientSummary = createAction({
             options.shopId,
           )) as PaClientSummaryResponse;
 
-        if (response && options.client) {
-          variables.set([
-            { id: options.clientSummary as string, value: response },
-          ]);
-          variables.set([
-            { id: options.client as string, value: response.client },
-          ]);
-          variables.set([
-            {
-              id: options.hasAnyBookings as string,
-              value: response.hasAnyBooking,
-            },
-          ]);
-          variables.set([
-            {
-              id: options.clientBookingsSummary as string,
-              value: response.bookings,
-            },
-          ]);
-          variables.set([
-            {
-              id: options.clientPetsSummary as string,
-              value: response.pets,
-            },
-          ]);
+        if (response) {
+          if (options.clientSummary) {
+            variables.set([
+              { id: options.clientSummary as string, value: response },
+            ]);
+          }
+          if (options.client) {
+            variables.set([
+              { id: options.client as string, value: response.client },
+            ]);
+          }
+          if (options.hasAnyBookings) {
+            variables.set([
+              {
+                id: options.hasAnyBookings as string,
+                value: response.hasAnyBooking,
+              },
+            ]);
+          }
+          if (options.clientBookingsSummary) {
+            variables.set([
+              {
+                id: options.clientBookingsSummary as string,
+                value: response.bookings,
+              },
+            ]);
+          }
+          if (options.clientPetsSummary) {
+            variables.set([
+              {
+                id: options.clientPetsSummary as string,
+                value: response.pets,
+              },
+            ]);
+          }
         }
       } catch (error) {
         console.error(error);
