@@ -46,6 +46,7 @@ export const getClientSummary = createAction({
     client,
     hasAnyBookings,
     clientPetsSummary,
+    clientSummary,
     clientBookingsSummary,
   }) => {
     const variables = [];
@@ -53,6 +54,7 @@ export const getClientSummary = createAction({
     if (clientBookingsSummary) variables.push(clientBookingsSummary);
     if (hasAnyBookings) variables.push(hasAnyBookings);
     if (clientPetsSummary) variables.push(clientPetsSummary);
+    if (clientSummary) variables.push(clientSummary);
     if (client) variables.push(client);
 
     return variables;
