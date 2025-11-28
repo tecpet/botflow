@@ -132,53 +132,39 @@ export const getAvailableTimes = createAction({
         }
 
         const MAX_ATTEMPTS = 10; // As tentativas máximas vao ser o total dividido pelos dias adicionais no caso são 5 que seria 10/2;
-        let all: AvailableTimeType[] = [];
 
-        while (additionalDays < MAX_ATTEMPTS) {
-          if (additionalDays > MAX_ATTEMPTS) {
-            variables.set([
-              { id: options.noTimesAvailable as string, value: true },
-            ]);
+        const today = new Date();
 
-            break;
-          }
+        if (showOtherDates) today.setDate(today.getDate() + additionalDays);
 
-          const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
 
-          if (showOtherDates) today.setDate(today.getDate() + additionalDays);
+        const searchDates = [formatISODate(today), formatISODate(tomorrow)];
 
-          const tomorrow = new Date(today);
-          tomorrow.setDate(today.getDate() + 1);
+        const all: AvailableTimeType[] = [];
 
-          const searchDates = [formatISODate(today), formatISODate(tomorrow)];
+        for (const dateISO of searchDates) {
+          const body: PaGetAvailableTimesTimesBody = {
+            date: dateISO,
+            combos,
+            services,
+            petId: Number(options.petId),
+            segment: options.segmentType as ShopSegment,
+          };
 
-          all = [];
-
-          for (const dateISO of searchDates) {
-            const body: PaGetAvailableTimesTimesBody = {
-              date: dateISO,
-              combos,
-              services,
-              petId: Number(options.petId),
-              segment: options.segmentType as ShopSegment,
-            };
-
-            const times = await tecpetSdk.availableTimes.list(
-              body,
-              Number(options.shopId),
-            );
-            times?.forEach((t: PaGetAvailableTimesResponse) =>
-              all.push({
-                ...t,
-                dateISO,
-                dateBR: formatBRDate(dateISO),
-                scheduleStartTime: `${t.start}`,
-              }),
-            );
-          }
-          // Se achou horários, sai do loop
-          if (all.length > 0) break;
-          additionalDays++;
+          const times = await tecpetSdk.availableTimes.list(
+            body,
+            Number(options.shopId),
+          );
+          times?.forEach((t: PaGetAvailableTimesResponse) =>
+            all.push({
+              ...t,
+              dateISO,
+              dateBR: formatBRDate(dateISO),
+              scheduleStartTime: `${t.start}`,
+            }),
+          );
         }
 
         all.sort((a, b) =>
@@ -187,10 +173,18 @@ export const getAvailableTimes = createAction({
             : a.dateISO.localeCompare(b.dateISO),
         );
 
+        if (additionalDays > MAX_ATTEMPTS) {
+          variables.set([
+            { id: options.noTimesAvailable as string, value: true },
+          ]);
+        }
+
         variables.set([
           { id: options.inputAdditionalDays as string, value: additionalDays },
         ]);
-        variables.set([{ id: options.availableTimes as string, value: all }]);
+        variables.set([
+          { id: options.availableTimes as string, value: all ?? [] },
+        ]);
       } catch (error) {
         console.error(error);
       }
