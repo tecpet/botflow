@@ -16,6 +16,11 @@ export const getClientSummary = createAction({
       label: "Id da Loja",
       isRequired: true,
     }),
+    clientSummary: option.string.layout({
+      label: "Resumo do cliente",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
     client: option.string.layout({
       label: "Cliente",
       placeholder: "Selecione",
@@ -70,6 +75,9 @@ export const getClientSummary = createAction({
           )) as PaClientSummaryResponse;
 
         if (response && options.client) {
+          variables.set([
+            { id: options.clientSummary as string, value: response },
+          ]);
           variables.set([
             { id: options.client as string, value: response.client },
           ]);
