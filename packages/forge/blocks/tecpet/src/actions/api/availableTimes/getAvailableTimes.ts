@@ -153,25 +153,33 @@ export const getAvailableTimes = createAction({
             segment: options.segmentType as ShopSegment,
           };
 
-          const times = await tecpetSdk.availableTimes.list(
-            body,
-            Number(options.shopId),
-          );
-          times?.forEach((t: PaGetAvailableTimesResponse) =>
-            all.push({
-              ...t,
-              dateISO,
-              dateBR: formatBRDate(dateISO),
-              scheduleStartTime: `${t.start}`,
-            }),
-          );
+          let times: PaGetAvailableTimesResponse[] = [];
+
+          try {
+            times = await tecpetSdk.availableTimes.list(
+              body,
+              Number(options.shopId),
+            );
+            times?.forEach((t: PaGetAvailableTimesResponse) =>
+              all.push({
+                ...t,
+                dateISO,
+                dateBR: formatBRDate(dateISO),
+                scheduleStartTime: `${t.start}`,
+              }),
+            );
+          } catch (error) {
+            console.log(error);
+          }
         }
 
-        all.sort((a, b) =>
-          a.dateISO === b.dateISO
-            ? a.start.localeCompare(b.start)
-            : a.dateISO.localeCompare(b.dateISO),
-        );
+        if (all.length > 0) {
+          all.sort((a, b) =>
+            a.dateISO === b.dateISO
+              ? a.start.localeCompare(b.start)
+              : a.dateISO.localeCompare(b.dateISO),
+          );
+        }
 
         if (additionalDays > MAX_ATTEMPTS) {
           variables.set([
