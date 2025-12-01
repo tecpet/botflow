@@ -101,14 +101,17 @@ export const getAvailableTimes = createAction({
 
         const rawAdditionalDays = options.getAdditionalDays;
 
+        const rawServices = JSON.parse(options.servicesIds as string);
+        const rawCombos = JSON.parse(options.combosIds as string);
+
         const bookingId = JSON.parse(options.bookingId as string);
 
         let services: number[] = [];
         let combos: number[] = [];
 
         if (bookingId) {
-          services = parseIds(options.servicesIds);
-          combos = parseIds(options.combosIds);
+          services = parseIds(rawServices);
+          combos = parseIds(rawCombos);
         } else {
           const parsedSelectedService: ServiceOptionType = JSON.parse(
             options.selectedService as string,
