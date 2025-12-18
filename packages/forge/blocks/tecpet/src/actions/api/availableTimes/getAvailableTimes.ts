@@ -104,7 +104,9 @@ export const getAvailableTimes = createAction({
         const rawServices = JSON.parse(options.servicesIds as string);
         const rawCombos = JSON.parse(options.combosIds as string);
 
-        const bookingId = JSON.parse(options.bookingId as string);
+        const bookingId = options.bookingId
+          ? JSON.parse(options.bookingId as string)
+          : null;
 
         let services: number[] = [];
         let combos: number[] = [];
@@ -117,8 +119,8 @@ export const getAvailableTimes = createAction({
             options.selectedService as string,
           );
 
-          const serviceIds = parseIds(options.servicesIds);
-          const comboIds = parseIds(options.combosIds);
+          const serviceIds = parseIds(rawServices);
+          const comboIds = parseIds(rawCombos);
 
           const selectedId = Number(parsedSelectedService.id);
 
