@@ -10,6 +10,12 @@ const mediaSchema = z
     message: "Either link or id must be provided",
   });
 
+const documentSchema = z.object({
+  link: z.string().optional(),
+  id: z.string().optional(),
+  filename: z.string().optional(),
+});
+
 const headerSchema = z
   .object({
     type: z.literal("image"),
@@ -77,6 +83,10 @@ const sendingMessageSchema = z.discriminatedUnion("type", [
     video: mediaSchema,
   }),
   z.object({
+    type: z.literal("document"),
+    document: documentSchema,
+  }),
+  z.object({
     type: z.literal("interactive"),
     interactive: interactiveSchema,
   }),
@@ -93,6 +103,7 @@ const incomingMessageReferral = z.object({
 export type WhatsAppMessageReferral = z.infer<typeof incomingMessageReferral>;
 
 const sharedIncomingMessageFieldsSchema = z.object({
+  id: z.string().optional(),
   from: z.string(),
   timestamp: z.string(),
   referral: incomingMessageReferral.optional(),

@@ -74,7 +74,7 @@ function RouteComponent() {
               />
               <TextLink href={author.url}>{author.name}</TextLink>
             </span>
-            <h1 className="my-4 inline-block font-heading text-4xl leading-tight lg:text-5xl">
+            <h1 className="inline-block font-heading text-4xl not-prose text-foreground my-4 font-bold lg:text-5xl">
               {post.title}
             </h1>
             {post.updatedAt && (

@@ -1,6 +1,6 @@
-import { Stack } from "@chakra-ui/react";
 import { Button } from "@typebot.io/ui/components/Button";
-import { MinusIcon, PlusIcon } from "@/components/icons";
+import { MinusSignIcon } from "@typebot.io/ui/icons/MinusSignIcon";
+import { PlusSignIcon } from "@typebot.io/ui/icons/PlusSignIcon";
 
 type Props = {
   onZoomInClick: () => void;
@@ -10,7 +10,7 @@ export const ZoomButtons = ({
   onZoomInClick: onZoomIn,
   onZoomOutClick: onZoomOut,
 }: Props) => (
-  <Stack spacing="0" shadow="md" rounded="md">
+  <div className="flex flex-col gap-0 shadow-md rounded-md">
     <Button
       aria-label={"Zoom in"}
       size="icon"
@@ -18,7 +18,7 @@ export const ZoomButtons = ({
       className="rounded-b-none size-8 bg-gray-1"
       variant="ghost"
     >
-      <PlusIcon />
+      <PlusSignIcon />
     </Button>
     <Button
       aria-label={"Zoom out"}
@@ -27,7 +27,7 @@ export const ZoomButtons = ({
       className="rounded-t-none size-8 bg-gray-1"
       variant="ghost"
     >
-      <MinusIcon />
+      <MinusSignIcon />
     </Button>
-  </Stack>
+  </div>
 );

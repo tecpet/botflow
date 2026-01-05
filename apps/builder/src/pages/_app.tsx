@@ -1,8 +1,6 @@
-import { ChakraProvider } from "@chakra-ui/react";
 import { TolgeeProvider, useTolgeeSSR } from "@tolgee/react";
 import { toTitleCase } from "@typebot.io/lib/utils";
 import { Plan } from "@typebot.io/prisma/enum";
-import { customTheme } from "@typebot.io/ui/chakraTheme";
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
 import { SessionProvider } from "next-auth/react";
@@ -12,7 +10,6 @@ import { TypebotProvider } from "@/features/editor/providers/TypebotProvider";
 import { UserProvider } from "@/features/user/UserProvider";
 import { WorkspaceProvider } from "@/features/workspace/WorkspaceProvider";
 import { isCloudProdInstance } from "@/helpers/isCloudProdInstance";
-import { useRouterProgressBar } from "@/lib/routerProgressBar";
 import { tolgee } from "@/lib/tolgee";
 import "@/assets/styles/routerProgressBar.css";
 import "@/assets/styles/plate.css";
@@ -22,6 +19,7 @@ import "@/assets/styles/globals.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toast, ToastProvider } from "@typebot.io/ui/components/Toast";
 import { TooltipProvider } from "@typebot.io/ui/components/Tooltip";
+import { ThemeProvider } from "next-themes";
 import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
 import { queryClient } from "@/lib/queryClient";
@@ -30,8 +28,6 @@ import { toast, toastManager } from "@/lib/toast";
 const App = ({ Component, pageProps }: AppProps) => {
   const router = useRouter();
   const ssrTolgee = useTolgeeSSR(tolgee, router.locale);
-
-  useRouterProgressBar();
 
   useEffect(() => {
     if (
@@ -61,7 +57,12 @@ const App = ({ Component, pageProps }: AppProps) => {
   return (
     <TolgeeProvider tolgee={ssrTolgee}>
       <NuqsAdapter>
-        <ChakraProvider theme={customTheme}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <TooltipProvider>
             <QueryClientProvider client={queryClient}>
               <SessionProvider session={pageProps.session}>
@@ -80,7 +81,7 @@ const App = ({ Component, pageProps }: AppProps) => {
               <Toast.List CodeEditor={CodeEditor} />
             </ToastProvider>
           </TooltipProvider>
-        </ChakraProvider>
+        </ThemeProvider>
       </NuqsAdapter>
     </TolgeeProvider>
   );

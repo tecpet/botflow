@@ -18,7 +18,7 @@ const inputSchema = z.object({
 export const getPhoneNumber = authenticatedProcedure
   .input(inputSchema)
   .query(async ({ input, ctx: { user } }) => {
-    const credentials = await getCredentials(user.id, input);
+    const credentials = await getCredentials(user, input);
     if (!credentials)
       throw new TRPCError({
         code: "NOT_FOUND",
@@ -53,7 +53,7 @@ export const getPhoneNumber = authenticatedProcedure
   });
 
 const getCredentials = async (
-  userId: string,
+  user: { id: string; email: string },
   input: z.infer<typeof inputSchema>,
 ): Promise<
   | { type: "meta"; systemUserAccessToken: string; phoneNumberId: string }
@@ -67,10 +67,12 @@ const getCredentials = async (
       phoneNumberId: input.phoneNumberId,
     };
   if (!input.credentialsId) return;
-  const credentials = await prisma.credentials.findUnique({
+  const credentials = await prisma.credentials.findFirst({
     where: {
       id: input.credentialsId,
-      workspace: { members: { some: { userId } } },
+      workspace: env.ADMIN_EMAIL?.includes(user.email)
+        ? undefined
+        : { members: { some: { userId: user.id } } },
     },
   });
   if (!credentials) return;
@@ -79,7 +81,7 @@ const getCredentials = async (
     credentials.iv,
   )) as WhatsAppCredentials["data"];
 
-  if (decryptedData.provider === "meta") {
+  if (!decryptedData.provider || decryptedData.provider === "meta") {
     return {
       type: "meta",
       systemUserAccessToken: decryptedData.systemUserAccessToken,

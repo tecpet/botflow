@@ -1,4 +1,3 @@
-import { Stack, Text } from "@chakra-ui/react";
 import {
   defaultPixelOptions,
   pixelEventTypes,
@@ -11,7 +10,10 @@ import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Switch } from "@typebot.io/ui/components/Switch";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
-import { TextInput } from "@/components/inputs/TextInput";
+import {
+  DebouncedTextInput,
+  DebouncedTextInputWithVariablesButton,
+} from "@/components/inputs/DebouncedTextInput";
 import { TableList } from "@/components/TableList";
 import { TextLink } from "@/components/TextLink";
 
@@ -68,11 +70,10 @@ export const PixelSettings = ({ options, onOptionsChange }: Props) => {
   };
 
   return (
-    <Stack spacing={4}>
-      <TextInput
+    <div className="flex flex-col gap-4">
+      <DebouncedTextInput
         defaultValue={options?.pixelId ?? ""}
-        onChange={updatePixelId}
-        withVariableButton={false}
+        onValueChange={updatePixelId}
         placeholder='Pixel ID (e.g. "123456789")'
       />
       <Field.Root className="flex-row items-center">
@@ -98,13 +99,13 @@ export const PixelSettings = ({ options, onOptionsChange }: Props) => {
         </Field.Root>
         {isDefined(options?.params) && (
           <>
-            <Text fontSize="sm" color="gray.500">
+            <p className="text-sm" color="gray.500">
               Read the{" "}
               <TextLink href={pixelReferenceUrl} isExternal>
                 reference
               </TextLink>{" "}
               to better understand the available options.
-            </Text>
+            </p>
             <BasicSelect
               items={["Custom", ...pixelEventTypes]}
               value={options?.eventType}
@@ -112,9 +113,9 @@ export const PixelSettings = ({ options, onOptionsChange }: Props) => {
               onChange={updateEventType}
             />
             {options?.eventType === "Custom" && (
-              <TextInput
+              <DebouncedTextInputWithVariablesButton
                 defaultValue={options.name ?? ""}
-                onChange={updateEventName}
+                onValueChange={updateEventName}
                 placeholder="Event name"
               />
             )}
@@ -136,7 +137,7 @@ export const PixelSettings = ({ options, onOptionsChange }: Props) => {
           </>
         )}
       </Field.Container>
-    </Stack>
+    </div>
   );
 };
 
@@ -173,11 +174,11 @@ const ParamItem = ({ item, eventType, onItemChange }: ParamItemProps) => {
   if (!eventType) return null;
 
   return (
-    <Stack p="4" rounded="md" flex="1" borderWidth="1px">
+    <div className="flex flex-col gap-2 p-4 rounded-md flex-1 border">
       {eventType === "Custom" ? (
-        <TextInput
+        <DebouncedTextInputWithVariablesButton
           defaultValue={item.key}
-          onChange={updateKey}
+          onValueChange={updateKey}
           placeholder="Key"
         />
       ) : (
@@ -195,12 +196,12 @@ const ParamItem = ({ item, eventType, onItemChange }: ParamItemProps) => {
           onChange={updateValue}
         />
       ) : (
-        <TextInput
+        <DebouncedTextInputWithVariablesButton
           defaultValue={item.value}
-          onChange={updateValue}
+          onValueChange={updateValue}
           placeholder="Value"
         />
       )}
-    </Stack>
+    </div>
   );
 };

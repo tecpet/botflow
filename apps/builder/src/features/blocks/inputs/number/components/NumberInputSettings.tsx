@@ -1,4 +1,3 @@
-import { FormControl, FormLabel, Stack, Text } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import {
   defaultNumberInputButtonLabel,
@@ -20,7 +19,7 @@ import type { Variable } from "@typebot.io/variables/schemas";
 import { useEffect } from "react";
 import { BasicNumberInput } from "@/components/inputs/BasicNumberInput";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import { currencies } from "../../payment/currencies";
 
@@ -82,19 +81,27 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
   };
 
   return (
-    <Stack spacing={4}>
-      <TextInput
-        label={t("blocks.inputs.settings.placeholder.label")}
-        defaultValue={
-          options?.labels?.placeholder ?? defaultNumberInputPlaceholder
-        }
-        onChange={handlePlaceholderChange}
-      />
-      <TextInput
-        label={t("blocks.inputs.settings.button.label")}
-        defaultValue={options?.labels?.button ?? defaultNumberInputButtonLabel}
-        onChange={handleButtonLabelChange}
-      />
+    <div className="flex flex-col gap-4">
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.settings.placeholder.label")}
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={
+            options?.labels?.placeholder ?? defaultNumberInputPlaceholder
+          }
+          onValueChange={handlePlaceholderChange}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>{t("blocks.inputs.settings.button.label")}</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={
+            options?.labels?.button ?? defaultNumberInputButtonLabel
+          }
+          onValueChange={handleButtonLabelChange}
+        />
+      </Field.Root>
       <Field.Root>
         <Field.Label>{t("blocks.inputs.settings.min.label")}</Field.Label>
         <BasicNumberInput
@@ -121,9 +128,9 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
       <Accordion.Root>
         <Accordion.Item>
           <Accordion.Trigger>
-            <Text w="full" textAlign="left">
+            <p className="w-full text-left">
               {t("blocks.inputs.number.settings.format.label")}
-            </Text>
+            </p>
           </Accordion.Trigger>
           <Accordion.Panel>
             <BasicSelect
@@ -136,10 +143,10 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
               onChange={handleStyleChange}
             />
             {options?.style === NumberInputStyle.CURRENCY && (
-              <FormControl mt={4}>
-                <FormLabel>
+              <Field.Root>
+                <Field.Label>
                   {t("blocks.inputs.number.settings.currency.label")}
-                </FormLabel>
+                </Field.Label>
                 <BasicSelect
                   items={currencies.map(({ code, description }) => ({
                     label: description,
@@ -148,13 +155,13 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
                   onChange={updateCurrency}
                   value={options?.currency}
                 />
-              </FormControl>
+              </Field.Root>
             )}
             {options?.style === NumberInputStyle.UNIT && (
-              <FormControl mt={4}>
-                <FormLabel>
+              <Field.Root>
+                <Field.Label>
                   {t("blocks.inputs.number.settings.unit.label")}
-                </FormLabel>
+                </Field.Label>
                 <BasicSelect
                   items={Object.values(NumberInputUnit).map((unit) => ({
                     label: t(unitTranslationKeys[unit]),
@@ -163,19 +170,23 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
                   onChange={updateUnit}
                   value={options?.unit}
                 />
-              </FormControl>
+              </Field.Root>
             )}
-            <FormControl mt={4}>
-              <FormLabel>
+            <Field.Root>
+              <Field.Label>
                 {t("blocks.inputs.number.settings.locale.label")}
-              </FormLabel>
-              <TextInput
-                defaultValue={options?.locale}
-                helperText={t("blocks.inputs.number.settings.locale.helper")}
-                placeholder="en-US"
-                onChange={handleLocaleChange}
-              />
-            </FormControl>
+              </Field.Label>
+              <Field.Root>
+                <DebouncedTextInputWithVariablesButton
+                  defaultValue={options?.locale}
+                  placeholder="en-US"
+                  onValueChange={handleLocaleChange}
+                />
+                <Field.Description>
+                  {t("blocks.inputs.number.settings.locale.helper")}
+                </Field.Description>
+              </Field.Root>
+            </Field.Root>
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion.Root>
@@ -188,6 +199,6 @@ export const NumberInputSettings = ({ options, onOptionsChange }: Props) => {
           onSelectVariable={handleVariableChange}
         />
       </Field.Root>
-    </Stack>
+    </div>
   );
 };

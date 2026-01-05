@@ -1,4 +1,3 @@
-import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import {
   defaultFileInputOptions,
@@ -12,7 +11,7 @@ import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInput } from "@/components/inputs/DebouncedTextInput";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import { TagsInput } from "@/components/TagsInput";
 
@@ -86,7 +85,7 @@ export const FileInputSettings = ({ options, onOptionsChange }: Props) => {
     });
 
   return (
-    <Stack spacing={4}>
+    <div className="flex flex-col gap-4">
       <Field.Root className="flex-row items-center">
         <Switch
           checked={options?.isRequired ?? defaultFileInputOptions.isRequired}
@@ -109,7 +108,7 @@ export const FileInputSettings = ({ options, onOptionsChange }: Props) => {
         {options?.allowedFileTypes?.isEnabled && (
           <TagsInput
             items={options?.allowedFileTypes?.types}
-            onChange={updateAllowedFileTypes}
+            onValueChange={updateAllowedFileTypes}
             placeholder={t(
               "blocks.inputs.file.settings.allowedFileTypes.placeholder",
             )}
@@ -139,7 +138,6 @@ export const FileInputSettings = ({ options, onOptionsChange }: Props) => {
           onSelectVariable={handleVariableChange}
         />
       </Field.Root>
-
       <Field.Root>
         <Field.Label>
           Visibility:
@@ -157,7 +155,6 @@ export const FileInputSettings = ({ options, onOptionsChange }: Props) => {
           items={fileVisibilityOptions}
         />
       </Field.Root>
-
       <Accordion.Root>
         <Accordion.Item>
           <Accordion.Trigger>
@@ -178,58 +175,76 @@ export const FileInputSettings = ({ options, onOptionsChange }: Props) => {
                 withVariableButton={false}
               />
             </Field.Root>
-            <TextInput
-              label={t("blocks.inputs.settings.button.label")}
-              defaultValue={
-                options?.labels?.button ?? defaultFileInputOptions.labels.button
-              }
-              onChange={handleButtonLabelChange}
-              withVariableButton={false}
-            />
-            {options?.isMultipleAllowed && (
-              <TextInput
-                label={t("blocks.inputs.file.settings.clear.label")}
+            <Field.Root>
+              <Field.Label>
+                {t("blocks.inputs.settings.button.label")}
+              </Field.Label>
+              <DebouncedTextInput
                 defaultValue={
-                  options?.labels?.clear ?? defaultFileInputOptions.labels.clear
+                  options?.labels?.button ??
+                  defaultFileInputOptions.labels.button
                 }
-                onChange={updateClearButtonLabel}
-                withVariableButton={false}
+                onValueChange={handleButtonLabelChange}
               />
+            </Field.Root>
+            {options?.isMultipleAllowed && (
+              <Field.Root>
+                <Field.Label>
+                  {t("blocks.inputs.file.settings.clear.label")}
+                </Field.Label>
+                <DebouncedTextInput
+                  defaultValue={
+                    options?.labels?.clear ??
+                    defaultFileInputOptions.labels.clear
+                  }
+                  onValueChange={updateClearButtonLabel}
+                />
+              </Field.Root>
             )}
             {!(options?.isRequired ?? defaultFileInputOptions.isRequired) && (
-              <TextInput
-                label={t("blocks.inputs.file.settings.skip.label")}
-                defaultValue={
-                  options?.labels?.skip ?? defaultFileInputOptions.labels.skip
-                }
-                onChange={updateSkipButtonLabel}
-                withVariableButton={false}
-              />
+              <Field.Root>
+                <Field.Label>
+                  {t("blocks.inputs.file.settings.skip.label")}
+                </Field.Label>
+                <DebouncedTextInput
+                  defaultValue={
+                    options?.labels?.skip ?? defaultFileInputOptions.labels.skip
+                  }
+                  onValueChange={updateSkipButtonLabel}
+                />
+              </Field.Root>
             )}
-            <TextInput
-              label="Single file success"
-              defaultValue={
-                options?.labels?.success?.single ??
-                defaultFileInputOptions.labels.success.single
-              }
-              onChange={updateSingleFileSuccessLabel}
-              withVariableButton={false}
-            />
-            {options?.isMultipleAllowed && (
-              <TextInput
-                label="Multi files success"
-                moreInfoTooltip="Include {total} to show the total number of files uploaded"
+            <Field.Root>
+              <Field.Label>Single file success</Field.Label>
+              <DebouncedTextInput
                 defaultValue={
-                  options?.labels?.success?.multiple ??
-                  defaultFileInputOptions.labels.success.multiple
+                  options?.labels?.success?.single ??
+                  defaultFileInputOptions.labels.success.single
                 }
-                onChange={updateMultipleFilesSuccessLabel}
-                withVariableButton={false}
+                onValueChange={updateSingleFileSuccessLabel}
               />
+            </Field.Root>
+            {options?.isMultipleAllowed && (
+              <Field.Root>
+                <Field.Label>
+                  Multi files success
+                  <MoreInfoTooltip>
+                    Include {"{total}"} to show the total number of files
+                    uploaded
+                  </MoreInfoTooltip>
+                </Field.Label>
+                <DebouncedTextInput
+                  defaultValue={
+                    options?.labels?.success?.multiple ??
+                    defaultFileInputOptions.labels.success.multiple
+                  }
+                  onValueChange={updateMultipleFilesSuccessLabel}
+                />
+              </Field.Root>
             )}
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion.Root>
-    </Stack>
+    </div>
   );
 };

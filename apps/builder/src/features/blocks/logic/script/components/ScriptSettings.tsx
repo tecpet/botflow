@@ -1,11 +1,11 @@
-import { Stack } from "@chakra-ui/react";
 import { defaultScriptOptions } from "@typebot.io/blocks-logic/script/constants";
 import type { ScriptBlock } from "@typebot.io/blocks-logic/script/schema";
 import { Field } from "@typebot.io/ui/components/Field";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Switch } from "@typebot.io/ui/components/Switch";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInput } from "@/components/inputs/DebouncedTextInput";
+import { UnsafeScriptAlert } from "./UnsafeScriptAlert";
 
 type Props = {
   options: ScriptBlock["options"];
@@ -22,14 +22,17 @@ export const ScriptSettings = ({ options, onOptionsChange }: Props) => {
   const updateClientExecution = (isExecutedOnClient: boolean) =>
     onOptionsChange({ ...options, isExecutedOnClient });
 
+  const updateIsUnsafe = () => onOptionsChange({ ...options, isUnsafe: false });
+
   return (
-    <Stack spacing={4}>
-      <TextInput
-        label="Name:"
-        defaultValue={options?.name ?? defaultScriptOptions.name}
-        onChange={handleNameChange}
-        withVariableButton={false}
-      />
+    <div className="flex flex-col gap-4">
+      <Field.Root>
+        <Field.Label>Name:</Field.Label>
+        <DebouncedTextInput
+          defaultValue={options?.name ?? defaultScriptOptions.name}
+          onValueChange={handleNameChange}
+        />
+      </Field.Root>
       <Field.Root className="flex-row items-center">
         <Switch
           checked={
@@ -46,12 +49,15 @@ export const ScriptSettings = ({ options, onOptionsChange }: Props) => {
           </MoreInfoTooltip>
         </Field.Label>
       </Field.Root>
+      {options?.isUnsafe === true && options?.isExecutedOnClient !== false && (
+        <UnsafeScriptAlert onTrustClick={updateIsUnsafe} />
+      )}
       <CodeEditor
         defaultValue={options?.content}
         lang="javascript"
         onChange={handleCodeChange}
         withLineNumbers={true}
       />
-    </Stack>
+    </div>
   );
 };

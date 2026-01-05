@@ -1,4 +1,3 @@
-import { FormLabel, HStack, Stack } from "@chakra-ui/react";
 import {
   defaultBlur,
   defaultContainerBackgroundColor,
@@ -10,6 +9,7 @@ import {
 import { isChatContainerLight } from "@typebot.io/theme/helpers/isChatContainerLight";
 import type { ChatTheme, GeneralTheme } from "@typebot.io/theme/schemas";
 import { colors } from "@typebot.io/ui/colors";
+import { Field } from "@typebot.io/ui/components/Field";
 import { BasicNumberInput } from "@/components/inputs/BasicNumberInput";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { ContainerThemeForm } from "./ContainerThemeForm";
@@ -56,12 +56,10 @@ export const ChatContainerForm = ({
   );
 
   return (
-    <Stack>
-      <HStack justifyContent="space-between">
-        <FormLabel mb="0" mr="0">
-          Max width:
-        </FormLabel>
-        <HStack>
+    <div className="flex flex-col gap-2">
+      <Field.Root className="flex-row">
+        <Field.Label>Max width:</Field.Label>
+        <div className="flex items-center gap-2">
           <BasicNumberInput
             className="max-w-40"
             defaultValue={maxWidth}
@@ -76,14 +74,11 @@ export const ChatContainerForm = ({
             value={maxWidthUnit}
             onChange={updateMaxWidthUnit}
           />
-        </HStack>
-      </HStack>
-
-      <HStack justifyContent="space-between">
-        <FormLabel mb="0" mr="0">
-          Max height:
-        </FormLabel>
-        <HStack>
+        </div>
+      </Field.Root>
+      <Field.Root className="flex-row">
+        <Field.Label>Max height:</Field.Label>
+        <div className="flex items-center gap-2">
           <BasicNumberInput
             className="max-w-40"
             defaultValue={maxHeight}
@@ -98,9 +93,8 @@ export const ChatContainerForm = ({
             value={maxHeightUnit}
             onChange={updateMaxHeightUnit}
           />
-        </HStack>
-      </HStack>
-
+        </div>
+      </Field.Root>
       <ContainerThemeForm
         theme={container}
         defaultTheme={{
@@ -119,7 +113,7 @@ export const ChatContainerForm = ({
         }}
         onThemeChange={onContainerChange}
       />
-    </Stack>
+    </div>
   );
 };
 

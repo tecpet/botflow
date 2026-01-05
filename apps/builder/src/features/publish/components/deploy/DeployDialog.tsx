@@ -1,10 +1,9 @@
-import { Heading, HStack } from "@chakra-ui/react";
 import { capitalize } from "@typebot.io/lib/utils";
 import { Alert } from "@typebot.io/ui/components/Alert";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Dialog } from "@typebot.io/ui/components/Dialog";
+import { ArrowLeft01Icon } from "@typebot.io/ui/icons/ArrowLeft01Icon";
 import { InformationSquareIcon } from "@typebot.io/ui/icons/InformationSquareIcon";
-import { ChevronLeftIcon } from "@/components/icons";
 import { EmbedTypeMenu } from "./EmbedTypeMenu/EmbedTypeMenu";
 
 type Props = {
@@ -31,7 +30,7 @@ export const DeployDialog = ({
   <Dialog.Root isOpen={isOpen} onClose={onClose}>
     <Dialog.Popup className="max-w-2xl">
       <Dialog.Title>
-        <HStack>
+        <div className="flex items-center gap-2">
           {selectedEmbedType && (
             <Button
               aria-label="back"
@@ -39,14 +38,12 @@ export const DeployDialog = ({
               onClick={() => onSelectEmbedType(undefined)}
               size="icon"
             >
-              <ChevronLeftIcon />
+              <ArrowLeft01Icon />
             </Button>
           )}
-          <Heading size="md">
-            {titlePrefix}{" "}
-            {selectedEmbedType && `- ${capitalize(selectedEmbedType)}`}
-          </Heading>
-        </HStack>
+          {titlePrefix}{" "}
+          {selectedEmbedType && `- ${capitalize(selectedEmbedType)}`}
+        </div>
       </Dialog.Title>
       <Dialog.CloseButton />
       {!isPublished && (

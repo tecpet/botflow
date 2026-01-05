@@ -1,13 +1,12 @@
-import { Text } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Label } from "@typebot.io/ui/components/Label";
 import { Radio, RadioGroup } from "@typebot.io/ui/components/RadioGroup";
+import { HardDriveIcon } from "@typebot.io/ui/icons/HardDriveIcon";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { EmojiOrImageIcon } from "@/components/EmojiOrImageIcon";
-import { HardDriveIcon } from "@/components/icons";
-import { PlanTag } from "@/features/billing/components/PlanTag";
+import { PlanBadge } from "@/features/billing/components/PlanTag";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { trpc } from "@/lib/queryClient";
@@ -36,9 +35,9 @@ const Page = () => {
   return (
     <div className="flex w-full justify-center items-center pt-10 h-screen">
       <div className="bg-gray-1 gap-4 max-w-400px mx-auto p-6 rounded-lg border flex flex-col">
-        <Text>
+        <p>
           Choose a workspace to duplicate <strong>{typebot?.name}</strong> in:
-        </Text>
+        </p>
         <RadioGroup
           className="flex-col"
           value={selectedWorkspaceId}
@@ -56,7 +55,7 @@ const Page = () => {
                 defaultIcon={HardDriveIcon}
               />
               {workspace.name}
-              <PlanTag plan={workspace.plan} />
+              <PlanBadge plan={workspace.plan} />
             </Label>
           ))}
         </RadioGroup>

@@ -1,4 +1,3 @@
-import { Stack, Tag, Text } from "@chakra-ui/react";
 import { isInputBlock } from "@typebot.io/blocks-core/helpers";
 import {
   defaultSetVariableOptions,
@@ -11,6 +10,7 @@ import type { SetVariableBlock } from "@typebot.io/blocks-logic/setVariable/sche
 import { timeZones } from "@typebot.io/lib/timeZones";
 import { isDefined } from "@typebot.io/lib/utils";
 import { Alert } from "@typebot.io/ui/components/Alert";
+import { Badge } from "@typebot.io/ui/components/Badge";
 import { Field } from "@typebot.io/ui/components/Field";
 import { Label } from "@typebot.io/ui/components/Label";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
@@ -18,13 +18,15 @@ import { Radio, RadioGroup } from "@typebot.io/ui/components/RadioGroup";
 import { Switch } from "@typebot.io/ui/components/Switch";
 import { InformationSquareIcon } from "@typebot.io/ui/icons/InformationSquareIcon";
 import type { Variable } from "@typebot.io/variables/schemas";
+import type { JSX } from "react";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
 import { DebouncedTextareaWithVariablesButton } from "@/components/inputs/DebouncedTextarea";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInput } from "@/components/inputs/DebouncedTextInput";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import { WhatsAppLogo } from "@/components/logos/WhatsAppLogo";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
+import { UnsafeScriptAlert } from "../../script/components/UnsafeScriptAlert";
 
 type Props = {
   options: SetVariableBlock["options"];
@@ -75,7 +77,7 @@ export const SetVariableSettings = ({ options, onOptionsChange }: Props) => {
     );
 
   return (
-    <Stack spacing={4}>
+    <div className="flex flex-col gap-4">
       <Field.Root>
         <Field.Label>Search or create variable:</Field.Label>
         <VariablesCombobox
@@ -83,12 +85,9 @@ export const SetVariableSettings = ({ options, onOptionsChange }: Props) => {
           initialVariableId={options?.variableId}
         />
       </Field.Root>
-
-      <Stack spacing="4">
-        <Stack>
-          <Text mb="0" fontWeight="medium">
-            Value:
-          </Text>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <p className="mb-0 font-medium">Value:</p>
           <BasicSelect
             value={options?.type ?? defaultSetVariableOptions.type}
             items={setVarTypes.map((type) => ({
@@ -100,7 +99,7 @@ export const SetVariableSettings = ({ options, onOptionsChange }: Props) => {
             }))}
             onChange={updateValueType}
           />
-        </Stack>
+        </div>
 
         {selectedVariable && !isSessionOnly && !isLinkedToAnswer && (
           <Field.Root className="flex-row items-center">
@@ -119,8 +118,8 @@ export const SetVariableSettings = ({ options, onOptionsChange }: Props) => {
           </Field.Root>
         )}
         <SetVariableValue options={options} onOptionsChange={onOptionsChange} />
-      </Stack>
-    </Stack>
+      </div>
+    </div>
   );
 };
 
@@ -220,75 +219,79 @@ const SetVariableValue = ({
     });
   };
 
+  const updateIsUnsafe = () => onOptionsChange({ ...options, isUnsafe: false });
+
   switch (options?.type) {
     case "Custom":
     case undefined:
       return (
-        <>
-          <Field.Root className="flex-row items-center">
-            <Switch
-              checked={
-                options?.isExecutedOnClient ??
-                defaultSetVariableOptions.isExecutedOnClient
-              }
-              onCheckedChange={updateClientExecution}
-            />
-            <Field.Label>
-              Execute on client{" "}
-              <MoreInfoTooltip>
-                Check this if you need access to client-only variables like
-                `window` or `document`.
-              </MoreInfoTooltip>
-            </Field.Label>
-          </Field.Root>
-          <Stack>
-            <RadioGroup
-              onValueChange={(value) => updateIsCode(value as "Text" | "Code")}
-              defaultValue={
-                (options?.isCode ?? defaultSetVariableOptions.isCode)
-                  ? "Code"
-                  : "Text"
-              }
-            >
-              <Label className="hover:bg-gray-2/50 rounded-md p-2 border flex-1 flex justify-center">
-                <Radio value="Text" className="hidden" />
-                Text
-              </Label>
-              <Label className="hover:bg-gray-2/50 rounded-md p-2 border flex-1 flex justify-center">
-                <Radio value="Code" className="hidden" />
-                Code
-              </Label>
-            </RadioGroup>
-            {options?.isCode ? (
-              <Stack>
-                <TextInput
-                  placeholder="Code description"
-                  defaultValue={options?.expressionDescription}
-                  onChange={updateExpressionDescription}
-                  withVariableButton={false}
-                />
-                <CodeEditor
-                  defaultValue={options?.expressionToEvaluate ?? ""}
-                  onChange={updateExpression}
-                  lang="javascript"
-                  withLineNumbers={true}
-                />
-                <Field.Root>
-                  <Field.Label>Save error</Field.Label>
-                  <VariablesCombobox
-                    initialVariableId={options.saveErrorInVariableId}
-                    onSelectVariable={updateSaveErrorInVariableId}
-                  />
-                </Field.Root>
-              </Stack>
-            ) : (
-              <DebouncedTextareaWithVariablesButton
-                defaultValue={options?.expressionToEvaluate ?? ""}
-                onValueChange={updateExpression}
+        <div className="flex flex-col gap-2">
+          <RadioGroup
+            onValueChange={(value) => updateIsCode(value as "Text" | "Code")}
+            defaultValue={
+              (options?.isCode ?? defaultSetVariableOptions.isCode)
+                ? "Code"
+                : "Text"
+            }
+          >
+            <Label className="hover:bg-gray-2/50 rounded-md p-2 border flex-1 flex justify-center">
+              <Radio value="Text" className="hidden" />
+              Text
+            </Label>
+            <Label className="hover:bg-gray-2/50 rounded-md p-2 border flex-1 flex justify-center">
+              <Radio value="Code" className="hidden" />
+              Code
+            </Label>
+          </RadioGroup>
+          {options?.isCode ? (
+            <div className="flex flex-col gap-2">
+              <DebouncedTextInput
+                placeholder="Code description"
+                defaultValue={options?.expressionDescription}
+                onValueChange={updateExpressionDescription}
               />
-            )}
-          </Stack>
-        </>
+              <CodeEditor
+                defaultValue={options?.expressionToEvaluate ?? ""}
+                onChange={updateExpression}
+                lang="javascript"
+                withLineNumbers={true}
+              />
+              <Field.Root className="flex-row items-center">
+                <Switch
+                  checked={
+                    options?.isExecutedOnClient ??
+                    defaultSetVariableOptions.isExecutedOnClient
+                  }
+                  onCheckedChange={updateClientExecution}
+                />
+                <Field.Label>
+                  Execute on client{" "}
+                  <MoreInfoTooltip>
+                    Check this if you need access to client-only variables like
+                    `window` or `document`.
+                  </MoreInfoTooltip>
+                </Field.Label>
+              </Field.Root>
+              {options?.isUnsafe === true &&
+                options?.isExecutedOnClient === true &&
+                options.isCode && (
+                  <UnsafeScriptAlert onTrustClick={updateIsUnsafe} />
+                )}
+              <Field.Root>
+                <Field.Label>Save error</Field.Label>
+                <VariablesCombobox
+                  initialVariableId={options.saveErrorInVariableId}
+                  onSelectVariable={updateSaveErrorInVariableId}
+                />
+              </Field.Root>
+            </div>
+          ) : (
+            <DebouncedTextareaWithVariablesButton
+              defaultValue={options?.expressionToEvaluate ?? ""}
+              onValueChange={updateExpression}
+            />
+          )}
+        </div>
       );
     case "Pop":
     case "Shift":
@@ -303,7 +306,7 @@ const SetVariableValue = ({
       );
     case "Map item with same index": {
       return (
-        <Stack p="2" rounded="md" borderWidth={1}>
+        <div className="flex flex-col gap-2 p-2 rounded-md border">
           <VariablesCombobox
             initialVariableId={options.mapListItemParams?.baseItemVariableId}
             onSelectVariable={updateItemVariableId}
@@ -319,7 +322,7 @@ const SetVariableValue = ({
             onSelectVariable={updateTargetListVariableId}
             placeholder="Target list"
           />
-        </Stack>
+        </div>
       );
     }
     case "Append value(s)": {
@@ -335,9 +338,9 @@ const SetVariableValue = ({
         <Alert.Root>
           <InformationSquareIcon />
           <Alert.Description>
-            Will return either <Tag size="sm">morning</Tag>,{" "}
-            <Tag size="sm">afternoon</Tag>,<Tag size="sm">evening</Tag> or{" "}
-            <Tag size="sm">night</Tag> based on the current user time.
+            Will return either <Badge>morning</Badge>, <Badge>afternoon</Badge>,
+            <Badge>evening</Badge> or <Badge>night</Badge> based on the current
+            user time.
           </Alert.Description>
         </Alert.Root>
       );
@@ -348,8 +351,7 @@ const SetVariableValue = ({
         <Alert.Root>
           <InformationSquareIcon />
           <Alert.Description>
-            Will return either <Tag size="sm">web</Tag> or{" "}
-            <Tag size="sm">whatsapp</Tag>.
+            Will return either <Badge>web</Badge> or <Badge>whatsapp</Badge>.
           </Alert.Description>
         </Alert.Root>
       );
@@ -359,8 +361,8 @@ const SetVariableValue = ({
         <Alert.Root>
           <InformationSquareIcon />
           <Alert.Description>
-            Will return either <Tag size="sm">desktop</Tag>,{" "}
-            <Tag size="sm">tablet</Tag> or <Tag size="sm">mobile</Tag>.
+            Will return either <Badge>desktop</Badge>, <Badge>tablet</Badge> or{" "}
+            <Badge>mobile</Badge>.
           </Alert.Description>
         </Alert.Root>
       );

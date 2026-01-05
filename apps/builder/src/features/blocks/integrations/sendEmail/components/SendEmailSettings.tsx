@@ -1,4 +1,3 @@
-import { Flex, HStack, Stack, Text, useDisclosure } from "@chakra-ui/react";
 import { defaultSendEmailOptions } from "@typebot.io/blocks-integrations/sendEmail/constants";
 import type { SendEmailBlock } from "@typebot.io/blocks-integrations/sendEmail/schema";
 import { env } from "@typebot.io/env";
@@ -7,11 +6,12 @@ import { Accordion } from "@typebot.io/ui/components/Accordion";
 import { Field } from "@typebot.io/ui/components/Field";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Switch } from "@typebot.io/ui/components/Switch";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import type { Variable } from "@typebot.io/variables/schemas";
 import type { Workspace } from "@typebot.io/workspaces/schemas";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
 import { DebouncedTextareaWithVariablesButton } from "@/components/inputs/DebouncedTextarea";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import { isFreePlan } from "@/features/billing/helpers/isFreePlan";
 import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
@@ -25,7 +25,7 @@ type Props = {
 
 export const SendEmailSettings = ({ options, onOptionsChange }: Props) => {
   const { workspace } = useWorkspace();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useOpenControls();
 
   const updateCredentialsId = (credentialsId?: string) => {
     onOptionsChange({
@@ -106,9 +106,9 @@ export const SendEmailSettings = ({ options, onOptionsChange }: Props) => {
     });
 
   return (
-    <Stack spacing={4}>
-      <Stack>
-        <Text>From: </Text>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        <p>From: </p>
         {workspace && (
           <CredentialsDropdown
             type="smtp"
@@ -127,44 +127,53 @@ export const SendEmailSettings = ({ options, onOptionsChange }: Props) => {
             credentialsName="SMTP account"
           />
         )}
-      </Stack>
-      <TextInput
-        label="To:"
-        onChange={handleToChange}
-        defaultValue={options?.recipients?.join(", ")}
-        placeholder="email1@gmail.com, email2@gmail.com"
-      />
+      </div>
+      <Field.Root>
+        <Field.Label>To:</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          onValueChange={handleToChange}
+          defaultValue={options?.recipients?.join(", ")}
+          placeholder="email1@gmail.com, email2@gmail.com"
+        />
+      </Field.Root>
       <Accordion.Root>
         <Accordion.Item>
           <Accordion.Trigger>Advanced</Accordion.Trigger>
           <Accordion.Panel>
-            <TextInput
-              label="Reply to:"
-              onChange={handleReplyToChange}
-              defaultValue={options?.replyTo}
-              placeholder={"email@gmail.com"}
-            />
-            <TextInput
-              label="Cc:"
-              onChange={handleCcChange}
-              defaultValue={options?.cc?.join(", ") ?? ""}
-              placeholder="email1@gmail.com, email2@gmail.com"
-            />
-            <TextInput
-              label="Bcc:"
-              onChange={handleBccChange}
-              defaultValue={options?.bcc?.join(", ") ?? ""}
-              placeholder="email1@gmail.com, email2@gmail.com"
-            />
+            <Field.Root>
+              <Field.Label>Reply to:</Field.Label>
+              <DebouncedTextInputWithVariablesButton
+                onValueChange={handleReplyToChange}
+                defaultValue={options?.replyTo}
+                placeholder={"email@gmail.com"}
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>Cc:</Field.Label>
+              <DebouncedTextInputWithVariablesButton
+                onValueChange={handleCcChange}
+                defaultValue={options?.cc?.join(", ") ?? ""}
+                placeholder="email1@gmail.com, email2@gmail.com"
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>Bcc:</Field.Label>
+              <DebouncedTextInputWithVariablesButton
+                onValueChange={handleBccChange}
+                defaultValue={options?.bcc?.join(", ") ?? ""}
+                placeholder="email1@gmail.com, email2@gmail.com"
+              />
+            </Field.Root>
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion.Root>
-
-      <TextInput
-        label="Subject:"
-        onChange={handleSubjectChange}
-        defaultValue={options?.subject ?? ""}
-      />
+      <Field.Root>
+        <Field.Label>Subject:</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          onValueChange={handleSubjectChange}
+          defaultValue={options?.subject ?? ""}
+        />
+      </Field.Root>
       <Field.Root className="flex-row items-center">
         <Switch
           checked={
@@ -181,20 +190,20 @@ export const SendEmailSettings = ({ options, onOptionsChange }: Props) => {
         </Field.Label>
       </Field.Root>
       {options?.isCustomBody && (
-        <Stack>
-          <Flex justifyContent="space-between">
-            <Text>Content: </Text>
-            <HStack>
-              <Text fontSize="sm">Text</Text>
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between">
+            <p>Content: </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm">Text</p>
               <Switch
                 checked={
                   options.isBodyCode ?? defaultSendEmailOptions.isBodyCode
                 }
                 onCheckedChange={handleIsBodyCodeChange}
               />
-              <Text fontSize="sm">Code</Text>
-            </HStack>
-          </Flex>
+              <p className="text-sm">Code</p>
+            </div>
+          </div>
           {options.isBodyCode ? (
             <CodeEditor
               defaultValue={options.body ?? ""}
@@ -221,15 +230,14 @@ export const SendEmailSettings = ({ options, onOptionsChange }: Props) => {
               onSelectVariable={handleChangeAttachmentVariable}
             />
           </Field.Root>
-        </Stack>
+        </div>
       )}
-
       <SmtpCredentialsCreateDialog
         isOpen={isOpen}
         onClose={onClose}
         onNewCredentials={updateCredentialsId}
       />
-    </Stack>
+    </div>
   );
 };
 

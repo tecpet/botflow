@@ -1,13 +1,3 @@
-import {
-  Fade,
-  Flex,
-  Heading,
-  HStack,
-  Input,
-  SlideFade,
-  Stack,
-  useColorModeValue,
-} from "@chakra-ui/react";
 import { createId } from "@paralleldrive/cuid2";
 import { isInputBlock } from "@typebot.io/blocks-core/helpers";
 import type { InputBlock } from "@typebot.io/blocks-inputs/schema";
@@ -17,16 +7,18 @@ import type { SetVariableBlock } from "@typebot.io/blocks-logic/setVariable/sche
 import { isNotEmpty } from "@typebot.io/lib/utils";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Field } from "@typebot.io/ui/components/Field";
+import { Input } from "@typebot.io/ui/components/Input";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Popover } from "@typebot.io/ui/components/Popover";
 import { Switch } from "@typebot.io/ui/components/Switch";
 import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import { Cancel01Icon } from "@typebot.io/ui/icons/Cancel01Icon";
+import { MoreHorizontalIcon } from "@typebot.io/ui/icons/MoreHorizontalIcon";
+import { PlusSignIcon } from "@typebot.io/ui/icons/PlusSignIcon";
 import { TrashIcon } from "@typebot.io/ui/icons/TrashIcon";
 import type { Variable } from "@typebot.io/variables/schemas";
 import { useDrag } from "@use-gesture/react";
 import { type FormEvent, useState } from "react";
-import { MoreHorizontalIcon, PlusIcon } from "@/components/icons";
 import { SingleLineEditable } from "@/components/SingleLineEditable";
 import { toast } from "@/lib/toast";
 import { headerHeight } from "../../editor/constants";
@@ -78,30 +70,22 @@ export const VariablesDrawer = ({ onClose }: Props) => {
     ) ?? [];
 
   return (
-    <Flex
-      pos="absolute"
-      right="0"
-      top={`0`}
-      h={`100%`}
-      bgColor={useColorModeValue("white", "gray.950")}
-      borderLeftWidth={"1px"}
-      shadow="md"
-      borderLeftRadius={"lg"}
+    <div
+      className="flex absolute border-l shadow-md p-6 right-0 top-0 h-full bg-gray-1 rounded-l-lg"
       onMouseOver={() => setIsResizeHandleVisible(true)}
+      onFocus={() => setIsResizeHandleVisible(true)}
+      onBlur={() => setIsResizeHandleVisible(false)}
       onMouseLeave={() => setIsResizeHandleVisible(false)}
-      p="6"
       style={{ width: `${width}px` }}
     >
-      <Fade in={isResizeHandleVisible}>
+      {isResizeHandleVisible && (
         <ResizeHandle
           {...useResizeHandleDrag()}
-          pos="absolute"
-          left="-7.5px"
-          top={`calc(50% - ${headerHeight}px)`}
+          className="animate-in fade-in-0 absolute left-[-7.5px]"
+          style={{ top: `calc(50% - ${headerHeight}px)` }}
         />
-      </Fade>
-
-      <Stack w="full" spacing="4">
+      )}
+      <div className="flex flex-col w-full gap-4">
         <Button
           className="absolute right-2 top-2"
           onClick={onClose}
@@ -110,31 +94,28 @@ export const VariablesDrawer = ({ onClose }: Props) => {
         >
           <Cancel01Icon />
         </Button>
-        <Heading fontSize="md">Variables</Heading>
-        <HStack as="form" onSubmit={handleCreateSubmit}>
+        <h2 className="text-md font-medium">Variables</h2>
+        <form className="flex items-center gap-2" onSubmit={handleCreateSubmit}>
           <Input
-            width="full"
             placeholder="Search or create..."
             value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            onValueChange={setSearchValue}
           />
-          <SlideFade
-            in={
-              filteredVariables &&
-              searchValue.length > 0 &&
-              !filteredVariables.some((v) => v.name === searchValue)
-            }
-            unmountOnExit
-            offsetY={0}
-            offsetX={10}
-          >
-            <Button aria-label="Create" type="submit" size="icon">
-              <PlusIcon />
-            </Button>
-          </SlideFade>
-        </HStack>
+          {filteredVariables &&
+            searchValue.length > 0 &&
+            !filteredVariables.some((v) => v.name === searchValue) && (
+              <Button
+                aria-label="Create"
+                type="submit"
+                size="icon"
+                className="animate-in fade-in-0"
+              >
+                <PlusSignIcon />
+              </Button>
+            )}
+        </form>
 
-        <Stack overflowY="auto" py="1">
+        <div className="flex flex-col gap-2 overflow-y-auto py-1">
           {filteredVariables?.map((variable) => (
             <VariableItem
               key={variable.id}
@@ -144,9 +125,9 @@ export const VariablesDrawer = ({ onClose }: Props) => {
               setVariableAndInputBlocks={setVariableAndInputBlocks}
             />
           ))}
-        </Stack>
-      </Stack>
-    </Flex>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -176,13 +157,12 @@ const VariableItem = ({
   );
 
   return (
-    <HStack justifyContent="space-between" pl={1}>
+    <div className="flex items-center gap-2 justify-between pl-1">
       <SingleLineEditable
         defaultValue={variable.name}
         onValueCommit={(name) => onChange({ name })}
       />
-
-      <HStack>
+      <div className="flex items-center gap-2">
         {!isSessionOnly && !isLinkedToAnswer && (
           <Popover.Root {...settingsPopoverControls}>
             <Popover.TriggerButton
@@ -224,7 +204,7 @@ const VariableItem = ({
         >
           <TrashIcon />
         </Button>
-      </HStack>
-    </HStack>
+      </div>
+    </div>
   );
 };

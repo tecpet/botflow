@@ -1,13 +1,13 @@
-import { FormControl, FormLabel, HStack, Stack, Text } from "@chakra-ui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import type { StripeCredentials } from "@typebot.io/credentials/schemas";
 import { isNotEmpty } from "@typebot.io/lib/utils";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Dialog } from "@typebot.io/ui/components/Dialog";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Input } from "@typebot.io/ui/components/Input";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { useEffect, useState } from "react";
-import { TextInput } from "@/components/inputs/TextInput";
 import { TextLink } from "@/components/TextLink";
 import { useUser } from "@/features/user/hooks/useUser";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
@@ -124,73 +124,60 @@ export const UpdateStripeCredentialsDialogBody = ({
 
   return (
     <Dialog.Popup render={<form onSubmit={updateCreds} />}>
-      <Stack as="form" spacing={4}>
-        <TextInput
-          isRequired
-          label={t(
-            "blocks.inputs.payment.settings.stripeConfig.accountName.label",
-          )}
-          defaultValue={stripeConfig?.name}
-          onChange={handleNameChange}
-          placeholder="Typebot"
-          withVariableButton={false}
-          debounceTimeout={0}
-        />
-        <Stack>
-          <FormLabel>
+      <form className="flex flex-col gap-4">
+        <Field.Root>
+          <Field.Label>
+            {t("blocks.inputs.payment.settings.stripeConfig.accountName.label")}
+          </Field.Label>
+          <Input
+            defaultValue={stripeConfig?.name}
+            onValueChange={handleNameChange}
+            placeholder="Typebot"
+          />
+        </Field.Root>
+        <Field.Root>
+          <Field.Label>
             {t("blocks.inputs.payment.settings.stripeConfig.testKeys.label")}
             <MoreInfoTooltip>
               {t(
                 "blocks.inputs.payment.settings.stripeConfig.testKeys.infoText.label",
               )}
             </MoreInfoTooltip>
-          </FormLabel>
-          <HStack>
-            <TextInput
-              onChange={handleTestPublicKeyChange}
+          </Field.Label>
+          <div className="flex items-center gap-2">
+            <Input
+              onValueChange={handleTestPublicKeyChange}
               placeholder="pk_test_..."
-              withVariableButton={false}
               defaultValue={stripeConfig?.test?.publicKey}
-              debounceTimeout={0}
             />
-            <TextInput
-              onChange={handleTestSecretKeyChange}
+            <Input
+              onValueChange={handleTestSecretKeyChange}
               placeholder="sk_test_..."
-              withVariableButton={false}
-              debounceTimeout={0}
               defaultValue={stripeConfig?.test?.secretKey}
               type="password"
             />
-          </HStack>
-        </Stack>
-        <Stack>
-          <FormLabel>
+          </div>
+        </Field.Root>
+        <Field.Root>
+          <Field.Label>
             {t("blocks.inputs.payment.settings.stripeConfig.liveKeys.label")}
-          </FormLabel>
-          <HStack>
-            <FormControl>
-              <TextInput
-                onChange={handlePublicKeyChange}
-                placeholder="pk_live_..."
-                withVariableButton={false}
-                defaultValue={stripeConfig?.live?.publicKey}
-                debounceTimeout={0}
-              />
-            </FormControl>
-            <FormControl>
-              <TextInput
-                onChange={handleSecretKeyChange}
-                placeholder="sk_live_..."
-                withVariableButton={false}
-                defaultValue={stripeConfig?.live?.secretKey}
-                debounceTimeout={0}
-                type="password"
-              />
-            </FormControl>
-          </HStack>
-        </Stack>
+          </Field.Label>
+          <div className="flex items-center gap-2">
+            <Input
+              onValueChange={handlePublicKeyChange}
+              placeholder="pk_live_..."
+              defaultValue={stripeConfig?.live?.publicKey}
+            />
+            <Input
+              onValueChange={handleSecretKeyChange}
+              placeholder="sk_live_..."
+              defaultValue={stripeConfig?.live?.secretKey}
+              type="password"
+            />
+          </div>
+        </Field.Root>
 
-        <Text>
+        <p>
           ({t("blocks.inputs.payment.settings.stripeConfig.findKeys.label")}{" "}
           <TextLink href="https://dashboard.stripe.com/apikeys" isExternal>
             {t(
@@ -198,9 +185,8 @@ export const UpdateStripeCredentialsDialogBody = ({
             )}
           </TextLink>
           )
-        </Text>
-      </Stack>
-
+        </p>
+      </form>
       <Dialog.Footer>
         <Button
           type="submit"

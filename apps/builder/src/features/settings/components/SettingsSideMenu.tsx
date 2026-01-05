@@ -1,13 +1,10 @@
-import { Heading, Stack, useColorModeValue } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import type { Settings } from "@typebot.io/settings/schemas";
 import { Accordion } from "@typebot.io/ui/components/Accordion";
-import {
-  ChatIcon,
-  CodeIcon,
-  LockedIcon,
-  MoreHorizontalIcon,
-} from "@/components/icons";
+import { ChatIcon } from "@typebot.io/ui/icons/ChatIcon";
+import { MoreHorizontalIcon } from "@typebot.io/ui/icons/MoreHorizontalIcon";
+import { SourceCodeIcon } from "@typebot.io/ui/icons/SourceCodeIcon";
+import { SquareLock01Icon } from "@typebot.io/ui/icons/SquareLock01Icon";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { GeneralSettingsForm } from "./GeneralSettingsForm";
 import { MetadataForm } from "./MetadataForm";
@@ -41,24 +38,13 @@ export const SettingsSideMenu = () => {
     updateTypebot({ updates: { settings: { ...typebot.settings, metadata } } });
 
   return (
-    <Stack
-      flex="1"
-      maxW="400px"
-      h={`calc(100% - 2rem)`}
-      borderWidth={1}
-      ml={4}
-      overflowY="auto"
-      pb="20"
-      position="relative"
-      rounded="xl"
-      bg={useColorModeValue("white", "gray.900")}
-    >
+    <div className="flex flex-col gap-2 flex-1 max-w-[400px] border ml-4 overflow-y-auto pb-20 relative rounded-xl h-[calc(100%-2rem)] bg-gray-1 dark:bg-gray-2">
       <Accordion.Root>
         <Accordion.Item className="border-0">
           <Accordion.Trigger className="py-5">
             <div className="flex items-center gap-3 pl-2">
               <MoreHorizontalIcon />
-              <Heading fontSize="md">{t("settings.sideMenu.general")}</Heading>
+              <h3 className="text-lg">{t("settings.sideMenu.general")}</h3>
             </div>
           </Accordion.Trigger>
           <Accordion.Panel>
@@ -70,11 +56,11 @@ export const SettingsSideMenu = () => {
             )}
           </Accordion.Panel>
         </Accordion.Item>
-        <Accordion.Item className="border-0 border-t-[1px]">
+        <Accordion.Item className="border-0 border-t">
           <Accordion.Trigger className="py-5">
             <div className="flex items-center gap-3 pl-2">
               <ChatIcon />
-              <Heading fontSize="md">{t("settings.sideMenu.typing")}</Heading>
+              <h3 className="text-lg">{t("settings.sideMenu.typing")}</h3>
             </div>
           </Accordion.Trigger>
           <Accordion.Panel>
@@ -86,11 +72,11 @@ export const SettingsSideMenu = () => {
             )}
           </Accordion.Panel>
         </Accordion.Item>
-        <Accordion.Item className="border-0 border-t-[1px]">
+        <Accordion.Item className="border-0 border-t">
           <Accordion.Trigger className="py-5">
             <div className="flex items-center gap-3 pl-2">
-              <LockedIcon />
-              <Heading fontSize="md">{t("settings.sideMenu.security")}</Heading>
+              <SquareLock01Icon />
+              <h3 className="text-lg">{t("settings.sideMenu.security")}</h3>
             </div>
           </Accordion.Trigger>
           <Accordion.Panel>
@@ -102,11 +88,11 @@ export const SettingsSideMenu = () => {
             )}
           </Accordion.Panel>
         </Accordion.Item>
-        <Accordion.Item className="border-0 border-t-[1px] last:rounded-b-none">
+        <Accordion.Item className="border-0 border-t last:rounded-b-none">
           <Accordion.Trigger className="py-5">
             <div className="flex items-center gap-3 pl-2">
-              <CodeIcon />
-              <Heading fontSize="md">{t("settings.sideMenu.metadata")}</Heading>
+              <SourceCodeIcon />
+              <h3 className="text-lg">{t("settings.sideMenu.metadata")}</h3>
             </div>
           </Accordion.Trigger>
           <Accordion.Panel>
@@ -122,6 +108,6 @@ export const SettingsSideMenu = () => {
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion.Root>
-    </Stack>
+    </div>
   );
 };

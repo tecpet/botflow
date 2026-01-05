@@ -1,4 +1,3 @@
-import { chakra } from "@chakra-ui/react";
 import { parseUnknownClientError } from "@typebot.io/lib/parseUnknownClientError";
 import type { Typebot } from "@typebot.io/typebot/schemas/typebot";
 import {
@@ -10,7 +9,7 @@ import type { ChangeEvent } from "react";
 import { toast } from "@/lib/toast";
 
 type Props = {
-  onNewTypebot: (typebot: Typebot) => void;
+  onNewTypebot: (typebot: Typebot, args: { enableSafetyFlags: true }) => void;
 } & ButtonProps;
 
 export const ImportTypebotFromFileButton = ({
@@ -25,12 +24,15 @@ export const ImportTypebotFromFileButton = ({
     const fileContent = await readFile(file);
     try {
       const typebot = JSON.parse(fileContent);
-      onNewTypebot({
-        ...typebot,
-        events: typebot.events ?? null,
-        icon: typebot.icon ?? null,
-        name: typebot.name ?? "My typebot",
-      } as Typebot);
+      onNewTypebot(
+        {
+          ...typebot,
+          events: typebot.events ?? null,
+          icon: typebot.icon ?? null,
+          name: typebot.name ?? "My typebot",
+        } as Typebot,
+        { enableSafetyFlags: true },
+      );
     } catch (err) {
       console.error(err);
       toast(await parseUnknownClientError({ err }));
@@ -39,10 +41,10 @@ export const ImportTypebotFromFileButton = ({
 
   return (
     <>
-      <chakra.input
+      <input
         type="file"
         id="file-input"
-        display="none"
+        className="hidden"
         onChange={handleInputChange}
         accept=".json"
       />

@@ -1,10 +1,9 @@
-import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultEmailInputOptions } from "@typebot.io/blocks-inputs/email/constants";
 import type { EmailInputBlock } from "@typebot.io/blocks-inputs/email/schema";
 import { Field } from "@typebot.io/ui/components/Field";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
@@ -27,30 +26,40 @@ export const EmailInputSettings = ({ options, onOptionsChange }: Props) => {
     onOptionsChange({ ...options, retryMessageContent });
 
   return (
-    <Stack spacing={4}>
-      <TextInput
-        label={t("blocks.inputs.settings.placeholder.label")}
-        defaultValue={
-          options?.labels?.placeholder ??
-          defaultEmailInputOptions.labels.placeholder
-        }
-        onChange={handlePlaceholderChange}
-      />
-      <TextInput
-        label={t("blocks.inputs.settings.button.label")}
-        defaultValue={
-          options?.labels?.button ?? defaultEmailInputOptions.labels.button
-        }
-        onChange={handleButtonLabelChange}
-      />
-      <TextInput
-        label={t("blocks.inputs.settings.retryMessage.label")}
-        defaultValue={
-          options?.retryMessageContent ??
-          defaultEmailInputOptions.retryMessageContent
-        }
-        onChange={handleRetryMessageChange}
-      />
+    <div className="flex flex-col gap-4">
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.settings.placeholder.label")}
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={
+            options?.labels?.placeholder ??
+            defaultEmailInputOptions.labels.placeholder
+          }
+          onValueChange={handlePlaceholderChange}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>{t("blocks.inputs.settings.button.label")}</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={
+            options?.labels?.button ?? defaultEmailInputOptions.labels.button
+          }
+          onValueChange={handleButtonLabelChange}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.settings.retryMessage.label")}
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={
+            options?.retryMessageContent ??
+            defaultEmailInputOptions.retryMessageContent
+          }
+          onValueChange={handleRetryMessageChange}
+        />
+      </Field.Root>
       <Field.Root>
         <Field.Label>
           {t("blocks.inputs.settings.saveAnswer.label")}
@@ -60,6 +69,6 @@ export const EmailInputSettings = ({ options, onOptionsChange }: Props) => {
           onSelectVariable={handleVariableChange}
         />
       </Field.Root>
-    </Stack>
+    </div>
   );
 };

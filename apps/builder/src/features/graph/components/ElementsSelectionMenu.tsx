@@ -1,9 +1,9 @@
-import { useEventListener } from "@chakra-ui/react";
 import { EventType } from "@typebot.io/events/constants";
 import type { TDraggableEvent } from "@typebot.io/events/schemas";
 import type { GroupV6 } from "@typebot.io/groups/schemas";
 import type { Edge } from "@typebot.io/typebot/schemas/edge";
 import { Button } from "@typebot.io/ui/components/Button";
+import { Copy01Icon } from "@typebot.io/ui/icons/Copy01Icon";
 import { TrashIcon } from "@typebot.io/ui/icons/TrashIcon";
 import {
   extractVariableIdReferencesInObject,
@@ -12,8 +12,8 @@ import {
 import type { Variable } from "@typebot.io/variables/schemas";
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { CopyIcon } from "@/components/icons";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
+import { useEventListener } from "@/hooks/useEventListener";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { toast } from "@/lib/toast";
 import { projectMouse } from "../helpers/projectMouse";
@@ -157,7 +157,16 @@ export const ElementsSelectionMenu = ({
 
   if (focusedElementIds.length === 0 || isReadOnly) return null;
   return (
-    <div className="flex items-stretch gap-1">
+    <div
+      className="flex items-stretch gap-1"
+      // Prevent Graph event listeners to cancel action clicks
+      onPointerDownCapture={(e) => {
+        e.stopPropagation();
+      }}
+      onPointerUpCapture={(e) => {
+        e.stopPropagation();
+      }}
+    >
       <span className="text-sm text-orange-10 font-medium px-2 inline-flex items-center select-none">
         {focusedElementIds.length} selected
       </span>
@@ -171,7 +180,7 @@ export const ElementsSelectionMenu = ({
         size="icon"
         variant="secondary"
       >
-        <CopyIcon />
+        <Copy01Icon />
       </Button>
 
       <Button

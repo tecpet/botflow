@@ -1,11 +1,10 @@
-import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultPictureChoiceOptions } from "@typebot.io/blocks-inputs/pictureChoice/constants";
 import type { PictureChoiceBlock } from "@typebot.io/blocks-inputs/pictureChoice/schema";
 import { Field } from "@typebot.io/ui/components/Field";
 import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
@@ -64,7 +63,7 @@ export const PictureChoiceSettings = ({ options, onOptionsChange }: Props) => {
     });
 
   return (
-    <Stack spacing={4}>
+    <div className="flex flex-col gap-4">
       <Field.Container>
         <Field.Root className="flex-row items-center">
           <Switch
@@ -79,14 +78,18 @@ export const PictureChoiceSettings = ({ options, onOptionsChange }: Props) => {
         </Field.Root>
         {(options?.isSearchable ??
           defaultPictureChoiceOptions.isSearchable) && (
-          <TextInput
-            label={t("blocks.inputs.settings.input.placeholder.label")}
-            defaultValue={
-              options?.searchInputPlaceholder ??
-              defaultPictureChoiceOptions.searchInputPlaceholder
-            }
-            onChange={updateSearchInputPlaceholder}
-          />
+          <Field.Root>
+            <Field.Label>
+              {t("blocks.inputs.settings.input.placeholder.label")}
+            </Field.Label>
+            <DebouncedTextInputWithVariablesButton
+              defaultValue={
+                options?.searchInputPlaceholder ??
+                defaultPictureChoiceOptions.searchInputPlaceholder
+              }
+              onValueChange={updateSearchInputPlaceholder}
+            />
+          </Field.Root>
         )}
       </Field.Container>
       <Field.Container>
@@ -104,13 +107,17 @@ export const PictureChoiceSettings = ({ options, onOptionsChange }: Props) => {
         </Field.Root>
         {(options?.isMultipleChoice ??
           defaultPictureChoiceOptions.isMultipleChoice) && (
-          <TextInput
-            label={t("blocks.inputs.settings.submitButton.label")}
-            defaultValue={
-              options?.buttonLabel ?? defaultPictureChoiceOptions.buttonLabel
-            }
-            onChange={updateButtonLabel}
-          />
+          <Field.Root>
+            <Field.Label>
+              {t("blocks.inputs.settings.submitButton.label")}
+            </Field.Label>
+            <DebouncedTextInputWithVariablesButton
+              defaultValue={
+                options?.buttonLabel ?? defaultPictureChoiceOptions.buttonLabel
+              }
+              onValueChange={updateButtonLabel}
+            />
+          </Field.Root>
         )}
       </Field.Container>
       <Field.Container>
@@ -163,7 +170,6 @@ export const PictureChoiceSettings = ({ options, onOptionsChange }: Props) => {
           </>
         )}
       </Field.Container>
-
       <Field.Root>
         <Field.Label>
           {t("blocks.inputs.settings.saveAnswer.label")}
@@ -173,6 +179,6 @@ export const PictureChoiceSettings = ({ options, onOptionsChange }: Props) => {
           onSelectVariable={updateSaveVariable}
         />
       </Field.Root>
-    </Stack>
+    </div>
   );
 };

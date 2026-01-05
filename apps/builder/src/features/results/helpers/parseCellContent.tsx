@@ -1,6 +1,6 @@
-import { Stack, Text } from "@chakra-ui/react";
 import { InputBlockType } from "@typebot.io/blocks-inputs/constants";
 import type { VariableWithValue } from "@typebot.io/variables/schemas";
+import type { JSX } from "react";
 import { FileLinks } from "../components/FileLinks";
 
 export const parseCellContent = (
@@ -11,13 +11,13 @@ export const parseCellContent = (
   if (Array.isArray(content))
     return {
       element: (
-        <Stack spacing={2}>
+        <div className="flex flex-col gap-2">
           {content.map((item, idx) => (
-            <Text key={idx}>
+            <p key={idx}>
               {idx + 1}. {item}
-            </Text>
+            </p>
           ))}
-        </Stack>
+        </div>
       ),
       plainText: content.join(", "),
     };

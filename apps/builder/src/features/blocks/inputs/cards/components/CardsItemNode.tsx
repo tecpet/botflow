@@ -1,4 +1,3 @@
-import { Flex, SlideFade, Stack, useColorModeValue } from "@chakra-ui/react";
 import { createId } from "@paralleldrive/cuid2";
 import { useTranslate } from "@tolgee/react";
 import type {
@@ -8,12 +7,12 @@ import type {
 import type { CardsItem } from "@typebot.io/blocks-inputs/cards/schema";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Popover } from "@typebot.io/ui/components/Popover";
+import { Settings01Icon } from "@typebot.io/ui/icons/Settings01Icon";
 import { cn } from "@typebot.io/ui/lib/cn";
 import { cx } from "@typebot.io/ui/lib/cva";
 import { useState } from "react";
 import { ImageOrPlaceholder } from "@/components/ImageOrPlaceholder";
 import { ImageUploadContent } from "@/components/ImageUploadContent/ImageUploadContent";
-import { SettingsIcon } from "@/components/icons";
 import {
   MultiLineEditable,
   type MultiLineEditableProps,
@@ -104,7 +103,7 @@ export const CardsItemNode = ({
     >
       <Popover.Trigger
         render={(props) => (
-          <Stack {...props} gap={0} justify="center" w="full">
+          <div className="flex flex-col gap-0 justify-center w-full" {...props}>
             <StacksWithGhostableItems gapPixel={8}>
               <GhostableItem
                 ghostLabel="Add image"
@@ -124,7 +123,7 @@ export const CardsItemNode = ({
                   >
                     <Popover.Trigger>
                       <ImageOrPlaceholder
-                        className="w-full h-[110px] flex-shrink-0 transition-filter rounded-md hover:brightness-95 rounded-b-none"
+                        className="w-full h-[110px] shrink-0 transition-filter rounded-md hover:brightness-95 rounded-b-none"
                         src={item.imageUrl ?? undefined}
                       />
                     </Popover.Trigger>
@@ -193,7 +192,7 @@ export const CardsItemNode = ({
               </GhostableItem>
             </StacksWithGhostableItems>
 
-            <Stack gap={0} px="2">
+            <div className="flex flex-col gap-0 px-2">
               {item.paths?.map((path, idx) => (
                 <SingleLineDeletableEditable
                   onDelete={() => deletePath(idx)}
@@ -219,10 +218,7 @@ export const CardsItemNode = ({
                       pathId: path.id,
                     }}
                     groupId={groupId}
-                    pos="absolute"
-                    right="-57px"
-                    bottom="-2px"
-                    pointerEvents="all"
+                    className="absolute right-[-57px] bottom-[-2px] pointer-events-[all]"
                   />
                 </SingleLineDeletableEditable>
               ))}
@@ -231,43 +227,27 @@ export const CardsItemNode = ({
                 expandedHeightPixels={30}
                 initialPaddingPixel={0}
                 expandedPaddingPixel={0}
-                roundedTop={0}
-                fontSize="xs"
-                fontWeight="medium"
+                className="text-xs font-medium rounded-t-none"
                 onClick={addPath}
               >
                 Add button
               </PlaceholderNode>
-            </Stack>
+            </div>
 
-            <SlideFade
-              offsetY="5px"
-              offsetX="-5px"
-              in={isMouseOver}
-              style={{
-                position: "absolute",
-                right: "-0.25rem",
-                top: "-0.25rem",
-                zIndex: 3,
-              }}
-              unmountOnExit
-            >
-              <Flex
-                bgColor={useColorModeValue("white", "gray.900")}
-                rounded="md"
-              >
+            {isMouseOver && (
+              <div className="flex rounded-md bg-gray-1 absolute -right-1 -top-1 z-10 animate-in fade-in-0 slide-in-from-top-1 slide-in-from-right-1">
                 <Button
                   aria-label={t("blocks.inputs.button.openSettings.ariaLabel")}
                   variant="ghost"
                   size="icon"
-                  className="shadow-md"
+                  className="shadow-md size-7"
                   onClick={() => setOpenedNodeId(item.id)}
                 >
-                  <SettingsIcon />
+                  <Settings01Icon />
                 </Button>
-              </Flex>
-            </SlideFade>
-          </Stack>
+              </div>
+            )}
+          </div>
         )}
       />
       <Popover.Popup side="right" className="p-4">

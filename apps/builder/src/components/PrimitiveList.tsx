@@ -1,9 +1,9 @@
-import { Box, Fade, Flex, Stack } from "@chakra-ui/react";
 import { createId } from "@paralleldrive/cuid2";
 import { Button } from "@typebot.io/ui/components/Button";
+import { PlusSignIcon } from "@typebot.io/ui/icons/PlusSignIcon";
 import { TrashIcon } from "@typebot.io/ui/icons/TrashIcon";
-import { useEffect, useState } from "react";
-import { PlusIcon } from "@/components/icons";
+import { cx } from "@typebot.io/ui/lib/cva";
+import { type JSX, useEffect, useState } from "react";
 
 type ItemWithId<T extends number | string | boolean> = {
   id: string;
@@ -88,51 +88,42 @@ export const PrimitiveList = <T extends number | string | boolean>({
   const handleMouseLeave = () => setShowDeleteIndex(null);
 
   return (
-    <Stack spacing={0}>
+    <div className="flex flex-col gap-0">
       {items?.map((item, itemIndex) => (
-        <Box key={item.id}>
+        <div key={item.id}>
           {itemIndex !== 0 && ComponentBetweenItems && (
             <ComponentBetweenItems />
           )}
-          <Flex
-            pos="relative"
+          <div
+            className={cx(
+              "flex relative justify-center pb-4",
+              itemIndex !== 0 && ComponentBetweenItems ? "mt-4" : "mt-0",
+            )}
             onMouseEnter={handleMouseEnter(itemIndex)}
             onMouseLeave={handleMouseLeave}
-            mt={itemIndex !== 0 && ComponentBetweenItems ? 4 : 0}
-            justifyContent="center"
-            pb="4"
           >
             {children({
               item: item.value as T,
               onItemChange: handleCellChange(itemIndex),
             })}
-            <Fade
-              in={showDeleteIndex === itemIndex}
-              style={{
-                position: "absolute",
-                left: "-15px",
-                top: "-15px",
-                zIndex: 1,
-              }}
-              unmountOnExit
-            >
+            {showDeleteIndex === itemIndex && (
               <Button
                 variant="secondary"
-                className="size-6"
+                className="size-6 animate-in fade-in-0 absolute left-[-15px] top-[-15px] z-10"
                 size="icon"
                 aria-label="Remove item"
                 onClick={deleteItem(itemIndex)}
               >
                 <TrashIcon />
               </Button>
-            </Fade>
-          </Flex>
-        </Box>
+            )}
+          </div>
+        </div>
       ))}
-      <Button onClick={createItem} className="flex-shrink-0">
-        <PlusIcon />
+      <Button onClick={createItem} className="shrink-0">
+        <PlusSignIcon />
         {addLabel}
       </Button>
-    </Stack>
+    </div>
   );
 };

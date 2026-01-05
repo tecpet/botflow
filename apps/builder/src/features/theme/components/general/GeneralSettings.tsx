@@ -1,8 +1,6 @@
-import { Stack, useDisclosure } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import { env } from "@typebot.io/env";
-import { Plan } from "@typebot.io/prisma/enum";
 import { defaultFontType, fontTypes } from "@typebot.io/theme/constants";
 import type {
   Background,
@@ -11,12 +9,14 @@ import type {
   Theme,
 } from "@typebot.io/theme/schemas";
 import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Badge } from "@typebot.io/ui/components/Badge";
 import { Field } from "@typebot.io/ui/components/Field";
 import { Label } from "@typebot.io/ui/components/Label";
 import { Radio, RadioGroup } from "@typebot.io/ui/components/RadioGroup";
 import { Switch } from "@typebot.io/ui/components/Switch";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import { SquareLock01Icon } from "@typebot.io/ui/icons/SquareLock01Icon";
 import { ChangePlanDialog } from "@/features/billing/components/ChangePlanDialog";
-import { LockTag } from "@/features/billing/components/LockTag";
 import { isFreePlan } from "@/features/billing/helpers/isFreePlan";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
@@ -39,7 +39,7 @@ export const GeneralSettings = ({
   onBrandingChange,
 }: Props) => {
   const { t } = useTranslate();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useOpenControls();
   const { workspace } = useWorkspace();
   const { typebot } = useTypebot();
   const isWorkspaceFreePlan = isFreePlan(workspace);
@@ -94,7 +94,7 @@ export const GeneralSettings = ({
       : generalTheme?.font?.type) ?? defaultFontType;
 
   return (
-    <Stack spacing={6}>
+    <div className="flex flex-col gap-6">
       <ChangePlanDialog
         isOpen={isOpen}
         onClose={onClose}
@@ -106,7 +106,11 @@ export const GeneralSettings = ({
       >
         <Field.Label>
           {t("theme.sideMenu.global.typebotBrand")}{" "}
-          {isWorkspaceFreePlan && <LockTag plan={Plan.STARTER} />}
+          {isWorkspaceFreePlan && (
+            <Badge colorScheme="orange">
+              <SquareLock01Icon />
+            </Badge>
+          )}
         </Field.Label>
         <Switch checked={isBrandingEnabled} onCheckedChange={updateBranding} />
       </Field.Root>
@@ -154,6 +158,6 @@ export const GeneralSettings = ({
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion.Root>
-    </Stack>
+    </div>
   );
 };

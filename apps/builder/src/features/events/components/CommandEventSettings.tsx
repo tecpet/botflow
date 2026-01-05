@@ -1,7 +1,6 @@
-import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import type { CommandEvent } from "@typebot.io/events/schemas";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInput } from "@/components/inputs/DebouncedTextInput";
 
 export const CommandEventSettings = ({
   options,
@@ -13,13 +12,12 @@ export const CommandEventSettings = ({
   const { t } = useTranslate();
 
   return (
-    <Stack>
-      <TextInput
+    <div className="flex flex-col gap-2">
+      <DebouncedTextInput
         placeholder={t("blocks.events.command.settings.command.placeholder")}
         defaultValue={options?.command}
-        onChange={(command) => onOptionsChange({ ...options, command })}
-        withVariableButton={false}
+        onValueChange={(command) => onOptionsChange({ ...options, command })}
       />
-    </Stack>
+    </div>
   );
 };

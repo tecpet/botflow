@@ -1,9 +1,8 @@
-import { useColorModeValue } from "@chakra-ui/react";
-import { env } from "@typebot.io/env";
 import { isDefined } from "@typebot.io/lib/utils";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Popover } from "@typebot.io/ui/components/Popover";
 import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import { ThirdBracketIcon } from "@typebot.io/ui/icons/ThirdBracketIcon";
 import { cn } from "@typebot.io/ui/lib/cn";
 import type { Variable } from "@typebot.io/variables/schemas";
 import {
@@ -15,8 +14,8 @@ import { tokyoNight } from "@uiw/codemirror-theme-tokyo-night";
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import { useThemeValue } from "@/hooks/useThemeValue";
 import { CopyButton } from "../CopyButton";
-import { BracesIcon } from "../icons";
 import { VariablesCombobox } from "./VariablesCombobox";
 
 const VARIABLE_POPOVER_OFFSET_Y = 5;
@@ -50,7 +49,7 @@ export const CodeEditor = ({
   className,
   ...props
 }: Props) => {
-  const theme = useColorModeValue(githubLight, tokyoNight);
+  const theme = useThemeValue(githubLight, tokyoNight);
   const variablesPopoverControls = useOpenControls();
   const codeEditor = useRef<ReactCodeMirrorRef | null>(null);
 
@@ -59,13 +58,10 @@ export const CodeEditor = ({
     useState<{ top: number; left: number } | null>({ top: 0, left: 0 });
   const [value, _setValue] = useState(defaultValue ?? "");
 
-  const setValue = useDebouncedCallback(
-    (value) => {
-      _setValue(value);
-      onChange && onChange(value);
-    },
-    env.NEXT_PUBLIC_E2E_TEST ? 0 : debounceTimeout,
-  );
+  const setValue = useDebouncedCallback((value) => {
+    _setValue(value);
+    onChange && onChange(value);
+  }, debounceTimeout);
 
   const handleVariableSelected = (variable?: Pick<Variable, "id" | "name">) => {
     codeEditor.current?.view?.focus();
@@ -127,12 +123,10 @@ export const CodeEditor = ({
         } as CSSProperties
       }
       className={cn(
-        "group relative isolate border rounded-md [&_.cm-editor]:font-mono [&_.cm-editor]:text-sm min-h-[var(--editor-min-height)]",
+        "group relative isolate border rounded-md [&_.cm-editor]:font-mono [&_.cm-editor]:text-sm min-h-(--editor-min-height)",
         !withLineNumbers && "[&_.cm-gutters]:hidden",
-        "[&_.cm-editor]:rounded-md [&_.cm-editor]:outline-none has-[.cm-focused]:ring-2 transition-[box-shadow,border-color] has-[.cm-focused]:border-transparent ring-orange-7 [&_.cm-scroller]:rounded-md [&_.cm-scroller]:overflow-auto",
-        isReadOnly
-          ? undefined
-          : "[&_.cm-editor]:max-h-[var(--editor-max-height)]",
+        "[&_.cm-editor]:rounded-md [&_.cm-editor]:outline-none! has-[.cm-focused]:ring-2 transition-[box-shadow,border-color] has-[.cm-focused]:border-transparent ring-orange-7 [&_.cm-scroller]:rounded-md [&_.cm-scroller]:overflow-auto",
+        isReadOnly ? undefined : "[&_.cm-editor]:max-h-(--editor-max-height)",
         className,
       )}
     >
@@ -159,7 +153,7 @@ export const CodeEditor = ({
             className="absolute right-1 bottom-1 size-7"
             onClick={openVariablePopover}
           >
-            <BracesIcon className="opacity-75" />
+            <ThirdBracketIcon className="opacity-75" />
           </Button>
           <Popover.Root
             isOpen={variablesPopoverControls.isOpen}
@@ -173,7 +167,7 @@ export const CodeEditor = ({
               }}
             />
             <Popover.Popup
-              className="p-0 data-[open]:duration-0"
+              className="p-0 data-open:duration-0"
               offset={0}
               // Prevent the editor from closing when clicking on the variable search input
               onPointerDown={(e) => e.stopPropagation()}

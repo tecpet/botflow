@@ -1,4 +1,3 @@
-import { FormLabel, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { env } from "@typebot.io/env";
 import { defaultSettings } from "@typebot.io/settings/constants";
@@ -11,7 +10,7 @@ import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import { ImageUploadContent } from "@/components/ImageUploadContent";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
 import { DebouncedTextareaWithVariablesButton } from "@/components/inputs/DebouncedTextarea";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 
 type Props = {
   workspaceId: string;
@@ -55,11 +54,9 @@ export const MetadataForm = ({
     defaultSettings.metadata.imageUrl(env.NEXT_PUBLIC_VIEWER_URL[0]);
 
   return (
-    <Stack spacing="6">
-      <Stack>
-        <FormLabel mb="0" htmlFor="icon">
-          {t("settings.sideMenu.metadata.icon.label")}
-        </FormLabel>
+    <div className="flex flex-col gap-6">
+      <Field.Root>
+        <Field.Label>{t("settings.sideMenu.metadata.icon.label")}</Field.Label>
         <Popover.Root {...favIconPopoverControls}>
           <Popover.Trigger
             render={(props) => (
@@ -87,11 +84,9 @@ export const MetadataForm = ({
             />
           </Popover.Popup>
         </Popover.Root>
-      </Stack>
-      <Stack>
-        <FormLabel mb="0" htmlFor="image">
-          {t("settings.sideMenu.metadata.image.label")}
-        </FormLabel>
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>{t("settings.sideMenu.metadata.image.label")}</Field.Label>
         <Popover.Root {...imagePopoverControls}>
           <Popover.Trigger>
             <img
@@ -115,12 +110,14 @@ export const MetadataForm = ({
             />
           </Popover.Popup>
         </Popover.Root>
-      </Stack>
-      <TextInput
-        label={t("settings.sideMenu.metadata.title.label")}
-        defaultValue={metadata?.title ?? typebotName}
-        onChange={handleTitleChange}
-      />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>{t("settings.sideMenu.metadata.title.label")}</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={metadata?.title ?? typebotName}
+          onValueChange={handleTitleChange}
+        />
+      </Field.Root>
       <Field.Root>
         <Field.Label>
           {t("settings.sideMenu.metadata.description.label")}
@@ -137,13 +134,19 @@ export const MetadataForm = ({
           )}
         />
       </Field.Root>
-      <TextInput
-        defaultValue={metadata?.googleTagManagerId}
-        placeholder="GTM-XXXXXX"
-        onChange={handleGoogleTagManagerIdChange}
-        label="Google Tag Manager ID:"
-        moreInfoTooltip={t("settings.sideMenu.metadata.gtm.tooltip")}
-      />
+      <Field.Root>
+        <Field.Label>
+          Google Tag Manager ID:
+          <MoreInfoTooltip>
+            {t("settings.sideMenu.metadata.gtm.tooltip")}
+          </MoreInfoTooltip>
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={metadata?.googleTagManagerId}
+          placeholder="GTM-XXXXXX"
+          onValueChange={handleGoogleTagManagerIdChange}
+        />
+      </Field.Root>
       <Field.Root>
         <Field.Label>
           {t("settings.sideMenu.metadata.headCode.label")}
@@ -170,6 +173,6 @@ export const MetadataForm = ({
           </MoreInfoTooltip>
         </Field.Label>
       </Field.Root>
-    </Stack>
+    </div>
   );
 };

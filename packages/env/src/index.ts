@@ -112,7 +112,6 @@ const baseEnv = {
     ),
   },
   client: {
-    NEXT_PUBLIC_E2E_TEST: boolean.optional(),
     NEXT_PUBLIC_VIEWER_URL: z.preprocess(
       guessViewerUrlForVercelPreview,
       z
@@ -130,7 +129,6 @@ const baseEnv = {
       .default("The bot you're looking for doesn't exist"),
   },
   runtimeEnv: {
-    NEXT_PUBLIC_E2E_TEST: getRuntimeVariable("NEXT_PUBLIC_E2E_TEST"),
     NEXT_PUBLIC_VIEWER_URL: getRuntimeVariable("NEXT_PUBLIC_VIEWER_URL"),
     NEXT_PUBLIC_ONBOARDING_TYPEBOT_ID: getRuntimeVariable(
       "NEXT_PUBLIC_ONBOARDING_TYPEBOT_ID",
@@ -454,6 +452,13 @@ const partykitEnv = {
   },
 };
 
+const inngestEnv = {
+  server: {
+    INNGEST_EVENT_KEY: z.string().min(1).optional(),
+    INNGEST_SIGNING_KEY: z.string().min(1).optional(),
+  },
+};
+
 export const env = createEnv({
   server: {
     ...baseEnv.server,
@@ -475,6 +480,7 @@ export const env = createEnv({
     ...telemetryEnv.server,
     ...keycloakEnv.server,
     ...posthogEnv.server,
+    ...inngestEnv.server,
   },
   client: {
     ...baseEnv.client,

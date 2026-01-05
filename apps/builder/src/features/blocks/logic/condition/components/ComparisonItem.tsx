@@ -1,10 +1,9 @@
-import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { ComparisonOperators } from "@typebot.io/conditions/constants";
 import type { Comparison } from "@typebot.io/conditions/schemas";
 import type { Variable } from "@typebot.io/variables/schemas";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import type { TableListItemProps } from "@/components/TableList";
 
@@ -31,7 +30,7 @@ export const ComparisonItem = ({
   };
 
   return (
-    <Stack p="4" rounded="md" flex="1" borderWidth="1px">
+    <div className="flex flex-col gap-2 p-4 rounded-md flex-1 border">
       <VariablesCombobox
         initialVariableId={item.variableId}
         onSelectVariable={handleSelectVariable}
@@ -46,13 +45,13 @@ export const ComparisonItem = ({
       />
       {item.comparisonOperator !== ComparisonOperators.IS_SET &&
         item.comparisonOperator !== ComparisonOperators.IS_EMPTY && (
-          <TextInput
+          <DebouncedTextInputWithVariablesButton
             defaultValue={item.value ?? ""}
-            onChange={handleChangeValue}
+            onValueChange={handleChangeValue}
             placeholder={parseValuePlaceholder(item.comparisonOperator)}
           />
         )}
-    </Stack>
+    </div>
   );
 };
 

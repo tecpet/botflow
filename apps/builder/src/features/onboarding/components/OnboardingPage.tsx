@@ -1,12 +1,11 @@
-import { chakra, Flex, HStack, VStack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { env } from "@typebot.io/env";
 import { Standard } from "@typebot.io/react";
 import { Button } from "@typebot.io/ui/components/Button";
+import { ArrowRight01Icon } from "@typebot.io/ui/icons/ArrowRight01Icon";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLastIcon } from "@/components/icons";
 import { useAcceptTermsMutation } from "@/features/user/hooks/useAcceptTermsMutation";
 import { useUser } from "@/features/user/hooks/useUser";
 
@@ -14,7 +13,7 @@ export const OnboardingPage = () => {
   const { t } = useTranslate();
   const { replace, query } = useRouter();
   const confettiCanvaContainer = useRef<HTMLCanvasElement | null>(null);
-  const confettiCanon = useRef<confetti.CreateTypes>();
+  const confettiCanon = useRef<confetti.CreateTypes>(undefined);
   const { user, updateUser } = useUser();
   const [pendingCategories, setPendingCategories] = useState<string[]>([]);
   const [canSkipOnboarding, setCanSkipOnboarding] = useState(false);
@@ -96,14 +95,8 @@ export const OnboardingPage = () => {
 
   if (!env.NEXT_PUBLIC_ONBOARDING_TYPEBOT_ID) return null;
   return (
-    <VStack h="100vh" flexDir="column" justifyContent="center" spacing={0}>
-      <HStack
-        bgColor="white"
-        h="60px"
-        w="full"
-        justifyContent="flex-end"
-        px="10"
-      >
+    <div className="flex flex-col items-center h-screen justify-center gap-0">
+      <div className="flex items-center gap-2 h-[60px] w-full justify-end px-10 bg-white">
         <Button
           variant="secondary"
           size="sm"
@@ -111,12 +104,11 @@ export const OnboardingPage = () => {
           disabled={!canSkipOnboarding}
         >
           {t("skip")}
-          <ChevronLastIcon />
+          <ArrowRight01Icon />
         </Button>
-      </HStack>
-
-      <Flex w="full" h="full" justifyContent="center" alignItems="center">
-        <Flex w="full" maxW="800px" rounded="lg" h="full" maxH="70vh">
+      </div>
+      <div className="flex w-full h-full justify-center items-center">
+        <div className="flex w-full max-w-[800px] rounded-lg h-full max-h-[70vh]">
           <Standard
             id="onboarding"
             typebot={env.NEXT_PUBLIC_ONBOARDING_TYPEBOT_ID}
@@ -125,20 +117,13 @@ export const OnboardingPage = () => {
             onEnd={redirectToDashboard}
             onAnswer={setOnboardingAnswer}
           />
-        </Flex>
-      </Flex>
-
-      <chakra.canvas
+        </div>
+      </div>
+      <canvas
         ref={confettiCanvaContainer}
-        pos="fixed"
-        top="0"
-        left="0"
-        w="full"
-        h="full"
-        zIndex={9999}
-        pointerEvents="none"
+        className="fixed top-0 left-0 w-full h-full z-10 pointer-events-none"
       />
-    </VStack>
+    </div>
   );
 };
 

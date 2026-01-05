@@ -1,4 +1,3 @@
-import { Flex, HStack, ListItem, OrderedList, Text } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { LogicalOperator } from "@typebot.io/conditions/constants";
 import type { Comparison } from "@typebot.io/conditions/schemas";
@@ -13,12 +12,13 @@ import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Switch } from "@typebot.io/ui/components/Switch";
 import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import { InformationSquareIcon } from "@typebot.io/ui/icons/InformationSquareIcon";
+import type { JSX } from "react";
 import { BasicNumberInput } from "@/components/inputs/BasicNumberInput";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { TableList } from "@/components/TableList";
 import { TextLink } from "@/components/TextLink";
 import { ChangePlanDialog } from "@/features/billing/components/ChangePlanDialog";
-import { PlanTag } from "@/features/billing/components/PlanTag";
+import { PlanBadge } from "@/features/billing/components/PlanTag";
 import { hasProPerks } from "@/features/billing/helpers/hasProPerks";
 import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
@@ -173,7 +173,7 @@ export const WhatsAppDeployDialog = ({
           <Alert.Root>
             <InformationSquareIcon />
             <Alert.Description>
-              Upgrade your workspace to <PlanTag plan="PRO" /> to be able to
+              Upgrade your workspace to <PlanBadge plan="PRO" /> to be able to
               enable WhatsApp integration.
             </Alert.Description>
             <Alert.Action>
@@ -196,10 +196,10 @@ export const WhatsAppDeployDialog = ({
             </Alert.Description>
           </Alert.Root>
         )}
-        <OrderedList spacing={4} pl="4">
-          <ListItem>
-            <HStack>
-              <Text>Select a phone number:</Text>
+        <ol>
+          <li>
+            <div className="flex items-center gap-2">
+              <p>Select a phone number:</p>
               {workspace && (
                 <>
                   <WhatsAppCredentialsDialog
@@ -220,11 +220,11 @@ export const WhatsAppDeployDialog = ({
                   />
                 </>
               )}
-            </HStack>
-          </ListItem>
-          {typebot?.whatsAppCredentialsId && (
+            </div>
+          </li>
+          {typebot?.whatsAppCredentialsId && phoneNumberData && (
             <>
-              <ListItem>
+              <li>
                 <Accordion.Root>
                   <Accordion.Item>
                     <Accordion.Trigger>Configure integration</Accordion.Trigger>
@@ -243,7 +243,6 @@ export const WhatsAppDeployDialog = ({
                         <BasicNumberInput
                           max={48}
                           min={0}
-                          className="w-24"
                           defaultValue={whatsAppSettings?.sessionExpiryTimeout}
                           placeholder={defaultSessionExpiryTimeout.toString()}
                           onValueChange={updateSessionExpiryTimeout}
@@ -269,7 +268,7 @@ export const WhatsAppDeployDialog = ({
                             }
                             onItemsChange={updateStartConditionComparisons}
                             ComponentBetweenItems={() => (
-                              <Flex justify="center">
+                              <div className="flex justify-center">
                                 <BasicSelect
                                   value={
                                     whatsAppSettings?.startCondition
@@ -278,7 +277,7 @@ export const WhatsAppDeployDialog = ({
                                   onChange={updateStartConditionLogicalOperator}
                                   items={Object.values(LogicalOperator)}
                                 />
-                              </Flex>
+                              </div>
                             )}
                             addLabel="Add a comparison"
                           >
@@ -289,9 +288,9 @@ export const WhatsAppDeployDialog = ({
                     </Accordion.Panel>
                   </Accordion.Item>
                 </Accordion.Root>
-              </ListItem>
+              </li>
 
-              <ListItem>
+              <li>
                 <Field.Root className="flex-row items-center">
                   <Switch
                     checked={typebot?.settings.whatsApp?.isEnabled ?? false}
@@ -300,26 +299,26 @@ export const WhatsAppDeployDialog = ({
                   />
                   <Field.Label>Enable WhatsApp integration</Field.Label>
                 </Field.Root>
-              </ListItem>
-              <ListItem>
-                <HStack>
-                  <Text>Publish your bot:</Text>
+              </li>
+              <li>
+                <div className="flex items-center gap-2">
+                  <p>Publish your bot:</p>
                   <PublishButton size="sm" isMoreMenuDisabled />
-                </HStack>
-              </ListItem>
+                </div>
+              </li>
               {phoneNumberData && (
-                <ListItem>
+                <li>
                   <TextLink
                     href={`https://wa.me/${phoneNumberData.name}?text=Start`}
                     isExternal
                   >
                     Try it out
                   </TextLink>
-                </ListItem>
+                </li>
               )}
             </>
           )}
-        </OrderedList>
+        </ol>
       </Dialog.Popup>
     </Dialog.Root>
   );

@@ -1,9 +1,9 @@
-import { Box, Fade, Flex, SlideFade, Stack } from "@chakra-ui/react";
 import { createId } from "@paralleldrive/cuid2";
 import { Button } from "@typebot.io/ui/components/Button";
+import { PlusSignIcon } from "@typebot.io/ui/icons/PlusSignIcon";
 import { TrashIcon } from "@typebot.io/ui/icons/TrashIcon";
-import { useEffect, useState } from "react";
-import { PlusIcon } from "@/components/icons";
+import { cx } from "@typebot.io/ui/lib/cva";
+import { type JSX, useEffect, useState } from "react";
 
 const defaultItem = {
   id: createId(),
@@ -86,98 +86,64 @@ export const TableList = <T extends object>({
   const handleMouseLeave = () => setShowDeleteIndex(null);
 
   return (
-    <Stack spacing={0}>
+    <div className="flex flex-col gap-0">
       {items.map((item, itemIndex) => (
-        <Box key={"id" in item ? (item.id as string) : itemIndex}>
+        <div key={"id" in item ? (item.id as string) : itemIndex}>
           {itemIndex !== 0 && ComponentBetweenItems && (
             <ComponentBetweenItems />
           )}
-          <Flex
-            pos="relative"
+          <div
+            className={cx(
+              "flex relative justify-center pb-4",
+              itemIndex !== 0 && ComponentBetweenItems ? "mt-4" : "mt-0",
+            )}
             onMouseEnter={handleMouseEnter(itemIndex)}
             onMouseLeave={handleMouseLeave}
-            mt={itemIndex !== 0 && ComponentBetweenItems ? 4 : 0}
-            justifyContent="center"
-            pb="4"
           >
             {children({ item, onItemChange: handleCellChange(itemIndex) })}
-            <Fade
-              in={showDeleteIndex === itemIndex}
-              style={{
-                position: "absolute",
-                left: "-8px",
-                top: "-8px",
-              }}
-              unmountOnExit
-            >
+            {showDeleteIndex === itemIndex && (
               <Button
                 size="icon"
                 aria-label="Remove cell"
                 onClick={deleteItem(itemIndex)}
                 variant="secondary"
-                className="shadow-md size-6"
+                className="shadow-md size-6 animate-in fade-in-0 absolute left-[-8px] top-[-8px]"
               >
                 <TrashIcon />
               </Button>
-            </Fade>
-            {isOrdered && (
+            )}
+            {true && itemIndex === 0 && showDeleteIndex === itemIndex && (
               <>
-                {itemIndex === 0 && (
-                  <SlideFade
-                    offsetY="-5px"
-                    in={showDeleteIndex === itemIndex}
-                    style={{
-                      position: "absolute",
-                      top: "-15px",
-                    }}
-                    unmountOnExit
-                  >
-                    <Button
-                      size="icon"
-                      aria-label={addLabel}
-                      onClick={insertItem(itemIndex - 1)}
-                      variant="secondary"
-                      className="shadow-md size-6"
-                    >
-                      <PlusIcon />
-                    </Button>
-                  </SlideFade>
-                )}
-                <SlideFade
-                  offsetY="5px"
-                  in={showDeleteIndex === itemIndex}
-                  style={{
-                    position: "absolute",
-                    bottom: "5px",
-                  }}
-                  unmountOnExit
+                <Button
+                  size="icon"
+                  aria-label={addLabel}
+                  onClick={insertItem(itemIndex - 1)}
+                  variant="secondary"
+                  className="shadow-md size-6 animate-in fade-in-0 slide-in-from-bottom-1 absolute top-[-10px]"
                 >
-                  <Button
-                    size="icon"
-                    aria-label={addLabel}
-                    onClick={insertItem(itemIndex)}
-                    variant="secondary"
-                    className="shadow-md size-6"
-                  >
-                    <PlusIcon />
-                  </Button>
-                </SlideFade>
+                  <PlusSignIcon />
+                </Button>
+                <Button
+                  size="icon"
+                  aria-label={addLabel}
+                  onClick={insertItem(itemIndex)}
+                  variant="secondary"
+                  className="shadow-md size-6 animate-in fade-in-0 slide-in-from-top-1 absolute bottom-2"
+                >
+                  <PlusSignIcon />
+                </Button>
               </>
             )}
-          </Flex>
-        </Box>
+          </div>
+        </div>
       ))}
       {(!isOrdered || items.length === 0) && (
-        <Button
-          onClick={createItem}
-          className="flex-shrink-0"
-          variant="secondary"
-        >
-          <PlusIcon />
+        <Button onClick={createItem} className="shrink-0" variant="secondary">
+          <PlusSignIcon />
           {addLabel}
         </Button>
       )}
-    </Stack>
+    </div>
   );
 };
 

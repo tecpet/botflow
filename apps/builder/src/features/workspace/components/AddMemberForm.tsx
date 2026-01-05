@@ -1,8 +1,8 @@
-import { HStack, Input } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { WorkspaceRole } from "@typebot.io/prisma/enum";
 import type { Prisma } from "@typebot.io/prisma/types";
 import { Button } from "@typebot.io/ui/components/Button";
+import { Input } from "@typebot.io/ui/components/Input";
 import { type FormEvent, useState } from "react";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { toast } from "@/lib/toast";
@@ -53,16 +53,14 @@ export const AddMemberForm = ({
   };
 
   return (
-    <HStack as="form" onSubmit={handleInvitationSubmit}>
+    <form className="flex items-center gap-2" onSubmit={handleInvitationSubmit}>
       <Input
         placeholder={t("workspace.membersList.inviteInput.placeholder")}
         name="inviteEmail"
         value={invitationEmail}
-        onChange={(e) => setInvitationEmail(e.target.value)}
-        rounded="md"
-        isDisabled={isLocked}
+        onValueChange={setInvitationEmail}
+        disabled={isLocked}
       />
-
       {!isLocked && (
         <WorkspaceRoleMenuButton
           role={invitationRole}
@@ -77,7 +75,7 @@ export const AddMemberForm = ({
       >
         {t("workspace.membersList.inviteButton.label")}
       </Button>
-    </HStack>
+    </form>
   );
 };
 

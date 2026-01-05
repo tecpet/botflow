@@ -3,9 +3,9 @@ import type { ButtonProps } from "@typebot.io/ui/components/Button";
 import { Popover } from "@typebot.io/ui/components/Popover";
 import { Tooltip } from "@typebot.io/ui/components/Tooltip";
 import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import { ThirdBracketIcon } from "@typebot.io/ui/icons/ThirdBracketIcon";
 import { cn } from "@typebot.io/ui/lib/cn";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { BracesIcon } from "@/components/icons";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
@@ -36,13 +36,13 @@ export const VariablesButton = ({
               className={cn("size-10", className)}
               {...props}
             >
-              <BracesIcon />
+              <ThirdBracketIcon />
             </Tooltip.TriggerButton>
             <Tooltip.Popup>{t("variables.button.tooltip")}</Tooltip.Popup>
           </Tooltip.Root>
         )}
       />
-      <Popover.Popup className="p-0 data-[open]:duration-0">
+      <Popover.Popup className="p-0 data-open:duration-0">
         <VariablesCombobox
           initialVariableId={undefined}
           onSelectVariable={(variable) => {

@@ -18,6 +18,7 @@ export type ClientSideActionContext = {
   wsHost?: string;
   sessionId: string;
   resultId?: string;
+  isPreview: boolean;
 };
 
 export type ChatChunk = Pick<
@@ -42,6 +43,9 @@ export type TextInputSubmitContent = {
   type: "text";
   value: string;
   label?: string;
+  metadata?: {
+    replyId?: string;
+  };
   attachments?: Attachment[];
 };
 

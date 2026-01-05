@@ -1,16 +1,15 @@
-import { HStack, Stack, Text } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import type { PictureChoiceItem } from "@typebot.io/blocks-inputs/pictureChoice/schema";
 import { LogicalOperator } from "@typebot.io/conditions/constants";
 import type { Condition } from "@typebot.io/conditions/schemas";
-import { Button } from "@typebot.io/ui/components/Button";
 import { Field } from "@typebot.io/ui/components/Field";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Popover } from "@typebot.io/ui/components/Popover";
 import { Switch } from "@typebot.io/ui/components/Switch";
 import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import { ImageUploadContent } from "@/components/ImageUploadContent";
 import { DebouncedTextareaWithVariablesButton } from "@/components/inputs/DebouncedTextarea";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { ConditionForm } from "@/features/blocks/logic/condition/components/ConditionForm";
 
 type Props = {
@@ -61,19 +60,17 @@ export const PictureChoiceItemSettings = ({
     });
 
   return (
-    <Stack spacing={4}>
-      <HStack>
-        <Text fontWeight="medium">
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <p className="font-medium">
           {t("blocks.inputs.picture.itemSettings.image.label")}
-        </Text>
+        </p>
         <Popover.Root {...imageUploadPopoverControls}>
-          <Popover.Trigger>
-            <Button size="sm" variant="secondary">
-              {item.pictureSrc
-                ? t("blocks.inputs.picture.itemSettings.image.change.label")
-                : t("blocks.inputs.picture.itemSettings.image.pick.label")}
-            </Button>
-          </Popover.Trigger>
+          <Popover.TriggerButton variant="secondary" size="sm">
+            {item.pictureSrc
+              ? t("blocks.inputs.picture.itemSettings.image.change.label")
+              : t("blocks.inputs.picture.itemSettings.image.pick.label")}
+          </Popover.TriggerButton>
           <Popover.Popup>
             <ImageUploadContent
               uploadFileProps={{
@@ -95,12 +92,16 @@ export const PictureChoiceItemSettings = ({
             />
           </Popover.Popup>
         </Popover.Root>
-      </HStack>
-      <TextInput
-        label={t("blocks.inputs.picture.itemSettings.title.label")}
-        defaultValue={item.title}
-        onChange={updateTitle}
-      />
+      </div>
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.picture.itemSettings.title.label")}
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={item.title}
+          onValueChange={updateTitle}
+        />
+      </Field.Root>
       <Field.Root>
         <Field.Label>
           {t("blocks.inputs.settings.description.label")}
@@ -115,14 +116,18 @@ export const PictureChoiceItemSettings = ({
           )}
         />
       </Field.Root>
-      <TextInput
-        label={t("blocks.inputs.internalValue.label")}
-        moreInfoTooltip={t(
-          "blocks.inputs.picture.itemSettings.pictureValue.helperText",
-        )}
-        defaultValue={item.value}
-        onChange={updateValue}
-      />
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.internalValue.label")}
+          <MoreInfoTooltip>
+            {t("blocks.inputs.picture.itemSettings.pictureValue.helperText")}
+          </MoreInfoTooltip>
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={item.value}
+          onValueChange={updateValue}
+        />
+      </Field.Root>
       <Field.Container>
         <Field.Root className="flex-row items-center">
           <Switch
@@ -145,6 +150,6 @@ export const PictureChoiceItemSettings = ({
           />
         )}
       </Field.Container>
-    </Stack>
+    </div>
   );
 };

@@ -1,4 +1,3 @@
-import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultChoiceInputOptions } from "@typebot.io/blocks-inputs/choice/constants";
 import type { ChoiceInputBlock } from "@typebot.io/blocks-inputs/choice/schema";
@@ -6,7 +5,7 @@ import { Field } from "@typebot.io/ui/components/Field";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
@@ -33,7 +32,7 @@ export const ButtonsBlockSettings = ({ options, onOptionsChange }: Props) => {
   ) => onOptionsChange({ ...options, areInitialSearchButtonsVisible });
 
   return (
-    <Stack spacing={4}>
+    <div className="flex flex-col gap-4">
       <Field.Container>
         <Field.Root className="flex-row items-center">
           <Switch
@@ -49,14 +48,18 @@ export const ButtonsBlockSettings = ({ options, onOptionsChange }: Props) => {
         </Field.Root>
         {(options?.isMultipleChoice ??
           defaultChoiceInputOptions.isMultipleChoice) && (
-          <TextInput
-            label={t("blocks.inputs.settings.submitButton.label")}
-            defaultValue={
-              options?.buttonLabel ??
-              t("blocks.inputs.settings.buttonText.label")
-            }
-            onChange={updateButtonLabel}
-          />
+          <Field.Root>
+            <Field.Label>
+              {t("blocks.inputs.settings.submitButton.label")}
+            </Field.Label>
+            <DebouncedTextInputWithVariablesButton
+              defaultValue={
+                options?.buttonLabel ??
+                t("blocks.inputs.settings.buttonText.label")
+              }
+              onValueChange={updateButtonLabel}
+            />
+          </Field.Root>
         )}
       </Field.Container>
       <Field.Container>
@@ -75,19 +78,26 @@ export const ButtonsBlockSettings = ({ options, onOptionsChange }: Props) => {
           <>
             <Field.Root className="flex-row items-center">
               <Switch
-                checked={options?.areInitialSearchButtonsVisible ?? false}
+                checked={
+                  options?.areInitialSearchButtonsVisible ??
+                  defaultChoiceInputOptions.areInitialSearchButtonsVisible
+                }
                 onCheckedChange={updateAreInitialSearchButtonsVisible}
               />
               <Field.Label>Default display buttons</Field.Label>
             </Field.Root>
-            <TextInput
-              label={t("blocks.inputs.settings.input.placeholder.label")}
-              defaultValue={
-                options?.searchInputPlaceholder ??
-                t("blocks.inputs.settings.input.filterOptions.label")
-              }
-              onChange={updateSearchInputPlaceholder}
-            />
+            <Field.Root>
+              <Field.Label>
+                {t("blocks.inputs.settings.input.placeholder.label")}
+              </Field.Label>
+              <DebouncedTextInputWithVariablesButton
+                defaultValue={
+                  options?.searchInputPlaceholder ??
+                  t("blocks.inputs.settings.input.filterOptions.label")
+                }
+                onValueChange={updateSearchInputPlaceholder}
+              />
+            </Field.Root>
           </>
         )}
       </Field.Container>
@@ -112,6 +122,6 @@ export const ButtonsBlockSettings = ({ options, onOptionsChange }: Props) => {
           onSelectVariable={updateSaveVariable}
         />
       </Field.Root>
-    </Stack>
+    </div>
   );
 };

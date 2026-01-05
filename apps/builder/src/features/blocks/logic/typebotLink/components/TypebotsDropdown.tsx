@@ -1,9 +1,9 @@
-import { HStack, Input } from "@chakra-ui/react";
+import { Input } from "@typebot.io/ui/components/Input";
+import { ArrowUpRight01Icon } from "@typebot.io/ui/icons/ArrowUpRight01Icon";
 import { LayoutBottomIcon } from "@typebot.io/ui/icons/LayoutBottomIcon";
 import { useRouter } from "next/router";
 import { ButtonLink } from "@/components/ButtonLink";
 import { EmojiOrImageIcon } from "@/components/EmojiOrImageIcon";
-import { ExternalLinkIcon } from "@/components/icons";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { useTypebots } from "@/features/dashboard/hooks/useTypebots";
 
@@ -25,11 +25,11 @@ export const TypebotsDropdown = ({
     workspaceId: currentWorkspaceId,
   });
 
-  if (isLoading) return <Input value="Loading..." isDisabled />;
+  if (isLoading) return <Input value="Loading..." disabled />;
   if (!typebots || typebots.length === 0)
-    return <Input value="No typebots found" isDisabled />;
+    return <Input value="No typebots found" disabled />;
   return (
-    <HStack flex={1}>
+    <div className="flex items-center gap-2 flex-1">
       <BasicSelect
         value={typebotId}
         className="w-full"
@@ -59,7 +59,7 @@ export const TypebotsDropdown = ({
         <ButtonLink
           aria-label="Navigate to typebot"
           variant="secondary"
-          className="flex-shrink-0"
+          className="shrink-0"
           size="icon"
           href={{
             pathname: "/typebots/[typebotId]/edit",
@@ -73,9 +73,9 @@ export const TypebotsDropdown = ({
             },
           }}
         >
-          <ExternalLinkIcon />
+          <ArrowUpRight01Icon />
         </ButtonLink>
       )}
-    </HStack>
+    </div>
   );
 };

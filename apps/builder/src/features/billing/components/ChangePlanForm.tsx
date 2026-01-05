@@ -1,7 +1,7 @@
-import { HStack, Stack, Text } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import { Plan } from "@typebot.io/prisma/enum";
+import { Leaf01Icon } from "@typebot.io/ui/icons/Leaf01Icon";
 import { useState } from "react";
 import { TextLink } from "@/components/TextLink";
 import { useUser } from "@/features/user/hooks/useUser";
@@ -13,7 +13,7 @@ import type { PreCheckoutDialogProps } from "./PreCheckoutDialog";
 import { PreCheckoutDialog } from "./PreCheckoutDialog";
 import { ProPlanPricingCard } from "./ProPlanPricingCard";
 import { StarterPlanPricingCard } from "./StarterPlanPricingCard";
-import { StripeClimateLogo } from "./StripeClimateLogo";
+import { UpgradeConfirmationDialog } from "./UpgradeConfirmationDialog";
 
 type Props = {
   workspace: WorkspaceInApp;
@@ -31,15 +31,24 @@ export const ChangePlanForm = ({
   const { user } = useUser();
   const [preCheckoutPlan, setPreCheckoutPlan] =
     useState<PreCheckoutDialogProps["selectedSubscription"]>();
+  const [pendingUpgrade, setPendingUpgrade] = useState<"STARTER" | "PRO">();
 
   const { data, refetch } = useSubscriptionQuery(workspace.id);
 
-  const { mutate: updateSubscription, status: updateSubscriptionStatus } =
+  const { mutateAsync: updateSubscription, status: updateSubscriptionStatus } =
     useMutation(
       trpc.billing.updateSubscription.mutationOptions({
-        onSuccess: ({ workspace, checkoutUrl }) => {
-          if (checkoutUrl) {
-            window.location.href = checkoutUrl;
+        onSuccess: (data) => {
+          if (data.type === "checkoutUrl") {
+            window.location.href = data.checkoutUrl;
+            return;
+          }
+          if (data.type === "error") {
+            toast({
+              type: "error",
+              title: data.title,
+              description: data.description ?? undefined,
+            });
             return;
           }
           refetch();
@@ -51,7 +60,7 @@ export const ChangePlanForm = ({
           toast({
             type: "success",
             description: t("billing.updateSuccessToast.description", {
-              plan: workspace?.plan,
+              plan: pendingUpgrade,
             }),
           });
         },
@@ -66,13 +75,27 @@ export const ChangePlanForm = ({
       workspaceId: workspace.id,
     } as const;
     if (workspace.stripeId) {
-      updateSubscription({
-        ...newSubscription,
-        returnUrl: window.location.href,
-      });
+      const isUpgrade = isUpgradingPlan(workspace.plan, plan);
+      if (isUpgrade) {
+        setPendingUpgrade(plan);
+      } else {
+        updateSubscription({
+          ...newSubscription,
+          returnUrl: window.location.href,
+        });
+      }
     } else {
       setPreCheckoutPlan(newSubscription);
     }
+  };
+
+  const handleConfirmUpgrade = async () => {
+    if (!pendingUpgrade) return;
+    await updateSubscription({
+      plan: pendingUpgrade,
+      workspaceId: workspace.id,
+      returnUrl: window.location.href,
+    });
   };
 
   if (
@@ -89,23 +112,23 @@ export const ChangePlanForm = ({
 
   if (currentUserMode !== "write")
     return (
-      <Text>
+      <p>
         Only workspace admins can change the subscription plan. Contact your
         workspace admin to change the plan.
-      </Text>
+      </p>
     );
 
   return (
-    <Stack spacing={6}>
-      <HStack maxW="500px">
-        <StripeClimateLogo />
-        <Text fontSize="xs" color="gray.500">
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center gap-3 max-w-[500px]">
+        <Leaf01Icon className="size-7" />
+        <p className="text-xs" color="gray.500">
           {t("billing.contribution.preLink")}{" "}
           <TextLink href="https://climate.stripe.com/5VCRAq" isExternal>
             {t("billing.contribution.link")}
           </TextLink>
-        </Text>
-      </HStack>
+        </p>
+      </div>
       {!workspace.stripeId && (
         <PreCheckoutDialog
           selectedSubscription={preCheckoutPlan}
@@ -114,9 +137,16 @@ export const ChangePlanForm = ({
           onClose={() => setPreCheckoutPlan(undefined)}
         />
       )}
+      <UpgradeConfirmationDialog
+        isOpen={!!pendingUpgrade}
+        workspaceId={workspace.id}
+        targetPlan={pendingUpgrade}
+        onConfirm={handleConfirmUpgrade}
+        onClose={() => setPendingUpgrade(undefined)}
+      />
       {data && (
-        <Stack align="flex-end" spacing={6}>
-          <HStack alignItems="stretch" spacing="4" w="full">
+        <div className="flex flex-col items-end gap-6">
+          <div className="flex items-stretch gap-4 w-full">
             {excludedPlans?.includes("STARTER") ? null : (
               <StarterPlanPricingCard
                 currentPlan={workspace.plan}
@@ -134,16 +164,28 @@ export const ChangePlanForm = ({
                 currency={data.subscription?.currency}
               />
             )}
-          </HStack>
-        </Stack>
+          </div>
+        </div>
       )}
-
-      <Text color="gray.500">
+      <p color="gray.500">
         {t("billing.customLimit.preLink")}{" "}
         <TextLink href={"https://typebot.io/enterprise-lead-form"} isExternal>
           {t("billing.customLimit.link")}
         </TextLink>
-      </Text>
-    </Stack>
+      </p>
+    </div>
   );
+};
+
+const isUpgradingPlan = (
+  currentPlan: Plan,
+  targetPlan: "STARTER" | "PRO",
+): boolean => {
+  if (currentPlan === Plan.FREE) {
+    return targetPlan === Plan.STARTER || targetPlan === Plan.PRO;
+  }
+  if (currentPlan === Plan.STARTER) {
+    return targetPlan === Plan.PRO;
+  }
+  return false;
 };

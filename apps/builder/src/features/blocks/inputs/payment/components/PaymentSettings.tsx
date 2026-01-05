@@ -1,4 +1,3 @@
-import { HStack, Stack, Text, useDisclosure } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import {
   defaultPaymentInputOptions,
@@ -9,9 +8,11 @@ import type {
   PaymentInputBlock,
 } from "@typebot.io/blocks-inputs/payment/schema";
 import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Field } from "@typebot.io/ui/components/Field";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import { useMemo } from "react";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { currencies } from "../currencies";
@@ -25,7 +26,7 @@ type Props = {
 
 export const PaymentSettings = ({ options, onOptionsChange }: Props) => {
   const { workspace } = useWorkspace();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useOpenControls();
   const { t } = useTranslate();
 
   const updateProvider = (provider: PaymentProvider | undefined) => {
@@ -106,18 +107,18 @@ export const PaymentSettings = ({ options, onOptionsChange }: Props) => {
   );
 
   return (
-    <Stack spacing={4}>
-      <Stack>
-        <Text>{t("blocks.inputs.payment.settings.provider.label")}</Text>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        <p>{t("blocks.inputs.payment.settings.provider.label")}</p>
         <BasicSelect
           items={providers}
           onChange={updateProvider}
           value={options?.provider}
           defaultValue={defaultPaymentInputOptions.provider}
         />
-      </Stack>
-      <Stack>
-        <Text>{t("blocks.inputs.payment.settings.account.label")}</Text>
+      </div>
+      <div className="flex flex-col gap-2">
+        <p>{t("blocks.inputs.payment.settings.account.label")}</p>
         {workspace && (
           <CredentialsDropdown
             type="stripe"
@@ -133,76 +134,103 @@ export const PaymentSettings = ({ options, onOptionsChange }: Props) => {
             )}
           />
         )}
-      </Stack>
-      <HStack>
-        <TextInput
-          label={t("blocks.inputs.payment.settings.priceAmount.label")}
-          onChange={updateAmount}
-          defaultValue={options?.amount}
-          placeholder="30.00"
-        />
-        <Stack>
-          <Text>{t("blocks.inputs.payment.settings.currency.label")}</Text>
+      </div>
+      <div className="flex items-center gap-2">
+        <Field.Root>
+          <Field.Label>
+            {t("blocks.inputs.payment.settings.priceAmount.label")}
+          </Field.Label>
+          <DebouncedTextInputWithVariablesButton
+            onValueChange={updateAmount}
+            defaultValue={options?.amount}
+            placeholder="30.00"
+          />
+        </Field.Root>
+        <div className="flex flex-col gap-2">
+          <p>{t("blocks.inputs.payment.settings.currency.label")}</p>
           <BasicSelect
             items={currencies.map((currency) => currency.code)}
             onChange={updateCurrency}
             value={options?.currency}
             defaultValue={defaultPaymentInputOptions.currency}
           />
-        </Stack>
-      </HStack>
-      <TextInput
-        label={t("blocks.inputs.settings.button.label")}
-        onChange={updateButtonLabel}
-        defaultValue={
-          options?.labels?.button ?? defaultPaymentInputOptions.labels.button
-        }
-      />
-      <TextInput
-        label={t("blocks.inputs.payment.settings.successMessage.label")}
-        onChange={updateSuccessLabel}
-        defaultValue={
-          options?.labels?.success ?? defaultPaymentInputOptions.labels.success
-        }
-      />
+        </div>
+      </div>
+      <Field.Root>
+        <Field.Label>{t("blocks.inputs.settings.button.label")}</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          onValueChange={updateButtonLabel}
+          defaultValue={
+            options?.labels?.button ?? defaultPaymentInputOptions.labels.button
+          }
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.payment.settings.successMessage.label")}
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          onValueChange={updateSuccessLabel}
+          defaultValue={
+            options?.labels?.success ??
+            defaultPaymentInputOptions.labels.success
+          }
+        />
+      </Field.Root>
       <Accordion.Root>
         <Accordion.Item>
           <Accordion.Trigger>
             {t("blocks.inputs.payment.settings.additionalInformation.label")}
           </Accordion.Trigger>
           <Accordion.Panel>
-            <TextInput
-              label={t("blocks.inputs.settings.description.label")}
-              defaultValue={options?.additionalInformation?.description}
-              onChange={updateDescription}
-              placeholder={t(
-                "blocks.inputs.payment.settings.additionalInformation.description.placeholder.label",
-              )}
-            />
-            <TextInput
-              label={t(
-                "blocks.inputs.payment.settings.additionalInformation.name.label",
-              )}
-              defaultValue={options?.additionalInformation?.name}
-              onChange={updateName}
-              placeholder="John Smith"
-            />
-            <TextInput
-              label={t(
-                "blocks.inputs.payment.settings.additionalInformation.email.label",
-              )}
-              defaultValue={options?.additionalInformation?.email}
-              onChange={updateEmail}
-              placeholder="john@gmail.com"
-            />
-            <TextInput
-              label={t(
-                "blocks.inputs.payment.settings.additionalInformation.phone.label",
-              )}
-              defaultValue={options?.additionalInformation?.phoneNumber}
-              onChange={updatePhoneNumber}
-              placeholder="+33XXXXXXXXX"
-            />
+            <Field.Root>
+              <Field.Label>
+                {t("blocks.inputs.settings.description.label")}
+              </Field.Label>
+              <DebouncedTextInputWithVariablesButton
+                defaultValue={options?.additionalInformation?.description}
+                onValueChange={updateDescription}
+                placeholder={t(
+                  "blocks.inputs.payment.settings.additionalInformation.description.placeholder.label",
+                )}
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>
+                {t(
+                  "blocks.inputs.payment.settings.additionalInformation.name.label",
+                )}
+              </Field.Label>
+              <DebouncedTextInputWithVariablesButton
+                defaultValue={options?.additionalInformation?.name}
+                onValueChange={updateName}
+                placeholder="John Smith"
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>
+                {t(
+                  "blocks.inputs.payment.settings.additionalInformation.email.label",
+                )}
+              </Field.Label>
+              <DebouncedTextInputWithVariablesButton
+                defaultValue={options?.additionalInformation?.email}
+                onValueChange={updateEmail}
+                placeholder="john@gmail.com"
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>
+                {t(
+                  "blocks.inputs.payment.settings.additionalInformation.phone.label",
+                )}
+              </Field.Label>
+              <DebouncedTextInputWithVariablesButton
+                defaultValue={options?.additionalInformation?.phoneNumber}
+                onValueChange={updatePhoneNumber}
+                placeholder="+33XXXXXXXXX"
+              />
+            </Field.Root>
             <PaymentAddressSettings
               address={options?.additionalInformation?.address}
               onAddressChange={updateAddress}
@@ -210,12 +238,11 @@ export const PaymentSettings = ({ options, onOptionsChange }: Props) => {
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion.Root>
-
       <CreateStripeCredentialsDialog
         isOpen={isOpen}
         onClose={onClose}
         onNewCredentials={updateCredentials}
       />
-    </Stack>
+    </div>
   );
 };

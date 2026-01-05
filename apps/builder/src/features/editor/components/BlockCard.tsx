@@ -1,4 +1,3 @@
-import { HStack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { BubbleBlockType } from "@typebot.io/blocks-bubbles/constants";
 import { isForgedBlockType } from "@typebot.io/blocks-core/helpers";
@@ -6,9 +5,10 @@ import type { BlockV6 } from "@typebot.io/blocks-core/schemas/schema";
 import { InputBlockType } from "@typebot.io/blocks-inputs/constants";
 import { IntegrationBlockType } from "@typebot.io/blocks-integrations/constants";
 import { LogicBlockType } from "@typebot.io/blocks-logic/constants";
-import { Plan } from "@typebot.io/prisma/enum";
+import { Badge } from "@typebot.io/ui/components/Badge";
+import { SquareLock01Icon } from "@typebot.io/ui/icons/SquareLock01Icon";
 import type React from "react";
-import { LockTag } from "@/features/billing/components/LockTag";
+import type { JSX } from "react";
 import { isFreePlan } from "@/features/billing/helpers/isFreePlan";
 import { ForgedBlockCard } from "@/features/forge/ForgedBlockCard";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
@@ -53,10 +53,14 @@ export const BlockCard = (
           tooltip={t("blocks.inputs.fileUpload.blockCard.tooltip")}
         >
           <BlockIcon type={props.type} />
-          <HStack>
+          <div className="flex items-center gap-2">
             <BlockLabel type={props.type} />
-            {isFreePlan(workspace) && <LockTag plan={Plan.STARTER} />}
-          </HStack>
+            {isFreePlan(workspace) && (
+              <Badge colorScheme="orange">
+                <SquareLock01Icon />
+              </Badge>
+            )}
+          </div>
         </BlockCardLayout>
       );
     case LogicBlockType.SCRIPT:

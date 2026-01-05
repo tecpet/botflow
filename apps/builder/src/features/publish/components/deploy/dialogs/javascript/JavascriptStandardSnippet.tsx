@@ -1,3 +1,4 @@
+import { getPublicId } from "@typebot.io/typebot/helpers/getPublicId";
 import parserHtml from "prettier/parser-html";
 import prettier from "prettier/standalone";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
@@ -17,7 +18,7 @@ export const JavascriptStandardSnippet = ({
   const { typebot } = useTypebot();
 
   const snippet = prettier.format(
-    `${parseStandardHeadCode(typebot?.publicId, typebot?.customDomain)}
+    `${parseStandardHeadCode(getPublicId(typebot), typebot?.customDomain)}
       ${parseStandardElementCode(widthLabel, heightLabel)}`,
     {
       parser: "html",

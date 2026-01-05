@@ -1,20 +1,13 @@
-import {
-  Flex,
-  HStack,
-  Input,
-  Skeleton,
-  SkeletonCircle,
-  Stack,
-  Tag,
-  Text,
-} from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { CollaborationType } from "@typebot.io/prisma/enum";
+import { Badge } from "@typebot.io/ui/components/Badge";
 import { Button } from "@typebot.io/ui/components/Button";
+import { Input } from "@typebot.io/ui/components/Input";
+import { Skeleton } from "@typebot.io/ui/components/Skeleton";
+import { HardDriveIcon } from "@typebot.io/ui/icons/HardDriveIcon";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { EmojiOrImageIcon } from "@/components/EmojiOrImageIcon";
-import { HardDriveIcon } from "@/components/icons";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
@@ -155,16 +148,18 @@ export const CollaborationList = () => {
   };
 
   return (
-    <Stack spacing={1} pt="4">
-      <HStack as="form" onSubmit={handleInvitationSubmit} px="4" pb="2">
+    <div className="flex flex-col gap-1 pt-4">
+      <form
+        className="flex items-center gap-2 px-4 pb-2"
+        onSubmit={handleInvitationSubmit}
+      >
         <Input
           size="sm"
           placeholder={t("share.button.popover.inviteInput.placeholder")}
           name="inviteEmail"
           value={invitationEmail}
-          onChange={(e) => setInvitationEmail(e.target.value)}
-          rounded="md"
-          isDisabled={currentUserMode === "guest"}
+          onValueChange={setInvitationEmail}
+          disabled={currentUserMode === "guest"}
         />
 
         {currentUserMode !== "guest" && (
@@ -185,22 +180,20 @@ export const CollaborationList = () => {
         >
           {t("share.button.popover.inviteButton.label")}
         </Button>
-      </HStack>
+      </form>
       {workspace && (
-        <Flex py="2" px="4" justifyContent="space-between" alignItems="center">
-          <HStack minW={0} spacing={3}>
+        <div className="flex py-2 px-4 justify-between items-center">
+          <div className="flex items-center min-w-0 gap-3">
             <EmojiOrImageIcon
               icon={workspace.icon}
               defaultIcon={HardDriveIcon}
             />
-            <Text fontSize="15px" noOfLines={1}>
-              Everyone at {workspace.name}
-            </Text>
-          </HStack>
-          <Tag flexShrink={0}>
+            <p className="text-[15px] truncate">Everyone at {workspace.name}</p>
+          </div>
+          <Badge className="shrink-0">
             <ReadableCollaborationType type={CollaborationType.FULL_ACCESS} />
-          </Tag>
-        </Flex>
+          </Badge>
+        </div>
       )}
       {invitations?.map(({ email, type }) => (
         <CollaboratorItem
@@ -226,17 +219,17 @@ export const CollaborationList = () => {
         />
       ))}
       {(isCollaboratorsLoading || isInvitationsLoading) && (
-        <HStack p="4" justifyContent="space-between">
-          <HStack>
-            <SkeletonCircle boxSize="32px" />
-            <Stack>
-              <Skeleton width="130px" h="6px" />
-              <Skeleton width="200px" h="6px" />
-            </Stack>
-          </HStack>
-          <Skeleton width="80px" h="10px" />
-        </HStack>
+        <div className="flex items-center gap-2 p-4 justify-between">
+          <div className="flex items-center gap-2">
+            <Skeleton className="size-8 rounded-full" />
+            <div className="flex flex-col gap-2">
+              <Skeleton className="w-32 h-1" />
+              <Skeleton className="w-40 h-1" />
+            </div>
+          </div>
+          <Skeleton className="w-20 h-2" />
+        </div>
       )}
-    </Stack>
+    </div>
   );
 };

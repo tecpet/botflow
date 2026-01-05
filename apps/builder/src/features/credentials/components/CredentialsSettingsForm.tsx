@@ -1,15 +1,3 @@
-import {
-  Divider,
-  Flex,
-  Heading,
-  HStack,
-  type IconProps,
-  Skeleton,
-  SkeletonCircle,
-  Stack,
-  Text,
-  type TextProps,
-} from "@chakra-ui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import { IntegrationBlockType } from "@typebot.io/blocks-integrations/constants";
@@ -20,11 +8,13 @@ import {
 import { Button } from "@typebot.io/ui/components/Button";
 import { Menu } from "@typebot.io/ui/components/Menu";
 import { Popover } from "@typebot.io/ui/components/Popover";
+import { Skeleton } from "@typebot.io/ui/components/Skeleton";
 import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import { ArrowDown01Icon } from "@typebot.io/ui/icons/ArrowDown01Icon";
 import { Edit03Icon } from "@typebot.io/ui/icons/Edit03Icon";
 import { TrashIcon } from "@typebot.io/ui/icons/TrashIcon";
-import { useMemo, useRef, useState } from "react";
+import { cn } from "@typebot.io/ui/lib/cn";
+import { type SVGProps, useMemo, useRef, useState } from "react";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { StripeLogo } from "@/components/logos/StripeLogo";
 import { WhatsAppLogo } from "@/components/logos/WhatsAppLogo";
@@ -90,10 +80,10 @@ export const CredentialsSettingsForm = () => {
   );
 
   return (
-    <Stack spacing="6" w="full">
-      <HStack justifyContent="space-between">
-        <HStack>
-          <Heading fontSize="2xl">{t("credentials")}</Heading>
+    <div className="flex flex-col gap-6 w-full">
+      <div className="flex items-center gap-2 justify-between">
+        <div className="flex items-center gap-2">
+          <h2>{t("credentials")}</h2>
           <BasicSelect
             size="sm"
             items={[
@@ -105,7 +95,7 @@ export const CredentialsSettingsForm = () => {
               setSelectedScope(value as "user" | "workspace")
             }
           />
-        </HStack>
+        </div>
         <Menu.Root>
           <Menu.TriggerButton variant="secondary">
             {t("account.preferences.credentials.addButton.label")}
@@ -125,31 +115,27 @@ export const CredentialsSettingsForm = () => {
                     setIsCreateDialogOpened(true);
                   }}
                 >
-                  <CredentialsIcon type={type} boxSize="16px" />
+                  <CredentialsIcon type={type} className="size-4" />
                   <CredentialsLabel type={type} />
                 </Menu.Item>
               ))}
           </Menu.Popup>
         </Menu.Root>
-      </HStack>
-
+      </div>
       {credentials && !isLoading ? (
         (Object.keys(credentials) as Credentials["type"][]).map((type) => (
-          <Stack
+          <div
+            className="flex flex-col border rounded-md p-4 gap-4"
             key={type}
-            borderWidth="1px"
-            borderRadius="md"
-            p="4"
-            spacing={4}
             data-testid={type}
           >
-            <HStack spacing="3">
-              <CredentialsIcon type={type} boxSize="24px" />
-              <CredentialsLabel type={type} fontWeight="medium" />
-            </HStack>
-            <Stack>
+            <div className="flex items-center gap-3">
+              <CredentialsIcon type={type} className="size-6" />
+              <CredentialsLabel type={type} className="font-medium" />
+            </div>
+            <div className="flex flex-col gap-2">
               {credentials[type].map((cred) => (
-                <Stack key={cred.id}>
+                <div className="flex flex-col gap-2" key={cred.id}>
                   <CredentialsItem
                     type={cred.type}
                     name={cred.name}
@@ -182,43 +168,43 @@ export const CredentialsSettingsForm = () => {
                       )
                     }
                   />
-                  <Divider />
-                </Stack>
+                  <hr className="border-gray-3" />
+                </div>
               ))}
-            </Stack>
-          </Stack>
+            </div>
+          </div>
         ))
       ) : (
-        <Stack borderRadius="md" spacing="6">
-          <Stack spacing={4}>
-            <SkeletonCircle />
-            <Stack>
-              <Skeleton height="20px" />
-              <Skeleton height="20px" />
-            </Stack>
-          </Stack>
-          <Stack spacing={4}>
-            <SkeletonCircle />
-            <Stack>
-              <Skeleton height="20px" />
-              <Skeleton height="20px" />
-            </Stack>
-          </Stack>
-          <Stack spacing={4}>
-            <SkeletonCircle />
-            <Stack>
-              <Skeleton height="20px" />
-              <Skeleton height="20px" />
-            </Stack>
-          </Stack>
-          <Stack spacing={4}>
-            <SkeletonCircle />
-            <Stack>
-              <Skeleton height="20px" />
-              <Skeleton height="20px" />
-            </Stack>
-          </Stack>
-        </Stack>
+        <div className="flex flex-col rounded-md gap-6">
+          <div className="flex flex-col gap-4">
+            <Skeleton className="size-8 rounded-full" />
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-5" />
+              <Skeleton className="h-5" />
+            </div>
+          </div>
+          <div className="flex flex-col gap-4">
+            <Skeleton className="size-8 rounded-full" />
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-5" />
+              <Skeleton className="h-5" />
+            </div>
+          </div>
+          <div className="flex flex-col gap-4">
+            <Skeleton className="size-8 rounded-full" />
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-5" />
+              <Skeleton className="h-5" />
+            </div>
+          </div>
+          <div className="flex flex-col gap-4">
+            <Skeleton className="size-8 rounded-full" />
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-5" />
+              <Skeleton className="h-5" />
+            </div>
+          </div>
+        </div>
       )}
       <CredentialsCreateDialog
         scope={selectedScope}
@@ -242,21 +228,21 @@ export const CredentialsSettingsForm = () => {
         isOpen={isUpdateDialogOpened}
         onClose={() => setIsUpdateDialogOpened(false)}
       />
-    </Stack>
+    </div>
   );
 };
 
 const CredentialsIcon = ({
   type,
   ...props
-}: { type: Credentials["type"] } & IconProps) => {
+}: { type: Credentials["type"] } & SVGProps<SVGSVGElement>) => {
   switch (type) {
     case "google sheets":
       return <BlockIcon type={IntegrationBlockType.GOOGLE_SHEETS} {...props} />;
     case "smtp":
       return <BlockIcon type={IntegrationBlockType.EMAIL} {...props} />;
     case "stripe":
-      return <StripeLogo rounded="sm" {...props} />;
+      return <StripeLogo {...props} />;
     case "whatsApp":
       return <WhatsAppLogo {...props} />;
     case "http proxy":
@@ -268,37 +254,24 @@ const CredentialsIcon = ({
 
 const CredentialsLabel = ({
   type,
-  ...props
-}: { type: Credentials["type"] } & TextProps) => {
+  className,
+}: {
+  type: Credentials["type"];
+  className?: string;
+}) => {
   switch (type) {
     case "google sheets":
-      return (
-        <Text fontSize="sm" {...props}>
-          Google Sheets
-        </Text>
-      );
+      return <p className={cn("text-sm", className)}>Google Sheets</p>;
     case "smtp":
-      return (
-        <Text fontSize="sm" {...props}>
-          SMTP
-        </Text>
-      );
+      return <p className={cn("text-sm", className)}>SMTP</p>;
     case "stripe":
-      return (
-        <Text fontSize="sm" {...props}>
-          Stripe
-        </Text>
-      );
+      return <p className={cn("text-sm", className)}>Stripe</p>;
     case "whatsApp":
-      return (
-        <Text fontSize="sm" {...props}>
-          WhatsApp
-        </Text>
-      );
+      return <p className={cn("text-sm", className)}>WhatsApp</p>;
     case "http proxy":
       return null;
     default:
-      return <BlockLabel type={type} {...props} />;
+      return <BlockLabel type={type} className={className} />;
   }
 };
 
@@ -317,9 +290,9 @@ const CredentialsItem = ({
   const deletePopoverControls = useOpenControls();
 
   return (
-    <HStack justifyContent="space-between" py="2">
-      <Text fontSize="sm">{cred.name}</Text>
-      <HStack>
+    <div className="flex items-center gap-2 justify-between py-2">
+      <p className="text-sm">{cred.name}</p>
+      <div className="flex items-center gap-2">
         {onEditClick && (
           <Button
             aria-label="Edit"
@@ -341,18 +314,18 @@ const CredentialsItem = ({
             <TrashIcon />
           </Popover.TriggerButton>
           <Popover.Popup initialFocus={initialFocusRef}>
-            <Stack spacing="2">
-              <Text fontSize="sm" fontWeight="medium">
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium">
                 {t("confirmModal.defaultTitle")}
-              </Text>
-              <Text fontSize="sm">
+              </p>
+              <p className="text-sm">
                 {t(
                   "account.preferences.credentials.deleteButton.confirmMessage",
                 )}
-              </Text>
-            </Stack>
-            <Flex justifyContent="flex-end">
-              <HStack>
+              </p>
+            </div>
+            <div className="flex justify-end">
+              <div className="flex items-center gap-2">
                 <Button
                   ref={initialFocusRef}
                   onClick={deletePopoverControls.onClose}
@@ -369,12 +342,12 @@ const CredentialsItem = ({
                 >
                   {t("delete")}
                 </Button>
-              </HStack>
-            </Flex>
+              </div>
+            </div>
           </Popover.Popup>
         </Popover.Root>
-      </HStack>
-    </HStack>
+      </div>
+    </div>
   );
 };
 

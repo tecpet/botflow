@@ -1,8 +1,7 @@
-import { HStack, Text } from "@chakra-ui/react";
 import { ComparisonOperators } from "@typebot.io/conditions/constants";
 import type { WhatsAppComparison } from "@typebot.io/whatsapp/schemas";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInput } from "@/components/inputs/DebouncedTextInput";
 import type { TableListItemProps } from "@/components/TableList";
 
 export const WhatsAppComparisonItem = ({
@@ -21,8 +20,8 @@ export const WhatsAppComparisonItem = ({
   };
 
   return (
-    <HStack p="4" rounded="md" flex="1" borderWidth="1px">
-      <Text flexShrink={0}>User message</Text>
+    <div className="flex items-center gap-2 p-4 rounded-md flex-1 border">
+      <p className="shrink-0">User message</p>
       <BasicSelect
         value={item.comparisonOperator}
         onChange={handleSelectComparisonOperator}
@@ -31,15 +30,14 @@ export const WhatsAppComparisonItem = ({
       />
       {item.comparisonOperator !== ComparisonOperators.IS_SET &&
         item.comparisonOperator !== ComparisonOperators.IS_EMPTY && (
-          <TextInput
+          <DebouncedTextInput
             defaultValue={item.value ?? ""}
-            onChange={handleChangeValue}
+            onValueChange={handleChangeValue}
             placeholder={parseValuePlaceholder(item.comparisonOperator)}
-            withVariableButton={false}
             size="sm"
           />
         )}
-    </HStack>
+    </div>
   );
 };
 

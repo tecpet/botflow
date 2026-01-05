@@ -1,4 +1,3 @@
-import { FormLabel, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { fileVisibilityOptions } from "@typebot.io/blocks-inputs/file/constants";
 import { defaultTextInputOptions } from "@typebot.io/blocks-inputs/text/constants";
@@ -9,7 +8,7 @@ import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
@@ -81,7 +80,7 @@ export const TextInputSettings = ({ options, onOptionsChange }: Props) => {
     });
 
   return (
-    <Stack spacing={4}>
+    <div className="flex flex-col gap-4">
       <Field.Root className="flex-row items-center">
         <Switch
           checked={options?.isLong ?? defaultTextInputOptions.isLong}
@@ -91,25 +90,29 @@ export const TextInputSettings = ({ options, onOptionsChange }: Props) => {
           {t("blocks.inputs.text.settings.longText.label")}
         </Field.Label>
       </Field.Root>
-      <TextInput
-        label={t("blocks.inputs.settings.placeholder.label")}
-        defaultValue={
-          options?.labels?.placeholder ??
-          defaultTextInputOptions.labels.placeholder
-        }
-        onChange={updatePlaceholder}
-      />
-      <TextInput
-        label={t("blocks.inputs.settings.button.label")}
-        defaultValue={
-          options?.labels?.button ?? defaultTextInputOptions.labels.button
-        }
-        onChange={updateButtonLabel}
-      />
-      <Stack>
-        <FormLabel mb="0" htmlFor="input-mode">
-          Input mode
-        </FormLabel>
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.settings.placeholder.label")}
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={
+            options?.labels?.placeholder ??
+            defaultTextInputOptions.labels.placeholder
+          }
+          onValueChange={updatePlaceholder}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>{t("blocks.inputs.settings.button.label")}</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={
+            options?.labels?.button ?? defaultTextInputOptions.labels.button
+          }
+          onValueChange={updateButtonLabel}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>Input mode</Field.Label>
         <BasicSelect
           value={options?.inputMode}
           defaultValue="text"
@@ -117,7 +120,7 @@ export const TextInputSettings = ({ options, onOptionsChange }: Props) => {
           onChange={updateInputMode}
           placeholder="Select input mode..."
         />
-      </Stack>
+      </Field.Root>
       <Field.Container>
         <Field.Root className="flex-row items-center">
           <Switch
@@ -209,6 +212,6 @@ export const TextInputSettings = ({ options, onOptionsChange }: Props) => {
           onSelectVariable={updateVariableId}
         />
       </Field.Root>
-    </Stack>
+    </div>
   );
 };

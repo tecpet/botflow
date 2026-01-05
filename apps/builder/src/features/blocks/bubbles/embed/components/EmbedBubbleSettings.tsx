@@ -1,4 +1,3 @@
-import { Stack, Text } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultEmbedBubbleContent } from "@typebot.io/blocks-bubbles/embed/constants";
 import type { EmbedBubbleBlock } from "@typebot.io/blocks-bubbles/embed/schema";
@@ -7,7 +6,7 @@ import { Field } from "@typebot.io/ui/components/Field";
 import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
 import { BasicNumberInput } from "@/components/inputs/BasicNumberInput";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
@@ -48,20 +47,19 @@ export const EmbedBubbleSettings = ({ content, onSubmit }: Props) => {
   };
 
   return (
-    <Stack p="2" spacing={6}>
-      <Stack>
-        <TextInput
+    <div className="flex flex-col p-2 gap-6">
+      <div className="flex flex-col gap-2">
+        <DebouncedTextInputWithVariablesButton
           placeholder={t(
             "editor.blocks.bubbles.embed.settings.worksWith.placeholder",
           )}
           defaultValue={content?.url ?? ""}
-          onChange={handleUrlChange}
+          onValueChange={handleUrlChange}
         />
-        <Text fontSize="sm" color="gray.400" textAlign="center">
+        <p className="text-sm text-center" color="gray.400">
           {t("editor.blocks.bubbles.embed.settings.worksWith.text")}
-        </Text>
-      </Stack>
-
+        </p>
+      </div>
       <Field.Root className="inline-flex flex-row items-center">
         <Field.Label>Height</Field.Label>
         <BasicNumberInput
@@ -72,7 +70,6 @@ export const EmbedBubbleSettings = ({ content, onSubmit }: Props) => {
         />
         {t("editor.blocks.bubbles.embed.settings.numberInput.unit")}
       </Field.Root>
-
       <Field.Container>
         <Field.Root className="flex-row items-center">
           <Switch
@@ -81,28 +78,26 @@ export const EmbedBubbleSettings = ({ content, onSubmit }: Props) => {
           />
           <Field.Label>Wait for event?</Field.Label>
         </Field.Root>
-        {content?.waitForEvent?.isEnabled ??
-          (false && (
-            <>
-              <TextInput
-                direction="row"
-                label="Name:"
+        {(content?.waitForEvent?.isEnabled ?? false) && (
+          <>
+            <Field.Root className="flex-row items-center">
+              <Field.Label>Name:</Field.Label>
+              <DebouncedTextInputWithVariablesButton
                 defaultValue={content?.waitForEvent?.name}
-                onChange={updateWaitEventName}
+                onValueChange={updateWaitEventName}
               />
-              <Field.Root>
-                <Field.Label>Save data in variable</Field.Label>
-                <VariablesCombobox
-                  onSelectVariable={updateSaveDataInVariableId}
-                  initialVariableId={
-                    content?.waitForEvent?.saveDataInVariableId
-                  }
-                />
-              </Field.Root>
-            </>
-          ))}
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>Save data in variable</Field.Label>
+              <VariablesCombobox
+                onSelectVariable={updateSaveDataInVariableId}
+                initialVariableId={content?.waitForEvent?.saveDataInVariableId}
+              />
+            </Field.Root>
+          </>
+        )}
       </Field.Container>
-    </Stack>
+    </div>
   );
 };
 

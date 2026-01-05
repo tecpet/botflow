@@ -3,10 +3,11 @@ import type { CreatableCredentials } from "@typebot.io/credentials/schemas";
 import { Alert } from "@typebot.io/ui/components/Alert";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Dialog } from "@typebot.io/ui/components/Dialog";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Input } from "@typebot.io/ui/components/Input";
 import { TriangleAlertIcon } from "@typebot.io/ui/icons/TriangleAlertIcon";
 import type React from "react";
 import { useState } from "react";
-import { TextInput } from "@/components/inputs/TextInput";
 import { TextLink } from "@/components/TextLink";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { queryClient, trpc } from "@/lib/queryClient";
@@ -71,32 +72,25 @@ export const OpenAICredentialsDialog = ({
       <Dialog.Title>Add OpenAI account</Dialog.Title>
       <Dialog.CloseButton />
       <Dialog.Popup render={<form onSubmit={createOpenAICredentials} />}>
-        <TextInput
-          isRequired
-          label="Name"
-          onChange={setName}
-          placeholder="My account"
-          withVariableButton={false}
-          debounceTimeout={0}
-        />
-        <TextInput
-          isRequired
-          type="password"
-          label="API key"
-          helperText={
-            <>
-              You can generate an API key{" "}
-              <TextLink href={openAITokensPage} isExternal>
-                here
-              </TextLink>
-              .
-            </>
-          }
-          onChange={setApiKey}
-          placeholder="sk-..."
-          withVariableButton={false}
-          debounceTimeout={0}
-        />
+        <Field.Root>
+          <Field.Label>Name</Field.Label>
+          <Input onValueChange={setName} placeholder="My account" />
+        </Field.Root>
+        <Field.Root>
+          <Field.Label>API key</Field.Label>
+          <Input
+            type="password"
+            onValueChange={setApiKey}
+            placeholder="sk-..."
+          />
+          <Field.Description>
+            You can generate an API key{" "}
+            <TextLink href={openAITokensPage} isExternal>
+              here
+            </TextLink>
+            .
+          </Field.Description>
+        </Field.Root>
         <Alert.Root variant="warning">
           <TriangleAlertIcon />
           <Alert.Description>

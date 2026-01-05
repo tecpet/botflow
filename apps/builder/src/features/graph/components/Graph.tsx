@@ -1,4 +1,3 @@
-import { Flex, type FlexProps, useEventListener } from "@chakra-ui/react";
 import { createId } from "@paralleldrive/cuid2";
 import { shouldOpenBlockSettingsOnCreation } from "@typebot.io/blocks-core/helpers";
 import type { BlockV6 } from "@typebot.io/blocks-core/schemas/schema";
@@ -6,13 +5,16 @@ import { GraphNavigation } from "@typebot.io/prisma/enum";
 import type { PublicTypebotV6 } from "@typebot.io/typebot/schemas/publicTypebot";
 import type { TypebotV6 } from "@typebot.io/typebot/schemas/typebot";
 import { Tooltip } from "@typebot.io/ui/components/Tooltip";
+import { CodeIcon } from "@typebot.io/ui/icons/CodeIcon";
+import { MinusSignIcon } from "@typebot.io/ui/icons/MinusSignIcon";
+import { PlusSignIcon } from "@typebot.io/ui/icons/PlusSignIcon";
+import { cn } from "@typebot.io/ui/lib/cn";
 import { cx } from "@typebot.io/ui/lib/cva";
 import { useGesture } from "@use-gesture/react";
 import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useShallow } from "zustand/react/shallow";
-import { FileCurlyIcon, MinusIcon, PlusIcon } from "@/components/icons";
 import type {
   EdgeWithTotalVisits,
   TotalAnswers,
@@ -21,6 +23,7 @@ import { BoardMenuButton } from "@/features/editor/components/BoardMenuButton";
 import { headerHeight } from "@/features/editor/constants";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { useUser } from "@/features/user/hooks/useUser";
+import { useEventListener } from "@/hooks/useEventListener";
 import { useRightPanel } from "@/hooks/useRightPanel";
 import { graphPositionDefaultValue } from "../constants";
 import { computeSelectBoxDimensions } from "../helpers/computeSelectBoxDimensions";
@@ -43,13 +46,14 @@ export const Graph = ({
   totalAnswers,
   edgesWithTotalUsers,
   onUnlockProPlanClick,
-  ...props
+  className,
 }: {
   typebot: TypebotV6 | PublicTypebotV6;
   edgesWithTotalUsers?: EdgeWithTotalVisits[];
   totalAnswers?: TotalAnswers[];
   onUnlockProPlanClick?: () => void;
-} & FlexProps) => {
+  className?: string;
+}) => {
   const {
     draggedBlockType,
     setDraggedBlockType,
@@ -278,7 +282,7 @@ export const Graph = ({
     (e) => {
       e.preventDefault();
     },
-    graphContainerRef.current,
+    graphContainerRef,
     {
       passive: false,
     },
@@ -369,14 +373,14 @@ export const Graph = ({
   useEventListener("mousedown", handleCaptureMouseDown, undefined, {
     capture: true,
   });
-  useEventListener("mouseup", handleMouseUp, graphContainerRef.current);
-  useEventListener("pointerup", handlePointerUp, editorContainerRef.current);
+  useEventListener("mouseup", handleMouseUp, graphContainerRef);
+  useEventListener("pointerup", handlePointerUp, editorContainerRef);
   useEventListener("mousemove", handleMouseMove);
 
   // Make sure pinch doesn't interfere with native Safari zoom
   // More info: https://use-gesture.netlify.app/docs/gestures/
-  useEventListener("gesturestart", (e) => e.preventDefault());
-  useEventListener("gesturechange", (e) => e.preventDefault());
+  useEventListener("gesturestart" as any, (e) => e.preventDefault());
+  useEventListener("gesturechange" as any, (e) => e.preventDefault());
 
   const zoomIn = () => zoom({ delta: zoomButtonsScaleBlock });
   const zoomOut = () => zoom({ delta: -zoomButtonsScaleBlock });
@@ -384,19 +388,16 @@ export const Graph = ({
   const cursor = isDraggingGraph ? (isDragging ? "grabbing" : "grab") : "auto";
 
   return (
-    <Flex
+    <div
+      className={cn("flex", className)}
       ref={graphContainerRef}
       style={{
         touchAction: "none",
         cursor,
       }}
-      {...props}
     >
-      <Flex
-        flex="1"
-        w="full"
-        h="full"
-        position="absolute"
+      <div
+        className="flex flex-1 w-full h-full absolute will-change-transform origin-[0_0_0]"
         data-testid="graph"
         style={{
           transform,
@@ -404,8 +405,6 @@ export const Graph = ({
           backfaceVisibility: "hidden",
           transformStyle: "preserve-3d",
         }}
-        willChange="transform"
-        transformOrigin="0px 0px 0px"
       >
         <GraphElements
           edges={typebot.edges}
@@ -415,7 +414,7 @@ export const Graph = ({
           edgesWithTotalUsers={edgesWithTotalUsers}
           onUnlockProPlanClick={onUnlockProPlanClick}
         />
-      </Flex>
+      </div>
       {!isReadOnly && selectBoxCoordinates && (
         <SelectBox {...selectBoxCoordinates} />
       )}
@@ -441,7 +440,7 @@ export const Graph = ({
             variant="secondary"
             className="size-8"
           >
-            <FileCurlyIcon />
+            <CodeIcon />
           </Tooltip.TriggerButton>
           <Tooltip.Popup>Open variables drawer</Tooltip.Popup>
         </Tooltip.Root>
@@ -454,7 +453,7 @@ export const Graph = ({
             variant="secondary"
             className="size-8"
           >
-            <MinusIcon />
+            <MinusSignIcon />
           </Tooltip.TriggerButton>
           <Tooltip.Popup>Zoom out</Tooltip.Popup>
         </Tooltip.Root>
@@ -466,14 +465,14 @@ export const Graph = ({
             variant="secondary"
             className="size-8"
           >
-            <PlusIcon />
+            <PlusSignIcon />
           </Tooltip.TriggerButton>
           <Tooltip.Popup>Zoom in</Tooltip.Popup>
         </Tooltip.Root>
         <div className="flex-1 border-[.5px] border-gray-4 -my-1.5 mx-1.5" />
         <BoardMenuButton />
       </div>
-    </Flex>
+    </div>
   );
 };
 

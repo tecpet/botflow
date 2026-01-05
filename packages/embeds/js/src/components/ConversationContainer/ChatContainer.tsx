@@ -345,6 +345,7 @@ export const ChatContainer = (props: Props) => {
       const response = await executeClientSideAction({
         clientSideAction: action,
         context: {
+          isPreview: props.context.isPreview,
           apiHost: props.context.apiHost,
           wsHost: props.context.wsHost,
           sessionId: props.initialChatReply.sessionId,
@@ -503,13 +504,11 @@ export const ChatContainer = (props: Props) => {
         <div
           ref={chatContainer}
           class={cx(
-            "@container relative typebot-chat-view w-full flex flex-col items-center pt-5 max-w-chat-container",
+            "@container relative typebot-chat-view w-full flex flex-col items-center pt-5 max-w-chat-container-max-width",
             isChatContainerTransparent()
               ? undefined
-              : cx(
-                  "overflow-y-auto scroll-smooth scrollable-container",
-                  "@xs:min-h-chat-container max-h-full @xs:max-h-chat-container @xs:rounded-chat-container",
-                ),
+              : `h-full overflow-y-auto scroll-smooth scrollable-container
+                @xs:min-h-chat-container-min-height max-h-full @xs:max-h-chat-container-max-height @xs:rounded-chat-container`,
           )}
         >
           <div class="w-full flex flex-col gap-2 @xs:px-5 px-3">
@@ -549,7 +548,7 @@ export const ChatContainer = (props: Props) => {
 
 // Needed because we need to simulate a bottom padding relative to the chat view height
 const BottomSpacer = () => (
-  <div class="w-full flex-shrink-0 typebot-bottom-spacer h-5" />
+  <div class="w-full shrink-0 typebot-bottom-spacer h-5" />
 );
 
 const convertSubmitContentToMessage = (
@@ -566,6 +565,7 @@ const convertSubmitContentToMessage = (
       type: "text",
       text: answer.value,
       attachedFileUrls: answer.attachments?.map((attachment) => attachment.url),
+      metadata: answer.metadata,
     };
   if (answer.type === "recording") return { type: "audio", url: answer.url };
 };

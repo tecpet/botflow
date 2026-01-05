@@ -1,9 +1,8 @@
-import { Stack } from "@chakra-ui/react";
 import type { Cell } from "@typebot.io/blocks-integrations/googleSheets/schema";
 import { Button } from "@typebot.io/ui/components/Button";
-import { MoreVerticalIcon } from "@/components/icons";
+import { MoreVerticalIcon } from "@typebot.io/ui/icons/MoreVerticalIcon";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import type { TableListItemProps } from "@/components/TableList";
 
 export const CellWithValueStack = ({
@@ -20,14 +19,7 @@ export const CellWithValueStack = ({
     onItemChange({ ...item, value });
   };
   return (
-    <Stack
-      p="4"
-      rounded="md"
-      flex="1"
-      borderWidth="1px"
-      w="full"
-      pos="relative"
-    >
+    <div className="flex flex-col gap-2 p-4 rounded-md flex-1 border w-full relative">
       <Button
         size="icon"
         variant="secondary"
@@ -41,11 +33,11 @@ export const CellWithValueStack = ({
         items={columns}
         placeholder="Select a column"
       />
-      <TextInput
+      <DebouncedTextInputWithVariablesButton
         defaultValue={item.value ?? ""}
-        onChange={handleValueChange}
+        onValueChange={handleValueChange}
         placeholder="Type a value..."
       />
-    </Stack>
+    </div>
   );
 };

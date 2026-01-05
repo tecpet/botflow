@@ -1,4 +1,3 @@
-import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { env } from "@typebot.io/env";
 import { isDefined } from "@typebot.io/lib/utils";
@@ -22,7 +21,7 @@ export const SecurityForm = ({ security, onUpdate }: Props) => {
   };
 
   return (
-    <Stack spacing={6}>
+    <div className="flex flex-col gap-6">
       <Field.Root>
         <Field.Label>
           {t("settings.sideMenu.security.allowedOrigins")}
@@ -32,10 +31,10 @@ export const SecurityForm = ({ security, onUpdate }: Props) => {
         </Field.Label>
         <TagsInput
           items={security?.allowedOrigins}
-          onChange={updateItems}
+          onValueChange={updateItems}
           placeholder={env.NEXT_PUBLIC_VIEWER_URL[0]}
         />
       </Field.Root>
-    </Stack>
+    </div>
   );
 };

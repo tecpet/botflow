@@ -1,12 +1,3 @@
-import {
-  FormControl,
-  FormLabel,
-  HStack,
-  Stack,
-  Tag,
-  Text,
-  useColorModeValue,
-} from "@chakra-ui/react";
 import { T, useTranslate } from "@tolgee/react";
 import { isDefined } from "@typebot.io/lib/utils";
 import {
@@ -15,6 +6,7 @@ import {
 } from "@typebot.io/settings/constants";
 import type { Settings, SystemMessages } from "@typebot.io/settings/schemas";
 import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Badge } from "@typebot.io/ui/components/Badge";
 import { Field } from "@typebot.io/ui/components/Field";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Switch } from "@typebot.io/ui/components/Switch";
@@ -31,7 +23,6 @@ export const GeneralSettingsForm = ({
   onGeneralSettingsChange,
 }: Props) => {
   const { t } = useTranslate();
-  const keyBg = useColorModeValue(undefined, "gray.600");
   const toggleRememberUser = (isEnabled: boolean) =>
     onGeneralSettingsChange({
       ...generalSettings,
@@ -74,7 +65,7 @@ export const GeneralSettingsForm = ({
   };
 
   return (
-    <Stack spacing={6}>
+    <div className="flex flex-col gap-6">
       <Field.Root className="flex-row items-center">
         <Switch
           checked={
@@ -127,37 +118,37 @@ export const GeneralSettingsForm = ({
           (isDefined(generalSettings?.isNewResultOnRefreshEnabled)
             ? !generalSettings?.isNewResultOnRefreshEnabled
             : false)) && (
-          <FormControl as={HStack} justifyContent="space-between">
-            <FormLabel mb="0">
+          <Field.Root>
+            <Field.Label>
               {t("settings.sideMenu.general.rememberUser.storage")}
               <MoreInfoTooltip>
-                <Stack>
-                  <Text>
+                <div className="flex flex-col gap-2">
+                  <p>
                     <T
                       keyName="settings.sideMenu.general.rememberUser.storage.session.tooltip"
                       params={{
-                        tag: <Tag size="sm" bgColor={keyBg} />,
+                        tag: <Badge />,
                       }}
                     />
-                  </Text>
-                  <Text>
+                  </p>
+                  <p>
                     <T
                       keyName="settings.sideMenu.general.rememberUser.storage.local.tooltip"
                       params={{
-                        tag: <Tag size="sm" bgColor={keyBg} />,
+                        tag: <Badge />,
                       }}
                     />
-                  </Text>
-                </Stack>
+                  </p>
+                </div>
               </MoreInfoTooltip>
-            </FormLabel>
+            </Field.Label>
             <BasicSelect
               value={generalSettings?.rememberUser?.storage}
               defaultValue={defaultSettings.general.rememberUser.storage}
               onChange={updateRememberUserStorage}
               items={rememberUserStorages}
             />
-          </FormControl>
+          </Field.Root>
         )}
       </Field.Container>
       <Accordion.Root>
@@ -173,6 +164,6 @@ export const GeneralSettingsForm = ({
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion.Root>
-    </Stack>
+    </div>
   );
 };

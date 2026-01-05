@@ -60,13 +60,11 @@ type WorkspaceData = {
 const churnSummarySchema = z.object({
   snapshot: z
     .string()
-    .describe(
-      "A small snapshot of the workspace, explaining what it does briefly and what is its main use case.",
-    ),
+    .describe("A very short summary of why the workspace use Typebot."),
   timeline: z
     .string()
     .describe(
-      "A summary of the workspace's journey in a short bullet points list format. Human readable dates.",
+      "A summary of the workspace's key events in a short bullet points list format. Human readable dates.",
     ),
   guessedChurnReason: z
     .string()
@@ -154,9 +152,6 @@ export const getYesterdayChurnSummary = async ({
           },
         },
         typebots: {
-          orderBy: {
-            createdAt: "desc",
-          },
           select: {
             version: true,
             id: true,
@@ -383,6 +378,7 @@ const getWorkspaceJsonRepresentation = async (
   }
 
   for (const [index, typebot] of workspace.typebots
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     .slice(0, MAX_BOTS_PER_WORKSPACE)
     .entries()) {
     console.log(

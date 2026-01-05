@@ -1,6 +1,6 @@
-import { Tag, Text } from "@chakra-ui/react";
 import type { JumpBlock } from "@typebot.io/blocks-logic/jump/schema";
 import { byId, isDefined } from "@typebot.io/lib/utils";
+import { Badge } from "@typebot.io/ui/components/Badge";
 import { isSingleVariable } from "@typebot.io/variables/isSingleVariable";
 import { useMemo } from "react";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
@@ -27,15 +27,15 @@ export const JumpNodeBody = ({ options }: Props) => {
     };
   }, [options?.groupId, options?.blockId, typebot?.groups]);
 
-  if (!groupTitle) return <Text color="gray.500">Configure...</Text>;
+  if (!groupTitle) return <p color="gray.500">Configure...</p>;
   return (
-    <Text>
-      Jump to <Tag colorScheme="purple">{groupTitle}</Tag>{" "}
+    <p>
+      Jump to <Badge colorScheme="purple">{groupTitle}</Badge>{" "}
       {isDefined(blockIndex) && blockIndex >= 0 ? (
         <>
-          at block <Tag colorScheme="purple">{blockIndex + 1}</Tag>
+          at block <Badge colorScheme="purple">{blockIndex + 1}</Badge>
         </>
       ) : null}
-    </Text>
+    </p>
   );
 };

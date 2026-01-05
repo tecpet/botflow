@@ -1,4 +1,3 @@
-import { FormLabel, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultRatingInputOptions } from "@typebot.io/blocks-inputs/rating/constants";
 import type { RatingInputBlock } from "@typebot.io/blocks-inputs/rating/schema";
@@ -7,7 +6,7 @@ import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
 import { BasicNumberInput } from "@/components/inputs/BasicNumberInput";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
@@ -64,30 +63,28 @@ export const RatingInputSettings = ({ options, onOptionsChange }: Props) => {
   const buttonType =
     options?.buttonType ?? defaultRatingInputOptions.buttonType;
   return (
-    <Stack spacing={4}>
-      <Stack>
-        <FormLabel mb="0" htmlFor="button">
+    <div className="flex flex-col gap-4">
+      <Field.Root>
+        <Field.Label>
           {t("blocks.inputs.rating.settings.maximum.label")}
-        </FormLabel>
+        </Field.Label>
         <BasicSelect
           value={options?.length?.toString()}
           defaultValue={defaultRatingInputOptions.length.toString()}
           onChange={handleLengthChange}
           items={["3", "4", "5", "6", "7", "8", "9", "10"]}
         />
-      </Stack>
-
-      <Stack>
-        <FormLabel mb="0" htmlFor="button">
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>
           {t("blocks.inputs.rating.settings.type.label")}
-        </FormLabel>
+        </Field.Label>
         <BasicSelect
           items={["Icons", "Numbers"]}
           value={buttonType}
           onChange={handleTypeChange}
         />
-      </Stack>
-
+      </Field.Root>
       {buttonType === "Numbers" && (
         <Field.Root className="flex-row">
           <Field.Label>Starts at</Field.Label>
@@ -99,7 +96,6 @@ export const RatingInputSettings = ({ options, onOptionsChange }: Props) => {
           />
         </Field.Root>
       )}
-
       {buttonType === "Icons" && (
         <Field.Root className="flex-row items-center">
           <Switch
@@ -115,36 +111,48 @@ export const RatingInputSettings = ({ options, onOptionsChange }: Props) => {
         </Field.Root>
       )}
       {buttonType === "Icons" && options?.customIcon?.isEnabled && (
-        <TextInput
-          label={t("blocks.inputs.rating.settings.iconSVG.label")}
-          defaultValue={options.customIcon.svg}
-          onChange={handleIconSvgChange}
-          placeholder="<svg>...</svg>"
-        />
+        <Field.Root>
+          <Field.Label>
+            {t("blocks.inputs.rating.settings.iconSVG.label")}
+          </Field.Label>
+          <DebouncedTextInputWithVariablesButton
+            defaultValue={options.customIcon.svg}
+            onValueChange={handleIconSvgChange}
+            placeholder="<svg>...</svg>"
+          />
+        </Field.Root>
       )}
-      <TextInput
-        label={t("blocks.inputs.rating.settings.rateLabel.label", {
-          rate:
-            buttonType === "Icons"
-              ? "1"
-              : (options?.startsAt ?? defaultRatingInputOptions.startsAt),
-        })}
-        defaultValue={options?.labels?.left}
-        onChange={handleLeftLabelChange}
-        placeholder={t(
-          "blocks.inputs.rating.settings.notLikely.placeholder.label",
-        )}
-      />
-      <TextInput
-        label={t("blocks.inputs.rating.settings.rateLabel.label", {
-          rate: options?.length ?? defaultRatingInputOptions.length,
-        })}
-        defaultValue={options?.labels?.right}
-        onChange={handleRightLabelChange}
-        placeholder={t(
-          "blocks.inputs.rating.settings.extremelyLikely.placeholder.label",
-        )}
-      />
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.rating.settings.rateLabel.label", {
+            rate:
+              buttonType === "Icons"
+                ? "1"
+                : (options?.startsAt ?? defaultRatingInputOptions.startsAt),
+          })}
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={options?.labels?.left}
+          onValueChange={handleLeftLabelChange}
+          placeholder={t(
+            "blocks.inputs.rating.settings.notLikely.placeholder.label",
+          )}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.rating.settings.rateLabel.label", {
+            rate: options?.length ?? defaultRatingInputOptions.length,
+          })}
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={options?.labels?.right}
+          onValueChange={handleRightLabelChange}
+          placeholder={t(
+            "blocks.inputs.rating.settings.extremelyLikely.placeholder.label",
+          )}
+        />
+      </Field.Root>
       <Field.Root className="flex-row items-center">
         <Switch
           checked={isOneClickSubmitEnabled}
@@ -155,13 +163,15 @@ export const RatingInputSettings = ({ options, onOptionsChange }: Props) => {
         </Field.Label>
       </Field.Root>
       {!isOneClickSubmitEnabled && (
-        <TextInput
-          label={t("blocks.inputs.settings.button.label")}
-          defaultValue={
-            options?.labels?.button ?? defaultRatingInputOptions.labels.button
-          }
-          onChange={handleButtonLabelChange}
-        />
+        <Field.Root>
+          <Field.Label>{t("blocks.inputs.settings.button.label")}</Field.Label>
+          <DebouncedTextInputWithVariablesButton
+            defaultValue={
+              options?.labels?.button ?? defaultRatingInputOptions.labels.button
+            }
+            onValueChange={handleButtonLabelChange}
+          />
+        </Field.Root>
       )}
       <Field.Root>
         <Field.Label>
@@ -172,6 +182,6 @@ export const RatingInputSettings = ({ options, onOptionsChange }: Props) => {
           onSelectVariable={handleVariableChange}
         />
       </Field.Root>
-    </Stack>
+    </div>
   );
 };

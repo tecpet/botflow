@@ -1,11 +1,10 @@
-import { Stack } from "@chakra-ui/react";
 import type { SmtpCredentials } from "@typebot.io/credentials/schemas";
 import { isDefined } from "@typebot.io/lib/utils";
 import { Field } from "@typebot.io/ui/components/Field";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Switch } from "@typebot.io/ui/components/Switch";
 import { BasicNumberInput } from "@/components/inputs/BasicNumberInput";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInput } from "@/components/inputs/DebouncedTextInput";
 
 type Props = {
   config: SmtpCredentials["data"] | undefined;
@@ -35,50 +34,51 @@ export const SmtpConfigForm = ({ config, onConfigChange }: Props) => {
     config && isDefined(port) && onConfigChange({ ...config, port });
 
   return (
-    <Stack spacing={4}>
-      <TextInput
-        isRequired
-        label="From email"
-        defaultValue={config?.from.email}
-        onChange={handleFromEmailChange}
-        placeholder="notifications@provider.com"
-        withVariableButton={false}
-        isDisabled={!config}
-      />
-      <TextInput
-        label="From name"
-        defaultValue={config?.from.name}
-        onChange={handleFromNameChange}
-        placeholder="John Smith"
-        withVariableButton={false}
-        isDisabled={!config}
-      />
-      <TextInput
-        isRequired
-        label="Host"
-        defaultValue={config?.host}
-        onChange={handleHostChange}
-        placeholder="mail.provider.com"
-        withVariableButton={false}
-        isDisabled={!config}
-      />
-      <TextInput
-        isRequired
-        label="Username"
-        defaultValue={config?.username}
-        onChange={handleUsernameChange}
-        withVariableButton={false}
-        isDisabled={!config}
-      />
-      <TextInput
-        isRequired
-        label="Password"
-        type="password"
-        defaultValue={config?.password}
-        onChange={handlePasswordChange}
-        withVariableButton={false}
-        isDisabled={!config}
-      />
+    <div className="flex flex-col gap-4">
+      <Field.Root>
+        <Field.Label>From email</Field.Label>
+        <DebouncedTextInput
+          defaultValue={config?.from.email}
+          onValueChange={handleFromEmailChange}
+          placeholder="notifications@provider.com"
+          disabled={!config}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>From name</Field.Label>
+        <DebouncedTextInput
+          defaultValue={config?.from.name}
+          onValueChange={handleFromNameChange}
+          placeholder="John Smith"
+          disabled={!config}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>Host</Field.Label>
+        <DebouncedTextInput
+          defaultValue={config?.host}
+          onValueChange={handleHostChange}
+          placeholder="mail.provider.com"
+          disabled={!config}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>Username</Field.Label>
+        <DebouncedTextInput
+          defaultValue={config?.username}
+          onValueChange={handleUsernameChange}
+          disabled={!config}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>Password</Field.Label>
+        <DebouncedTextInput
+          type="password"
+          defaultValue={config?.password}
+          onValueChange={handlePasswordChange}
+          disabled={!config}
+        />
+      </Field.Root>
       <Field.Root className="flex-row items-center">
         <Switch
           checked={config?.isTlsEnabled}
@@ -103,6 +103,6 @@ export const SmtpConfigForm = ({ config, onConfigChange }: Props) => {
           disabled={!config}
         />
       </Field.Root>
-    </Stack>
+    </div>
   );
 };

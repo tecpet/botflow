@@ -17,10 +17,15 @@ type Props = {
 
 export const CardsCaroussel = (props: Props) => {
   const onButtonClick = (itemIndex: number, pathIndex: number) => {
+    const pathId = props.block.items[itemIndex].paths?.[pathIndex]?.id;
+    const pathText = props.block.items[itemIndex].paths?.[pathIndex]?.text;
     props.onSubmit({
       type: "text",
-      value: props.block.items[itemIndex].paths?.[pathIndex]?.id ?? "",
-      label: props.block.items[itemIndex].paths?.[pathIndex]?.text ?? "",
+      value: pathId ?? pathText ?? "",
+      label: pathText ?? "",
+      metadata: {
+        replyId: pathId,
+      },
       attachments: props.block.items[itemIndex].imageUrl
         ? [{ url: props.block.items[itemIndex].imageUrl, type: "image" }]
         : undefined,
@@ -71,7 +76,7 @@ export const CardsCaroussel = (props: Props) => {
         <Index each={props.block.items}>
           {(item, index) => (
             <Carousel.Item index={index}>
-              <Card class="h-full">
+              <Card class="h-full border">
                 <div
                   class="flex flex-col gap-4"
                   style={{
@@ -83,7 +88,7 @@ export const CardsCaroussel = (props: Props) => {
                       <img
                         src={imageUrl()}
                         alt="Card image"
-                        class="aspect-[16/11] object-cover"
+                        class="aspect-16/11 object-cover"
                       />
                     )}
                   </Show>

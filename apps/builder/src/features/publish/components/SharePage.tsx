@@ -1,19 +1,13 @@
-import {
-  Flex,
-  Heading,
-  HStack,
-  Stack,
-  useColorModeValue,
-  Wrap,
-} from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { env } from "@typebot.io/env";
 import { isDefined, isNotDefined } from "@typebot.io/lib/utils";
 import { Plan } from "@typebot.io/prisma/enum";
+import { getPublicId } from "@typebot.io/typebot/helpers/getPublicId";
+import { Badge } from "@typebot.io/ui/components/Badge";
 import { Button } from "@typebot.io/ui/components/Button";
+import { SquareLock01Icon } from "@typebot.io/ui/icons/SquareLock01Icon";
 import { TrashIcon } from "@typebot.io/ui/icons/TrashIcon";
 import { Seo } from "@/components/Seo";
-import { LockTag } from "@/features/billing/components/LockTag";
 import { UpgradeButton } from "@/features/billing/components/UpgradeButton";
 import { hasProPerks } from "@/features/billing/helpers/hasProPerks";
 import { CustomDomainsDropdown } from "@/features/customDomains/components/CustomDomainsDropdown";
@@ -23,7 +17,6 @@ import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { isCloudProdInstance } from "@/helpers/isCloudProdInstance";
 import { toast } from "@/lib/toast";
-import { parseDefaultPublicId } from "../helpers/parseDefaultPublicId";
 import { isPublicDomainAvailableQuery } from "../queries/isPublicDomainAvailableQuery";
 import { integrationsList } from "./deploy/DeployButton";
 import { EditableUrl } from "./EditableUrl";
@@ -38,9 +31,7 @@ export const SharePage = () => {
     updateTypebot({ updates: { publicId }, save: true });
   };
 
-  const publicId = typebot
-    ? (typebot?.publicId ?? parseDefaultPublicId(typebot.name, typebot.id))
-    : "";
+  const publicId = getPublicId(typebot);
   const isPublished = isDefined(publishedTypebot);
 
   const handlePathnameChange = (pathname: string) => {
@@ -88,23 +79,14 @@ export const SharePage = () => {
   };
 
   return (
-    <Flex flexDir="column" pb="40">
+    <div className="flex flex-col pb-40">
       <Seo title={typebot?.name ? `${typebot.name} | Share` : "Share"} />
       <TypebotHeader />
-      <Flex h="full" w="full" justifyContent="center" align="flex-start">
-        <Stack maxW="970px" w="full" pt="10" spacing={10}>
-          <Stack spacing={4} align="flex-start">
-            <Heading fontSize="2xl" as="h1">
-              {t("sharePage.links.heading")}
-            </Heading>
-            <Stack
-              bg={useColorModeValue("white", "gray.900")}
-              spacing={4}
-              p={4}
-              rounded="lg"
-              align="flex-start"
-              borderWidth={1}
-            >
+      <div className="flex h-full w-full justify-center items-start">
+        <div className="flex flex-col max-w-[970px] w-full pt-10 gap-10">
+          <div className="flex flex-col gap-4 items-start">
+            <h1 className="text-2xl">{t("sharePage.links.heading")}</h1>
+            <div className="flex flex-col gap-4 p-4 rounded-lg items-start border bg-gray-1">
               {typebot && (
                 <EditableUrl
                   hostname={env.NEXT_PUBLIC_VIEWER_URL[0]}
@@ -114,7 +96,7 @@ export const SharePage = () => {
                 />
               )}
               {typebot?.customDomain && (
-                <HStack>
+                <div className="flex items-center gap-2">
                   <EditableUrl
                     hostname={"https://" + typebot.customDomain.split("/")[0]}
                     pathname={typebot.customDomain.split("/")[1]}
@@ -135,7 +117,7 @@ export const SharePage = () => {
                       workspaceId={workspace.id}
                     />
                   )}
-                </HStack>
+                </div>
               )}
               {currentUserMode === "write" &&
               isNotDefined(typebot?.customDomain) &&
@@ -150,18 +132,18 @@ export const SharePage = () => {
                     excludedPlans={[Plan.STARTER]}
                   >
                     {t("customDomain.add")}
-                    <LockTag plan={Plan.PRO} />
+                    <Badge colorScheme="purple">
+                      <SquareLock01Icon />
+                    </Badge>
                   </UpgradeButton>
                 )
               ) : null}
-            </Stack>
-          </Stack>
+            </div>
+          </div>
 
-          <Stack spacing={4}>
-            <Heading fontSize="2xl" as="h1">
-              {t("sharePage.embed.heading")}
-            </Heading>
-            <Wrap spacing={4}>
+          <div className="flex flex-col gap-4">
+            <h1 className="text-2xl">{t("sharePage.embed.heading")}</h1>
+            <div className="flex flex-wrap gap-4">
               {integrationsList.map((IntegrationButton, idx) => (
                 <IntegrationButton
                   key={idx}
@@ -169,10 +151,10 @@ export const SharePage = () => {
                   isPublished={isPublished}
                 />
               ))}
-            </Wrap>
-          </Stack>
-        </Stack>
-      </Flex>
-    </Flex>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };

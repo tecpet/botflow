@@ -1,10 +1,10 @@
-import { Stack, Text } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultVideoBubbleContent } from "@typebot.io/blocks-bubbles/video/constants";
 import type { VideoBubbleBlock } from "@typebot.io/blocks-bubbles/video/schema";
 import { Field } from "@typebot.io/ui/components/Field";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Switch } from "@typebot.io/ui/components/Switch";
-import { TextInput } from "@/components/inputs/TextInput";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 
 export const VideoLinkEmbedContent = ({
   content,
@@ -49,37 +49,47 @@ export const VideoLinkEmbedContent = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <Stack py="2">
-        <TextInput
+      <div className="flex flex-col gap-2 py-2">
+        <DebouncedTextInputWithVariablesButton
           placeholder={t("video.urlInput.placeholder")}
           defaultValue={content?.url ?? ""}
-          onChange={updateUrl}
+          onValueChange={updateUrl}
         />
-        <Text fontSize="xs" color="gray.400" textAlign="center">
+        <p className="text-xs text-center" color="gray.400">
           {t("video.urlInput.helperText")}
-        </Text>
-      </Stack>
+        </p>
+      </div>
       {content?.url && (
-        <Stack>
-          <TextInput
-            label={t("video.aspectRatioInput.label")}
-            moreInfoTooltip={t("video.aspectRatioInput.moreInfoTooltip")}
-            defaultValue={
-              content?.aspectRatio ?? defaultVideoBubbleContent.aspectRatio
-            }
-            onChange={updateAspectRatio}
-            direction="row"
-          />
-          <TextInput
-            label={t("video.maxWidthInput.label")}
-            moreInfoTooltip={t("video.maxWidthInput.moreInfoTooltip")}
-            defaultValue={
-              content?.maxWidth ?? defaultVideoBubbleContent.maxWidth
-            }
-            onChange={updateMaxWidth}
-            direction="row"
-          />
-        </Stack>
+        <div className="flex flex-col gap-2">
+          <Field.Root className="flex-row items-center">
+            <Field.Label>
+              {t("video.aspectRatioInput.label")}
+              <MoreInfoTooltip>
+                {t("video.aspectRatioInput.moreInfoTooltip")}
+              </MoreInfoTooltip>
+            </Field.Label>
+            <DebouncedTextInputWithVariablesButton
+              defaultValue={
+                content?.aspectRatio ?? defaultVideoBubbleContent.aspectRatio
+              }
+              onValueChange={updateAspectRatio}
+            />
+          </Field.Root>
+          <Field.Root className="flex-row items-center">
+            <Field.Label>
+              {t("video.maxWidthInput.label")}
+              <MoreInfoTooltip>
+                {t("video.maxWidthInput.moreInfoTooltip")}
+              </MoreInfoTooltip>
+            </Field.Label>
+            <DebouncedTextInputWithVariablesButton
+              defaultValue={
+                content?.maxWidth ?? defaultVideoBubbleContent.maxWidth
+              }
+              onValueChange={updateMaxWidth}
+            />
+          </Field.Root>
+        </div>
       )}
       {content?.url && content?.type === "url" && (
         <Field.Root className="flex-row">

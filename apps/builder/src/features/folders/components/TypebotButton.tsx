@@ -1,11 +1,13 @@
-import { Tag, Text, VStack } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { T, useTranslate } from "@tolgee/react";
 import { Alert } from "@typebot.io/ui/components/Alert";
+import { Badge } from "@typebot.io/ui/components/Badge";
 import { Button, buttonVariants } from "@typebot.io/ui/components/Button";
 import { Menu } from "@typebot.io/ui/components/Menu";
 import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import { DragDropHorizontalIcon } from "@typebot.io/ui/icons/DragDropHorizontalIcon";
 import { LayoutBottomIcon } from "@typebot.io/ui/icons/LayoutBottomIcon";
+import { MoreVerticalIcon } from "@typebot.io/ui/icons/MoreVerticalIcon";
 import { TriangleAlertIcon } from "@typebot.io/ui/icons/TriangleAlertIcon";
 import { cn } from "@typebot.io/ui/lib/cn";
 import { useRouter } from "next/router";
@@ -13,7 +15,6 @@ import React, { memo } from "react";
 import { useDebounce } from "use-debounce";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EmojiOrImageIcon } from "@/components/EmojiOrImageIcon";
-import { GripIcon, MoreVerticalIcon } from "@/components/icons";
 import type { TypebotInDashboard } from "@/features/dashboard/types";
 import {
   type NodePosition,
@@ -133,16 +134,9 @@ const TypebotButton = ({
         )}
       >
         {typebot.publishedTypebotId && (
-          <Tag
-            colorScheme="orange"
-            variant="solid"
-            rounded="full"
-            pos="absolute"
-            top="27px"
-            size="sm"
-          >
+          <Badge colorScheme="orange" className="absolute top-[27px]">
             {t("folders.typebotButton.live")}
-          </Tag>
+          </Badge>
         )}
         {!isReadOnly && (
           <>
@@ -153,7 +147,7 @@ const TypebotButton = ({
               variant="ghost"
               size="icon"
             >
-              <GripIcon />
+              <DragDropHorizontalIcon />
             </Button>
             <Menu.Root>
               <Menu.TriggerButton
@@ -182,16 +176,16 @@ const TypebotButton = ({
             </Menu.Root>
           </>
         )}
-        <VStack spacing="4">
+        <div className="flex flex-col items-center gap-4">
           <EmojiOrImageIcon
             icon={typebot.icon}
             size="lg"
             defaultIcon={LayoutBottomIcon}
           />
-          <Text textAlign="center" noOfLines={4} maxW="180px">
+          <p className="text-center max-w-[180px] line-clamp-4">
             {typebot.name}
-          </Text>
-        </VStack>
+          </p>
+        </div>
       </div>
       {!isReadOnly && (
         <ConfirmDialog
@@ -200,14 +194,14 @@ const TypebotButton = ({
           isOpen={deleteDialogControls.isOpen}
           onClose={deleteDialogControls.onClose}
         >
-          <Text>
+          <p>
             <T
               keyName="folders.typebotButton.deleteConfirmationMessage"
               params={{
                 strong: <strong>{typebot.name}</strong>,
               }}
             />
-          </Text>
+          </p>
           <Alert.Root variant="warning">
             <TriangleAlertIcon />
             <Alert.Description>

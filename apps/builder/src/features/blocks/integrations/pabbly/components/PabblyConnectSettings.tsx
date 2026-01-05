@@ -1,13 +1,12 @@
-import { Stack } from "@chakra-ui/react";
 import type { HttpRequest } from "@typebot.io/blocks-integrations/httpRequest/schema";
 import type { PabblyConnectBlock } from "@typebot.io/blocks-integrations/pabblyConnect/schema";
 import { Alert } from "@typebot.io/ui/components/Alert";
+import { Input } from "@typebot.io/ui/components/Input";
+import { ArrowUpRight01Icon } from "@typebot.io/ui/icons/ArrowUpRight01Icon";
 import { CheckmarkSquare02Icon } from "@typebot.io/ui/icons/CheckmarkSquare02Icon";
 import { InformationSquareIcon } from "@typebot.io/ui/icons/InformationSquareIcon";
 import { useRef } from "react";
 import { ButtonLink } from "@/components/ButtonLink";
-import { ExternalLinkIcon } from "@/components/icons";
-import { TextInput } from "@/components/inputs/TextInput";
 import { HttpRequestAdvancedConfigForm } from "../../httpRequest/components/HttpRequestAdvancedConfigForm";
 
 type Props = {
@@ -44,8 +43,8 @@ export const PabblyConnectSettings = ({
   };
 
   return (
-    <Stack spacing={0}>
-      <Stack spacing={4}>
+    <div className="flex flex-col gap-0">
+      <div className="flex flex-col gap-4">
         {url ? (
           <Alert.Root variant="success">
             <CheckmarkSquare02Icon />
@@ -66,17 +65,15 @@ export const PabblyConnectSettings = ({
                 target="_blank"
                 size="xs"
               >
-                Pabbly.com <ExternalLinkIcon />
+                Pabbly.com <ArrowUpRight01Icon />
               </ButtonLink>
             </Alert.Action>
           </Alert.Root>
         )}
-        <TextInput
+        <Input
           placeholder="Paste webhook URL..."
           defaultValue={url ?? ""}
-          onChange={updateUrl}
-          withVariableButton={false}
-          debounceTimeout={0}
+          onValueChange={updateUrl}
         />
         <HttpRequestAdvancedConfigForm
           blockId={blockId}
@@ -86,8 +83,8 @@ export const PabblyConnectSettings = ({
           onOptionsChange={onOptionsChange}
           onNewTestResponse={handleNewTestResponse}
         />
-      </Stack>
+      </div>
       <div ref={bottomRef} />
-    </Stack>
+    </div>
   );
 };

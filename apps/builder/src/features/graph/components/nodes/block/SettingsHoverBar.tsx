@@ -1,20 +1,18 @@
-import { HStack, useColorModeValue } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import type { BlockWithOptions } from "@typebot.io/blocks-core/schemas/schema";
 import type { TEventWithOptions } from "@typebot.io/events/schemas";
 import type { forgedBlocks } from "@typebot.io/forge-repository/definitions";
 import { Button } from "@typebot.io/ui/components/Button";
+import { ArrowExpand01Icon } from "@typebot.io/ui/icons/ArrowExpand01Icon";
+import { ArrowShrink02Icon } from "@typebot.io/ui/icons/ArrowShrink02Icon";
+import { CustomerSupportIcon } from "@typebot.io/ui/icons/CustomerSupportIcon";
+import { VideoAiIcon } from "@typebot.io/ui/icons/VideoAiIcon";
 import { cn } from "@typebot.io/ui/lib/cn";
 import { ButtonLink } from "@/components/ButtonLink";
-import {
-  BuoyIcon,
-  ExpandIcon,
-  MinimizeIcon,
-  VideoPopoverIcon,
-} from "@/components/icons";
 import { getHelpDocUrl } from "@/features/graph/helpers/getHelpDocUrl";
 
 type Props = {
+  className?: string;
   nodeType: BlockWithOptions["type"] | TEventWithOptions["type"];
   blockDef?: (typeof forgedBlocks)[keyof typeof forgedBlocks];
   isVideoOnboardingItemDisplayed: boolean;
@@ -24,6 +22,7 @@ type Props = {
 };
 
 export const SettingsHoverBar = ({
+  className,
   nodeType,
   blockDef,
   isVideoOnboardingItemDisplayed,
@@ -34,12 +33,11 @@ export const SettingsHoverBar = ({
   const { t } = useTranslate();
   const helpDocUrl = getHelpDocUrl(nodeType, blockDef);
   return (
-    <HStack
-      rounded="md"
-      spacing={0}
-      borderWidth="1px"
-      bgColor={useColorModeValue("white", "gray.900")}
-      shadow="md"
+    <div
+      className={cn(
+        "flex items-center rounded-md gap-0 border shadow-md bg-gray-1",
+        className,
+      )}
     >
       <Button
         className="size-6 border-r border-l-0 rounded-r-none [&_svg]:size-3"
@@ -48,7 +46,7 @@ export const SettingsHoverBar = ({
         size="icon"
         variant="ghost"
       >
-        {isExpanded ? <MinimizeIcon /> : <ExpandIcon />}
+        {isExpanded ? <ArrowShrink02Icon /> : <ArrowExpand01Icon />}
       </Button>
       {helpDocUrl && (
         <ButtonLink
@@ -62,7 +60,7 @@ export const SettingsHoverBar = ({
           target="_blank"
           iconStyle="none"
         >
-          <BuoyIcon />
+          <CustomerSupportIcon />
           {t("help")}
         </ButtonLink>
       )}
@@ -74,9 +72,9 @@ export const SettingsHoverBar = ({
           className="rounded-l-none size-6 [&_svg]:size-3"
           size="icon"
         >
-          <VideoPopoverIcon />
+          <VideoAiIcon />
         </Button>
       )}
-    </HStack>
+    </div>
   );
 };
