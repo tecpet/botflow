@@ -1,5 +1,4 @@
 import { createAction, option } from "@typebot.io/forge";
-import ky from "ky";
 import { auth } from "../auth";
 import { baseOptions } from "../constants";
 import { ChatbotActionButtonTypeEnum } from "../enums/chatbot-action-button-type.enum";
@@ -21,21 +20,5 @@ export const talkToAttendant = createAction({
   }),
   getSetVariableIds: () => {
     return [];
-  },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
-      try {
-        await ky
-          .post(`${credentials.baseUrl}/action`, {
-            json: {
-              sessionId: options.sessionId,
-              messsage: options.text ?? "Oi",
-              action: ChatbotActionButtonTypeEnum.TRANSFER_TO_HUMAN,
-            },
-            timeout: 30000,
-          })
-          .json<any>();
-      } catch (error) {}
-    },
   },
 });

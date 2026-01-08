@@ -58,8 +58,14 @@ export const editClient = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables }) => {
+});
+export const EditClientHandler = async ({
+  credentials, options, variables
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
@@ -97,6 +103,4 @@ export const editClient = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

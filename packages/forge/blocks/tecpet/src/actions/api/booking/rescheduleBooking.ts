@@ -33,8 +33,15 @@ export const rescheduleBooking = createAction({
 
     return [];
   },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
+});
+export const RescheduleBookingHandler = async ({
+  credentials, options, variables, logs
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const rawBooking = options.booking;
 
@@ -66,6 +73,4 @@ export const rescheduleBooking = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

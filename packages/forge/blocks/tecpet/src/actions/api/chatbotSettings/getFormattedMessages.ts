@@ -55,8 +55,14 @@ export const getFormattedMessages = createAction({
     if (updatedMessage) variables.push(updatedMessage);
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables }) => {
+});
+export const GetFormattedMessagesHandler = async ({
+  credentials, options, variables
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
@@ -84,6 +90,4 @@ export const getFormattedMessages = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

@@ -59,62 +59,68 @@ export const getClientSummary = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
-      try {
-        if (!options.clientId || !options.shopId) {
-          return;
-        }
-        const tecpetSdk = new TecpetSDK(
-          credentials.baseUrl ?? tecpetDefaultBaseUrl,
-          credentials.apiKey,
-        );
-
-        const response: PaClientSummaryResponse =
-          (await tecpetSdk.client.summary(
-            options.clientId,
-            options.shopId,
-          )) as PaClientSummaryResponse;
-
-        if (response) {
-          if (options.clientSummary) {
-            variables.set([
-              { id: options.clientSummary as string, value: response },
-            ]);
-          }
-          if (options.client) {
-            variables.set([
-              { id: options.client as string, value: response.client },
-            ]);
-          }
-          if (options.hasAnyBookings) {
-            variables.set([
-              {
-                id: options.hasAnyBookings as string,
-                value: response.hasAnyBooking,
-              },
-            ]);
-          }
-          if (options.clientBookingsSummary) {
-            variables.set([
-              {
-                id: options.clientBookingsSummary as string,
-                value: response.bookings,
-              },
-            ]);
-          }
-          if (options.clientPetsSummary) {
-            variables.set([
-              {
-                id: options.clientPetsSummary as string,
-                value: response.pets,
-              },
-            ]);
-          }
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    },
-  },
 });
+
+export const getClientSummaryHandler = async ({
+  credentials,
+  options,
+  variables,
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
+  try {
+    if (!options.clientId || !options.shopId) {
+      return;
+    }
+    const tecpetSdk = new TecpetSDK(
+      (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+      credentials.apiKey as string,
+    );
+
+    const response: PaClientSummaryResponse = (await tecpetSdk.client.summary(
+      options.clientId as number,
+      options.shopId as number,
+    )) as PaClientSummaryResponse;
+
+    if (response) {
+      if (options.clientSummary) {
+        variables.set([
+          { id: options.clientSummary as string, value: response },
+        ]);
+      }
+      if (options.client) {
+        variables.set([
+          { id: options.client as string, value: response.client },
+        ]);
+      }
+      if (options.hasAnyBookings) {
+        variables.set([
+          {
+            id: options.hasAnyBookings as string,
+            value: response.hasAnyBooking,
+          },
+        ]);
+      }
+      if (options.clientBookingsSummary) {
+        variables.set([
+          {
+            id: options.clientBookingsSummary as string,
+            value: response.bookings,
+          },
+        ]);
+      }
+      if (options.clientPetsSummary) {
+        variables.set([
+          {
+            id: options.clientPetsSummary as string,
+            value: response.pets,
+          },
+        ]);
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};

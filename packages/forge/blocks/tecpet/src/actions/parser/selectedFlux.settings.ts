@@ -42,8 +42,14 @@ export const parseSelectedFluxSettings = createAction({
       inputType: "variableDropdown",
     }),
   }),
-  run: {
-    server: async ({ options, variables, logs }) => {
+});
+export const ParseSelectedFluxSettingsHandler = async ({
+  options, variables, logs
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const rawSelectedActionMenuConfig = JSON.parse(
           options.selectedActionMenu as string,
@@ -94,6 +100,4 @@ export const parseSelectedFluxSettings = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

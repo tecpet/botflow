@@ -104,8 +104,15 @@ export const getConfigurations = createAction({
     if (voiceGenre) variables.push(voiceGenre);
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
+});
+export const GetConfigurationsHandler = async ({
+  credentials, options, variables, logs
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         if (options.shopId) {
           const tecpetSdk = new TecpetSDK(
@@ -175,6 +182,4 @@ export const getConfigurations = createAction({
           description: JSON.stringify(error),
         });
       }
-    },
-  },
-});
+};

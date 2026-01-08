@@ -350,8 +350,14 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables, logs }) => {
+});
+export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
+  options, variables, logs
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const setVar = (id: string, value: any) =>
           variables.set([{ id, value }]);
@@ -581,6 +587,4 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

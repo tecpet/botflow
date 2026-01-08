@@ -24,8 +24,14 @@ export const verifyInputedCpfText = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables, logs }) => {
+});
+export const VerifyInputedCpfTextHandler = async ({
+  options, variables, logs
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const rawCpf = options.cpfInputText as string;
 
@@ -37,6 +43,4 @@ export const verifyInputedCpfText = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

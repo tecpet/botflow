@@ -51,8 +51,13 @@ export const showSendingInfoItems = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables }) => {
+});
+export const ShowSendingInfoItemsHandler = async ({
+  options, variables
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
       try {
         let infoItem: ChatbotSendingInfoItemDto | null = null;
 
@@ -85,6 +90,4 @@ export const showSendingInfoItems = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

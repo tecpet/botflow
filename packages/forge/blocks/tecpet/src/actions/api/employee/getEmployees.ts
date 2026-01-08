@@ -59,8 +59,15 @@ export const getEmployess = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
+});
+export const GetEmployessHandler = async ({
+  credentials, options, variables, logs
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const selectedService: ServiceOptionType = JSON.parse(
           options.selectedService ?? "",
@@ -131,6 +138,4 @@ export const getEmployess = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

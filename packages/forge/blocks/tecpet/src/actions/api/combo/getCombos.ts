@@ -43,8 +43,15 @@ export const getCombos = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
+});
+export const GetCombosHandler = async ({
+  credentials, options, variables, logs
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
@@ -63,6 +70,4 @@ export const getCombos = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

@@ -1,6 +1,4 @@
 import { createAction, option } from "@typebot.io/forge";
-import { parseUnknownError } from "@typebot.io/lib/parseUnknownError";
-import ky, { HTTPError } from "ky";
 import { auth } from "../auth";
 import { baseOptions } from "../constants";
 
@@ -40,42 +38,4 @@ export const startChat = createAction({
   }),
   getSetVariableIds: ({ saveResponseInVariableId }) =>
     saveResponseInVariableId ? [saveResponseInVariableId] : [],
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
-      try {
-        const response = await ky
-          .post(`${credentials.baseUrl}/start`, {
-            headers: {
-              Authorization: `Bearer ${credentials.apiKey}`,
-            },
-            json: {
-              sessionId: options.sessionId,
-              message: options.text || "oi",
-              shop: options.shop,
-              client: options.client,
-              chatbotSettings: options.chatbotSettings,
-            },
-            timeout: 10 * 60000,
-          })
-          .json<any>();
-
-        if (options.saveResponseInVariableId) {
-          variables.set([
-            { id: options.saveResponseInVariableId, value: response.response },
-          ]);
-        }
-      } catch (error) {
-        console.error(error);
-
-        if (error instanceof HTTPError)
-          return logs.add(
-            await parseUnknownError({
-              err: error,
-              context: "While searching Blink users",
-            }),
-          );
-        console.error(error);
-      }
-    },
-  },
 });

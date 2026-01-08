@@ -52,8 +52,13 @@ export const showGuidanceOptions = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables }) => {
+});
+export const ShowGuidanceOptionsHandler = async ({
+  options, variables
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
       try {
         const parsedGuidanceOptions: string[] = JSON.parse(
           options.guidanceOptions as string,
@@ -81,6 +86,4 @@ export const showGuidanceOptions = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

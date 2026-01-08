@@ -29,8 +29,13 @@ export const verifySimilarBreedOptionSelected = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables }) => {
+});
+export const VerifySimilarBreedOptionSelectedHandler = async ({
+  options, variables
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
       try {
         const rawSimilarBreeds = JSON.parse(options.similarBreeds as string);
 
@@ -57,6 +62,4 @@ export const verifySimilarBreedOptionSelected = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

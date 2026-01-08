@@ -49,8 +49,14 @@ export const verifyInitialMessageToTrigger = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables, logs }) => {
+});
+export const VerifyInitialMessageToTriggerHandler = async ({
+  options, variables, logs
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const initialMessage = options.initialClientMessage as string;
         let chatbotActionId = null;
@@ -115,9 +121,7 @@ export const verifyInitialMessageToTrigger = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};
 
 function removeSpecialCharsRegex(text: string) {
   return text.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");

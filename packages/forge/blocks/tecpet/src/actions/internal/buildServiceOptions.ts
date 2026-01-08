@@ -100,8 +100,13 @@ export const buildServiceOptions = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables }) => {
+});
+export const BuildServiceOptionsHandler = async ({
+  options, variables
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
       try {
         const buildDescription = (entity: any) => {
           let finalDescription = "";
@@ -218,6 +223,4 @@ export const buildServiceOptions = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

@@ -1,6 +1,4 @@
 import { createAction, option } from "@typebot.io/forge";
-import { parseUnknownError } from "@typebot.io/lib/parseUnknownError";
-import ky, { HTTPError } from "ky";
 import { auth } from "../auth";
 import { baseOptions } from "../constants";
 
@@ -26,36 +24,4 @@ export const speechToText = createAction({
   }),
   getSetVariableIds: ({ saveTextInVariableId }) =>
     saveTextInVariableId ? [saveTextInVariableId] : [],
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
-      try {
-        const response = await ky
-          .post(`${credentials.baseUrl}/speechToText`, {
-            headers: {
-              Authorization: `Bearer ${credentials.apiKey}`,
-            },
-            json: {
-              sessionId: options.sessionId,
-              audioUrl: options.audioUrl,
-            },
-            timeout: 10 * 60000,
-          })
-          .json<any>();
-        if (options.saveTextInVariableId) {
-          variables.set([
-            { id: options.saveTextInVariableId, value: response.text },
-          ]);
-        }
-      } catch (error) {
-        if (error instanceof HTTPError)
-          return logs.add(
-            await parseUnknownError({
-              err: error,
-              context: "While searching Blink users",
-            }),
-          );
-        console.error(error);
-      }
-    },
-  },
 });

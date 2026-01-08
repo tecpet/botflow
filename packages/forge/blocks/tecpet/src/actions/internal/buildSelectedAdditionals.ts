@@ -77,8 +77,13 @@ export const buildSelectedAdditionals = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables }) => {
+});
+export const BuildSelectedAdditionalsHandler = async ({
+  options, variables
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
       try {
         const selectedAdditionalId: number = Number(options.selectedAdditional);
 
@@ -133,6 +138,4 @@ export const buildSelectedAdditionals = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

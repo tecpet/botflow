@@ -79,8 +79,15 @@ export const createBooking = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
+});
+export const CreateBookingHandler = async ({
+  credentials, options, variables, logs
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const rawEmployeeIndications = options.employeeIndications;
 
@@ -149,6 +156,4 @@ export const createBooking = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

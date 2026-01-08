@@ -60,8 +60,13 @@ export const buildAvailableTimesOptions = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables }) => {
+});
+export const BuildAvailableTimesOptionsHandler = async ({
+  options, variables
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
       try {
         const availableTimesRaw: string[] =
           JSON.parse(options.availableTimes as string) ?? [];
@@ -98,6 +103,4 @@ export const buildAvailableTimesOptions = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

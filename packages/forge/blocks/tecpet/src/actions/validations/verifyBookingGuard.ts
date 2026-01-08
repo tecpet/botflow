@@ -68,8 +68,15 @@ export const verifyBookingGuard = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
+});
+export const VerifyBookingGuardHandler = async ({
+  credentials, options, variables, logs
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
@@ -121,6 +128,4 @@ export const verifyBookingGuard = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

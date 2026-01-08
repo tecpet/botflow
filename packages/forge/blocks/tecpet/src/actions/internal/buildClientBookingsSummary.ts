@@ -39,8 +39,13 @@ export const buildClientBookingsSummary = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables }) => {
+});
+export const BuildClientBookingsSummaryHandler = async ({
+  options, variables
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
       try {
         const rawPet = options.pet as string;
         const rawClientBookings = options.clientBookings;
@@ -116,6 +121,4 @@ export const buildClientBookingsSummary = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

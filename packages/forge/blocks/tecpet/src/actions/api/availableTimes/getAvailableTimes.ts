@@ -91,8 +91,15 @@ export const getAvailableTimes = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
+});
+export const GetAvailableTimesHandler = async ({
+  credentials, options, variables, logs
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const tecpetSdk = new TecpetSDK(
           credentials.baseUrl ?? tecpetDefaultBaseUrl,
@@ -201,6 +208,4 @@ export const getAvailableTimes = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

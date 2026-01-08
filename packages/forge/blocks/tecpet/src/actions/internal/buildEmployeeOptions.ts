@@ -51,8 +51,13 @@ export const buildEmployeeOptions = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables }) => {
+});
+export const BuildEmployeeOptionsHandler = async ({
+  options, variables
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
       try {
         const parsedEmployees: string[] = JSON.parse(
           options.employees as string,
@@ -108,6 +113,4 @@ export const buildEmployeeOptions = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

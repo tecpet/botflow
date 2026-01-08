@@ -1,5 +1,4 @@
 import { createAction, option } from "@typebot.io/forge";
-import ky from "ky";
 import { auth } from "../auth";
 import { baseOptions } from "../constants";
 
@@ -20,26 +19,5 @@ export const changeShop = createAction({
   }),
   getSetVariableIds: () => {
     return [];
-  },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
-      try {
-        await ky
-          .post(`${credentials.baseUrl}/session/changeShop`, {
-            json: {
-              sessionId: options.sessionId,
-              shopId: options.shopId,
-            },
-            timeout: 30000,
-          })
-          .json<any>();
-      } catch (error: any) {
-        logs.add({
-          status: "error",
-          description: `Failed to change shop`,
-          details: `${error?.message}`,
-        });
-      }
-    },
   },
 });

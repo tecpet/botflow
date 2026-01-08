@@ -30,8 +30,15 @@ export const cancelBooking = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
+});
+export const CancelBookingHandler = async ({
+  credentials, options, variables, logs
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const rawBooking = options.booking;
 
@@ -52,6 +59,4 @@ export const cancelBooking = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

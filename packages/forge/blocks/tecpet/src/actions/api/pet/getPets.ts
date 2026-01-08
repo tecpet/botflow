@@ -44,8 +44,14 @@ export const getPets = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables }) => {
+});
+export const GetPetsHandler = async ({
+  credentials, options, variables
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+}) => {
       try {
         const scheduleToAnotherPet = JSON.parse(
           options.scheduleToAnotherPet as string,
@@ -106,6 +112,4 @@ export const getPets = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};

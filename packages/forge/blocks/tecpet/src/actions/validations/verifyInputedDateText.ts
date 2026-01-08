@@ -23,8 +23,14 @@ export const verifyInputedDateText = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ options, variables, logs }) => {
+});
+export const VerifyInputedDateTextHandler = async ({
+  options, variables, logs
+}: {
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         const rawDate = options.dateInputText as string;
 
@@ -36,9 +42,7 @@ export const verifyInputedDateText = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};
 
 export function validarDataReal(date: string) {
   // 1. Verifica o formato com regex

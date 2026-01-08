@@ -57,8 +57,15 @@ export const getShopConfigurations = createAction({
 
     return variables;
   },
-  run: {
-    server: async ({ credentials, options, variables, logs }) => {
+});
+export const GetShopConfigurationsHandler = async ({
+  credentials, options, variables, logs
+}: {
+  credentials: Record<string, unknown>;
+  options: Record<string, unknown>;
+  variables: any;
+  logs: any;
+}) => {
       try {
         if (options.shopId) {
           const tecpetSdk = new TecpetSDK(
@@ -98,6 +105,4 @@ export const getShopConfigurations = createAction({
       } catch (error) {
         console.error(error);
       }
-    },
-  },
-});
+};
