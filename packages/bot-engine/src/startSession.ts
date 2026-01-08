@@ -1,6 +1,6 @@
+import { ORPCError } from "@orpc/server";
 import { createId } from "@paralleldrive/cuid2";
 import * as Sentry from "@sentry/nextjs";
-import { TRPCError } from "@trpc/server";
 import { BubbleBlockType } from "@typebot.io/blocks-bubbles/constants";
 import { isInputBlock } from "@typebot.io/blocks-core/helpers";
 import type { Block } from "@typebot.io/blocks-core/schemas/schema";
@@ -21,7 +21,15 @@ import type {
   TypebotInSession,
   TypebotInSessionV5,
 } from "@typebot.io/chat-session/schemas";
-import { byId, isDefined, isNotEmpty, omit } from "@typebot.io/lib/utils";
+import { datesAreOnSameDay } from "@typebot.io/lib/datesAreOnSameDay";
+import {
+  byId,
+  isDefined,
+  isNotDefined,
+  isNotEmpty,
+  omit,
+} from "@typebot.io/lib/utils";
+import prisma from "@typebot.io/prisma";
 import type { Prisma } from "@typebot.io/prisma/types";
 import { resultSchema } from "@typebot.io/results/schemas/results";
 import { parseVariablesInRichText } from "@typebot.io/rich-text/parseVariablesInRichText";
@@ -47,6 +55,7 @@ import type {
   Variable,
 } from "@typebot.io/variables/schemas";
 import { transformPrefilledVariablesToVariables } from "@typebot.io/variables/transformPrefilledVariablesToVariables";
+import { after } from "next/server";
 import { NodeType, parse } from "node-html-parser";
 import { getStartingPoint } from "./getStartingPoint";
 import { isTypebotInSessionAtLeastV6 } from "./helpers/isTypebotInSessionAtLeastV6";
@@ -327,8 +336,7 @@ const getTypebot = async (startParams: StartParams) => {
     return startParams.typebot;
 
   if (startParams.type === "preview" && !startParams.userId)
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
+    throw new ORPCError("UNAUTHORIZED", {
       message: "You need to be authenticated to perform this action",
     });
 
@@ -339,6 +347,20 @@ const getTypebot = async (startParams: StartParams) => {
           userId: startParams.userId,
         })
       : await findPublicTypebot({ publicId: startParams.publicId });
+
+  if (
+    typebotQuery &&
+    "typebot" in typebotQuery &&
+    (isNotDefined(typebotQuery.lastActivityAt) ||
+      !datesAreOnSameDay(typebotQuery.lastActivityAt, new Date()))
+  ) {
+    after(async () => {
+      await prisma.publicTypebot.update({
+        where: { id: typebotQuery.id },
+        data: { lastActivityAt: new Date() },
+      });
+    });
+  }
 
   const parsedTypebot =
     typebotQuery && "typebot" in typebotQuery
@@ -351,8 +373,7 @@ const getTypebot = async (startParams: StartParams) => {
       : typebotQuery;
 
   if (!parsedTypebot || parsedTypebot.isArchived)
-    throw new TRPCError({
-      code: "NOT_FOUND",
+    throw new ORPCError("NOT_FOUND", {
       message: "Typebot not found",
     });
 
@@ -363,14 +384,12 @@ const getTypebot = async (startParams: StartParams) => {
       typebotQuery.typebot.workspace.isSuspended);
 
   if (isQuarantinedOrSuspended)
-    throw new TRPCError({
-      code: "FORBIDDEN",
+    throw new ORPCError("FORBIDDEN", {
       message: defaultSystemMessages.botClosed,
     });
 
   if ("isClosed" in parsedTypebot && parsedTypebot.isClosed)
-    throw new TRPCError({
-      code: "BAD_REQUEST",
+    throw new ORPCError("BAD_REQUEST", {
       message:
         settingsSchema.parse(parsedTypebot.settings).general?.systemMessages
           ?.botClosed ?? defaultSystemMessages.botClosed,

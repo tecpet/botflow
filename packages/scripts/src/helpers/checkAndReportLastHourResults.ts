@@ -449,10 +449,23 @@ async function sendLimitWarningEmails({
   return emailEvents;
 }
 
-const getLastHourResults = async () => {
+export const getLastHourResults = async () => {
   const zeroedMinutesHour = new Date();
   zeroedMinutesHour.setUTCMinutes(0, 0, 0);
   const hourAgo = new Date(zeroedMinutesHour.getTime() - 1000 * 60 * 60);
+  const todayMidnight = new Date();
+  todayMidnight.setUTCHours(0, 0, 0, 0);
+
+  const activePublicTypebots = await prisma.publicTypebot.findMany({
+    where: {
+      lastActivityAt: {
+        gte: todayMidnight,
+      },
+    },
+    select: {
+      typebotId: true,
+    },
+  });
 
   const queryParams = {
     by: ["typebotId"],
@@ -460,6 +473,12 @@ const getLastHourResults = async () => {
       _all: true,
     },
     where: {
+      typebotId: {
+        in: activePublicTypebots.map(
+          (publicTypebot) => publicTypebot.typebotId,
+        ),
+      },
+      isArchived: false,
       hasStarted: true,
       createdAt: {
         lt: zeroedMinutesHour,
@@ -468,11 +487,5 @@ const getLastHourResults = async () => {
     },
   } satisfies Prisma.Prisma.ResultGroupByArgs;
 
-  try {
-    const response = await prisma.result.groupBy(queryParams);
-    return response;
-  } catch (err) {
-    console.error("Failed to get last hour results, retrying once...", err);
-    return prisma.result.groupBy(queryParams);
-  }
+  return prisma.result.groupBy(queryParams);
 };

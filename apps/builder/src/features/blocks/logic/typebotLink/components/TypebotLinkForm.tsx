@@ -1,15 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { useTypebot } from "@/features/editor/providers/TypebotProvider";
-import { trpc } from "@/lib/queryClient";
 import { defaultTypebotLinkOptions } from "@typebot.io/blocks-logic/typebotLink/constants";
 import type { TypebotLinkBlock } from "@typebot.io/blocks-logic/typebotLink/schema";
 import { isNotEmpty } from "@typebot.io/lib/utils";
 import { Field } from "@typebot.io/ui/components/Field";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { Switch } from "@typebot.io/ui/components/Switch";
+import { useTypebot } from "@/features/editor/providers/TypebotProvider";
+import { trpc } from "@/lib/queryClient";
 import { GroupsDropdown } from "./GroupsDropdown";
 import { TypebotsDropdown } from "./TypebotsDropdown";
-import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
   options: TypebotLinkBlock["options"];
@@ -41,46 +40,12 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
   const updateMergeResults = (mergeResults: boolean) =>
     onOptionsChange({ ...options, mergeResults });
 
-  const updateVariableId = (id?: string) => {
-    if (id) {
-      onOptionsChange({ ...options, variableId: id });
-    }
-  };
-
-  const updateFluxByVariable = (fluxByVariable: boolean) =>
-    onOptionsChange({
-      ...options,
-      fluxByVariable,
-      groupId: undefined,
-      typebotId: undefined,
-      variableId: undefined,
-    });
-
   const isCurrentTypebotSelected =
     (typebot && options?.typebotId === typebot.id) ||
     options?.typebotId === "current";
 
   return (
     <div className="flex flex-col gap-2">
-      <Field.Root className="flex-row items-center">
-        <Switch
-          checked={
-            options?.fluxByVariable ?? defaultTypebotLinkOptions.fluxByVariable
-          }
-          onCheckedChange={updateFluxByVariable}
-        />
-        <Field.Label>
-          Definir fluxo por variável{" "}
-        </Field.Label>
-      </Field.Root>
-      {options?.fluxByVariable && (
-        <Field.Root>
-          <VariablesCombobox
-            initialVariableId={options?.variableId}
-            onSelectVariable={updateVariableId}
-          />
-        </Field.Root>
-      )}
       {typebot && (
         <TypebotsDropdown
           idsToExclude={[typebot.id]}
@@ -89,7 +54,7 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
           currentWorkspaceId={typebot.workspaceId as string}
         />
       )}
-      {!options?.fluxByVariable && options?.typebotId && (
+      {options?.typebotId && (
         <GroupsDropdown
           key={options.typebotId}
           groups={
