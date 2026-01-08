@@ -70,7 +70,7 @@ export const GetEmployessHandler = async ({
 }) => {
       try {
         const selectedService: ServiceOptionType = JSON.parse(
-          options.selectedService ?? "",
+          (options.selectedService as string) ?? "",
         );
 
         const shopId = Number(options.shopId);

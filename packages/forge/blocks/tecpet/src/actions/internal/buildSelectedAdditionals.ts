@@ -88,7 +88,7 @@ export const BuildSelectedAdditionalsHandler = async ({
         const selectedAdditionalId: number = Number(options.selectedAdditional);
 
         const loadAdditionals: IAdditionals[] = JSON.parse(
-          options.additionalArray ?? "[]",
+          (options.additionalArray as string) ?? "[]",
         );
 
         const additionals = loadAdditionals.map((item) =>
@@ -96,7 +96,7 @@ export const BuildSelectedAdditionalsHandler = async ({
         );
 
         const selectedAdditionals = JSON.parse(
-          options.selectedAdditionalsArray ?? "[]",
+          (options.selectedAdditionalsArray as string) ?? "[]",
         );
 
         selectedAdditionals.push(selectedAdditionalId);

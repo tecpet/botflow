@@ -53,7 +53,7 @@ export const BuildClientBookingsSummaryHandler = async ({
         const pet: PaPetResponse = JSON.parse(rawPet);
 
         const clientBookingsParsed: string[] = rawClientBookings
-          ? JSON.parse(rawClientBookings)
+          ? JSON.parse(rawClientBookings as string)
           : null;
 
         const bookings: Array<

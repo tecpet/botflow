@@ -92,8 +92,8 @@ export const CreatePetHandler = async ({
 
         const petInput: PaCreatePetInput = {
           clientId: Number(options?.clientId),
-          name: options?.name as string,
-          specieId: options?.specieId ?? "",
+          name: (options?.name as string) ?? "",
+          specieId: (options?.specieId as string) ?? "",
           breedId: Number(options?.breedId),
           genre: (options?.gender ?? "MALE") as GenderType,
           size: options?.size as BillingItemType,

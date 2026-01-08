@@ -60,7 +60,7 @@ export const GetPetsHandler = async ({
         const rawPetsWithBooking = options.petsWithBooking;
 
         const petsWithBooking: string[] | null = rawPetsWithBooking
-          ? JSON.parse(rawPetsWithBooking)
+          ? JSON.parse(rawPetsWithBooking as string)
           : null;
 
         const tecpetSdk = new TecpetSDK(

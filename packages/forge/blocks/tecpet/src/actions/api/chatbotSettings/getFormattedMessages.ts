@@ -70,13 +70,13 @@ export const GetFormattedMessagesHandler = async ({
         );
         const body: GetChatbotFormattedMessagesInput = {
           ids: {
-            clientId: options.clientId,
-            petId: options.petId,
-            invoiceId: options.invoiceId,
-            serviceId: options.serviceId,
-            bookingId: options.bookingId,
+            clientId: options.clientId as number,
+            petId: options.petId as number,
+            invoiceId: options.invoiceId as number,
+            serviceId: options.serviceId as number,
+            bookingId: options.bookingId as number,
           },
-          messages: [{ text: options.message ?? "" }],
+          messages: [{ text: (options.message as string) ?? "" }],
         };
         const result = await tecpetSdk.chatbot.getFormattedMessage(
           body,

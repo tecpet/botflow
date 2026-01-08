@@ -46,8 +46,8 @@ export const GetClientHandler = async ({
           credentials.apiKey as string,
         );
         const response: PaClientResponse = await tecpetSdk.client.getByPhone(
-          options?.phoneNumber ?? "",
-          options.shopId,
+          (options?.phoneNumber as string) ?? "",
+          (options.shopId as number) ?? 0,
         );
 
         if (response) {

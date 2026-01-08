@@ -73,8 +73,8 @@ export const EditClientHandler = async ({
         );
 
         const body: PaEditClientInput = {
-          name: options.clientName ?? "",
-          cpf: options.clientCpf ?? "",
+          name: (options.clientName as string) ?? "",
+          cpf: (options.clientCpf as string) ?? "",
         };
 
         const editedClient: PaClientResponse = await tecpetSdk.client.edit(

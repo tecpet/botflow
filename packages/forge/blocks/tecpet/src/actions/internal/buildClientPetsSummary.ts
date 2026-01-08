@@ -47,7 +47,7 @@ export const BuildClientPetsSummaryHandler = async ({
         const rawClientPetsSummary = options.clientPetsSummary;
 
         const petParsed: string[] = rawClientPetsSummary
-          ? JSON.parse(rawClientPetsSummary)
+          ? JSON.parse(rawClientPetsSummary as string)
           : null;
         const pets: PaPetResponse[] = petParsed.map((item) =>
           typeof item === "string" ? JSON.parse(item) : item,

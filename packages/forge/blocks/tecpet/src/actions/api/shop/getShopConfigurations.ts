@@ -75,7 +75,7 @@ export const GetShopConfigurationsHandler = async ({
 
           const result: PaShopConfigurationsResponse =
             (await tecpetSdk.shop.getConfigurations(
-              options.shopId,
+              options.shopId as number,
             )) as PaShopConfigurationsResponse;
 
           if (result) {
