@@ -102,8 +102,8 @@ export const GetAvailableTimesHandler = async ({
 }) => {
       try {
         const tecpetSdk = new TecpetSDK(
-          credentials.baseUrl ?? tecpetDefaultBaseUrl,
-          credentials.apiKey,
+          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+          credentials.apiKey as string,
         );
 
         const rawAdditionalDays = options.getAdditionalDays;
@@ -137,7 +137,7 @@ export const GetAvailableTimesHandler = async ({
 
         let additionalDays = rawAdditionalDays ? Number(rawAdditionalDays) : 0;
 
-        const showOtherDates = JSON.parse(options.showOtherDates ?? "false");
+        const showOtherDates = JSON.parse((options.showOtherDates as string) ?? "false");
 
         if (showOtherDates) {
           additionalDays += 2;

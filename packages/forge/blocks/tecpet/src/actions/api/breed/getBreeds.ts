@@ -66,8 +66,8 @@ export const GetBreedsHandler = async ({
 }) => {
       try {
         const tecpetSdk = new TecpetSDK(
-          credentials.baseUrl ?? tecpetDefaultBaseUrl,
-          credentials.apiKey,
+          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+          credentials.apiKey as string,
         );
         const specieId = options?.specie ?? "";
         const shopId = Number(options.shopId);

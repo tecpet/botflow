@@ -117,8 +117,8 @@ export const GetEmployessHandler = async ({
         filters["serviceCategoryIds"] = servicesCategoriesIds;
 
         const tecpetSdk = new TecpetSDK(
-          credentials.baseUrl ?? tecpetDefaultBaseUrl,
-          credentials.apiKey,
+          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+          credentials.apiKey as string,
         );
 
         const employees: PaEmployeeResponse[] =

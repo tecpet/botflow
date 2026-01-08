@@ -42,8 +42,8 @@ export const GetClientHandler = async ({
 }) => {
       try {
         const tecpetSdk = new TecpetSDK(
-          credentials.baseUrl ?? tecpetDefaultBaseUrl,
-          credentials.apiKey,
+          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+          credentials.apiKey as string,
         );
         const response: PaClientResponse = await tecpetSdk.client.getByPhone(
           options?.phoneNumber ?? "",

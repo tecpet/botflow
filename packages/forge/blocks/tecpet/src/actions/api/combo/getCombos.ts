@@ -54,8 +54,8 @@ export const GetCombosHandler = async ({
 }) => {
       try {
         const tecpetSdk = new TecpetSDK(
-          credentials.baseUrl ?? tecpetDefaultBaseUrl,
-          credentials.apiKey,
+          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+          credentials.apiKey as string,
         );
         const combos: PaComboPricingResponse[] = (await tecpetSdk.combo.pricing(
           Number(options.petId),

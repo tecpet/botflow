@@ -116,8 +116,8 @@ export const GetConfigurationsHandler = async ({
       try {
         if (options.shopId) {
           const tecpetSdk = new TecpetSDK(
-            credentials.baseUrl ?? tecpetDefaultBaseUrl,
-            credentials.apiKey,
+          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+          credentials.apiKey as string,
           );
           const result: PaChatbotSettingsResponse =
             (await tecpetSdk.chatbot.getByShop(

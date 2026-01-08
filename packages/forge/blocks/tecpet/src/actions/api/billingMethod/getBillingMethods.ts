@@ -85,8 +85,8 @@ export const GetBillingMethodsHandler = async ({
 }) => {
       try {
         const tecpetSdk = new TecpetSDK(
-          credentials.baseUrl ?? tecpetDefaultBaseUrl,
-          credentials.apiKey,
+          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+          credentials.apiKey as string,
         );
         const billingMethods: PaBillingResponse[] | null =
           await tecpetSdk.billingMethod.list(

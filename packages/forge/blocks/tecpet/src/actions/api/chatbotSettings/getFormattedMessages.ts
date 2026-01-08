@@ -65,8 +65,8 @@ export const GetFormattedMessagesHandler = async ({
 }) => {
       try {
         const tecpetSdk = new TecpetSDK(
-          credentials.baseUrl ?? tecpetDefaultBaseUrl,
-          credentials.apiKey,
+          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+          credentials.apiKey as string,
         );
         const body: GetChatbotFormattedMessagesInput = {
           ids: {

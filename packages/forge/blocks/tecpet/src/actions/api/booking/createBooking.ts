@@ -98,8 +98,8 @@ export const CreateBookingHandler = async ({
         );
 
         const tecpetSdk = new TecpetSDK(
-          credentials.baseUrl ?? tecpetDefaultBaseUrl,
-          credentials.apiKey,
+          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+          credentials.apiKey as string,
         );
 
         const parsedSelectedService: ServiceOptionType = JSON.parse(

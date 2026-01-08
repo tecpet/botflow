@@ -51,8 +51,8 @@ export const GetSpeciesHandler = async ({
 }) => {
       try {
         const tecpetSdk = new TecpetSDK(
-          credentials.baseUrl ?? tecpetDefaultBaseUrl,
-          credentials.apiKey,
+          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+          credentials.apiKey as string,
         );
         const species: PaSpecieResponse[] = (await tecpetSdk.specie.list(
           Number(options?.shopId),

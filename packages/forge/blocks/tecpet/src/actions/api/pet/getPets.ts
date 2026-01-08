@@ -64,8 +64,8 @@ export const GetPetsHandler = async ({
           : null;
 
         const tecpetSdk = new TecpetSDK(
-          credentials.baseUrl ?? tecpetDefaultBaseUrl,
-          credentials.apiKey,
+          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+          credentials.apiKey as string,
         );
 
         let petsResponse: Partial<PaPetResponse>[] =
