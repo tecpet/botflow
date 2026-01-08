@@ -121,7 +121,7 @@ export const GetConfigurationsHandler = async ({
           );
           const result: PaChatbotSettingsResponse =
             (await tecpetSdk.chatbot.getByShop(
-              options.shopId,
+              options.shopId as number,
             )) as PaChatbotSettingsResponse;
           if (result) {
             variables.set([
