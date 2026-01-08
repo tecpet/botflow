@@ -4,10 +4,11 @@
   "type": "module",
   "private": true,
   "exports": {
+    ".": "./src/index.ts",
     "./*": "./src/*.ts",
     "./components/*": "./src/components/*.tsx",
+    "./hooks/*": "./src/hooks/index.ts",
     "./icons/*": "./src/icons/*.tsx",
-    "./hooks/*": "./src/hooks/*.ts",
     "./colors.css": "./src/colors.css",
     "./theme.css": "./src/theme.css"
   },
