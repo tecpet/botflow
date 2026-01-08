@@ -8,7 +8,7 @@ spec:
     checkIntervalSec: 30
     port: 3000
     type: HTTP
-    requestPath: /api/health
+    requestPath: /api/healthz
   customRequestHeaders:
     headers:
     - "x-forwarded-host: botflow-viewer.tec.pet"
