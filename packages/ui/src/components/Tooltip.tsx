@@ -1,5 +1,5 @@
 import { Tooltip as TooltipPrimitive } from "@base-ui-components/react/tooltip";
-import type * as React from "react";
+import * as React from "react";
 import { cn } from "../lib/cn";
 import type { VariantProps } from "../lib/cva";
 import { buttonVariants } from "./Button";
@@ -20,11 +20,11 @@ const Root = ({
   return (
     <TooltipPrimitive.Root
       open={isOpen}
-      onOpenChange={(open, event) => {
+      onOpenChange={(open, details) => {
         if (
           open ||
           (keepOpenOnClick &&
-            ["click", "pointerdown"].includes(event?.type ?? ""))
+            ["click", "pointerdown"].includes(details.event.type ?? ""))
         ) {
           onOpen?.();
         } else {
@@ -45,22 +45,21 @@ const Trigger = ({
   <TooltipPrimitive.Trigger {...props} render={render} />
 );
 
-const TriggerButton = ({
-  children,
-  variant,
-  size,
-  className,
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Trigger> &
-  VariantProps<typeof buttonVariants>) => (
+const TriggerButton = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Trigger>,
+  React.ComponentProps<typeof TooltipPrimitive.Trigger> &
+    VariantProps<typeof buttonVariants>
+>(({ children, variant, size, className, ...props }, ref) => (
   <TooltipPrimitive.Trigger
     {...props}
+    ref={ref}
     className={cn(buttonVariants({ variant, size }), className)}
     data-disabled={props.disabled}
   >
     {children}
   </TooltipPrimitive.Trigger>
-);
+));
+TriggerButton.displayName = TooltipPrimitive.Trigger.displayName;
 
 const Popup = ({
   className,
@@ -77,8 +76,8 @@ const Popup = ({
           {...props}
           className={cn(
             "bg-gray-1 px-2 py-1 text-sm rounded-lg border border-gray-4 shadow-md",
-            "data-[open]:animate-in data-[open]:fade-in-0",
-            "data-[closed]:animate-out data-[closed]:fade-out-0",
+            "data-open:animate-in data-open:fade-in-0",
+            "data-closed:animate-out data-closed:fade-out-0",
             "data-[side=bottom]:slide-in-from-top-2 data-[side=bottom]:slide-out-to-top-1",
             "data-[side=top]:slide-in-from-bottom-2 data-[side=top]:slide-out-to-bottom-1",
             "data-[side=right]:slide-in-from-left-2 data-[side=right]:slide-out-to-left-1",

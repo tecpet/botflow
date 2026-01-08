@@ -1,9 +1,11 @@
-import { Stack } from "@chakra-ui/react";
 import { defaultScriptOptions } from "@typebot.io/blocks-logic/script/constants";
 import type { ScriptBlock } from "@typebot.io/blocks-logic/script/schema";
-import { TextInput } from "@/components/inputs";
+import { Field } from "@typebot.io/ui/components/Field";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
+import { DebouncedTextInput } from "@/components/inputs/DebouncedTextInput";
+import { UnsafeScriptAlert } from "./UnsafeScriptAlert";
 
 type Props = {
   options: ScriptBlock["options"];
@@ -20,28 +22,42 @@ export const ScriptSettings = ({ options, onOptionsChange }: Props) => {
   const updateClientExecution = (isExecutedOnClient: boolean) =>
     onOptionsChange({ ...options, isExecutedOnClient });
 
+  const updateIsUnsafe = () => onOptionsChange({ ...options, isUnsafe: false });
+
   return (
-    <Stack spacing={4}>
-      <TextInput
-        label="Name:"
-        defaultValue={options?.name ?? defaultScriptOptions.name}
-        onChange={handleNameChange}
-        withVariableButton={false}
-      />
-      <SwitchWithLabel
-        label="Execute on client"
-        moreInfoContent="Check this if you need access to client variables like `window` or `document`."
-        initialValue={
-          options?.isExecutedOnClient ?? defaultScriptOptions.isExecutedOnClient
-        }
-        onCheckChange={updateClientExecution}
-      />
+    <div className="flex flex-col gap-4">
+      <Field.Root>
+        <Field.Label>Name:</Field.Label>
+        <DebouncedTextInput
+          defaultValue={options?.name ?? defaultScriptOptions.name}
+          onValueChange={handleNameChange}
+        />
+      </Field.Root>
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={
+            options?.isExecutedOnClient ??
+            defaultScriptOptions.isExecutedOnClient
+          }
+          onCheckedChange={updateClientExecution}
+        />
+        <Field.Label>
+          Execute on client{" "}
+          <MoreInfoTooltip>
+            Check this if you need access to client variables like `window` or
+            `document`."
+          </MoreInfoTooltip>
+        </Field.Label>
+      </Field.Root>
+      {options?.isUnsafe === true && options?.isExecutedOnClient !== false && (
+        <UnsafeScriptAlert onTrustClick={updateIsUnsafe} />
+      )}
       <CodeEditor
         defaultValue={options?.content}
         lang="javascript"
         onChange={handleCodeChange}
         withLineNumbers={true}
       />
-    </Stack>
+    </div>
   );
 };

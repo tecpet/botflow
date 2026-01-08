@@ -1,29 +1,19 @@
-import { type IconProps, useColorMode } from "@chakra-ui/react";
 import type { ForgedBlock } from "@typebot.io/forge-repository/schemas";
+import { useTheme } from "next-themes";
+import type { JSX } from "react";
 import { useForgedBlock } from "./hooks/useForgedBlock";
 
 export const ForgedBlockIcon = ({
   type,
-  ...props
+  className,
 }: {
   type: ForgedBlock["type"];
-} & IconProps): JSX.Element | null => {
-  const { colorMode } = useColorMode();
+  className?: string;
+}): JSX.Element | null => {
+  const { resolvedTheme } = useTheme();
   const { blockDef } = useForgedBlock({ nodeType: type });
   if (!blockDef) return null;
-  if (colorMode === "dark" && blockDef.DarkLogo)
-    return (
-      <blockDef.DarkLogo
-        width="1rem"
-        className={props.className}
-        style={{ marginTop: props.mt?.toString() }}
-      />
-    );
-  return (
-    <blockDef.LightLogo
-      width="1rem"
-      className={props.className}
-      style={{ marginTop: props.mt?.toString() }}
-    />
-  );
+  if (resolvedTheme === "dark" && blockDef.DarkLogo)
+    return <blockDef.DarkLogo width="1rem" className={className} />;
+  return <blockDef.LightLogo width="1rem" className={className} />;
 };

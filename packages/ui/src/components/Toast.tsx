@@ -1,17 +1,12 @@
 import { Toast as ToastPrimitive } from "@base-ui-components/react/toast";
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-} from "@chakra-ui/react";
 import { z } from "@typebot.io/zod";
+import type { JSX } from "react";
 import { Cancel01Icon } from "../icons/Cancel01Icon";
 import { CheckmarkSquare02Icon } from "../icons/CheckmarkSquare02Icon";
 import { InformationSquareIcon } from "../icons/InformationSquareIcon";
 import { TriangleAlertIcon } from "../icons/TriangleAlertIcon";
 import { cn } from "../lib/cn";
+import { Accordion } from "./Accordion";
 import { Button, buttonVariants } from "./Button";
 
 const List = ({
@@ -23,16 +18,10 @@ const List = ({
     isReadOnly,
     value,
     lang,
-    minWidth,
-    maxHeight,
-    maxWidth,
   }: {
     isReadOnly: boolean;
     value: string;
     lang: "shell" | "json";
-    minWidth: string;
-    maxHeight: string;
-    maxWidth: string;
   }) => JSX.Element;
 }) => {
   const { toasts } = ToastPrimitive.useToastManager();
@@ -43,7 +32,7 @@ const List = ({
         {...props}
         className={cn(
           // TODO: z-index is necessary here because toast portal is kept mounted at all times
-          "fixed top-auto right-[1rem] bottom-[1rem] mx-auto flex w-[250px] sm:right-[2rem] sm:bottom-[2rem] sm:w-96 z-10",
+          "fixed top-auto right-4 bottom-4 mx-auto flex w-[250px] sm:right-8 sm:bottom-8 sm:w-96 z-10",
           className,
         )}
       >
@@ -55,8 +44,8 @@ const List = ({
               key={toast.id}
               toast={toast}
               className={cn(
-                "absolute right-0 bottom-0 left-auto z-[calc(1000-var(--toast-index))] mr-0 [transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-swipe-movement-y)+calc(min(var(--toast-index),10)*-15px)))_scale(calc(max(0,1-(var(--toast-index)*0.1))))] rounded-lg border bg-gray-1 bg-clip-padding p-4 shadow-lg transition-all [transition-property:opacity,transform] ease-[cubic-bezier(0.22,1,0.36,1)] select-none after:absolute after:bottom-full after:left-0 after:h-[calc(var(--gap)+1px)] after:w-full after:content-['']",
-                "duration-300 data-[ending-style]:opacity-0 data-[expanded]:[transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-offset-y)*-1+calc(var(--toast-index)*var(--gap)*-1)+var(--toast-swipe-movement-y)))] data-[limited]:opacity-0 data-[starting-style]:[transform:translateY(150%)] data-[ending-style]:data-[swipe-direction=down]:[transform:translateY(calc(var(--toast-swipe-movement-y)+150%))] data-[expanded]:data-[ending-style]:data-[swipe-direction=down]:[transform:translateY(calc(var(--toast-swipe-movement-y)+150%))] data-[ending-style]:data-[swipe-direction=left]:[transform:translateX(calc(var(--toast-swipe-movement-x)-150%))_translateY(var(--offset-y))] data-[expanded]:data-[ending-style]:data-[swipe-direction=left]:[transform:translateX(calc(var(--toast-swipe-movement-x)-150%))_translateY(var(--offset-y))] data-[ending-style]:data-[swipe-direction=right]:[transform:translateX(calc(var(--toast-swipe-movement-x)+150%))_translateY(var(--offset-y))] data-[expanded]:data-[ending-style]:data-[swipe-direction=right]:[transform:translateX(calc(var(--toast-swipe-movement-x)+150%))_translateY(var(--offset-y))] data-[ending-style]:data-[swipe-direction=up]:[transform:translateY(calc(var(--toast-swipe-movement-y)-150%))] data-[expanded]:data-[ending-style]:data-[swipe-direction=up]:[transform:translateY(calc(var(--toast-swipe-movement-y)-150%))] data-[ending-style]:[&:not([data-limited])]:[transform:translateY(150%)]",
+                "absolute right-0 bottom-0 left-auto z-[calc(1000-var(--toast-index))] mr-0 transform-[translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-swipe-movement-y)+calc(min(var(--toast-index),10)*-15px)))_scale(calc(max(0,1-(var(--toast-index)*0.1))))] rounded-lg border bg-gray-1 bg-clip-padding p-4 shadow-lg transition-all [transition-property:opacity,transform] ease-[cubic-bezier(0.22,1,0.36,1)] select-none after:absolute after:bottom-full after:left-0 after:h-[calc(var(--gap)+1px)] after:w-full after:content-['']",
+                "duration-300 data-ending-style:opacity-0 data-expanded:transform-[translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-offset-y)*-1+calc(var(--toast-index)*var(--gap)*-1)+var(--toast-swipe-movement-y)))] data-limited:opacity-0 data-starting-style:transform-[translateY(150%)] data-ending-style:data-[swipe-direction=down]:transform-[translateY(calc(var(--toast-swipe-movement-y)+150%))] data-expanded:data-ending-style:data-[swipe-direction=down]:transform-[translateY(calc(var(--toast-swipe-movement-y)+150%))] data-ending-style:data-[swipe-direction=left]:transform-[translateX(calc(var(--toast-swipe-movement-x)-150%))_translateY(var(--offset-y))] data-expanded:data-ending-style:data-[swipe-direction=left]:transform-[translateX(calc(var(--toast-swipe-movement-x)-150%))_translateY(var(--offset-y))] data-ending-style:data-[swipe-direction=right]:transform-[translateX(calc(var(--toast-swipe-movement-x)+150%))_translateY(var(--offset-y))] data-expanded:data-ending-style:data-[swipe-direction=right]:transform-[translateX(calc(var(--toast-swipe-movement-x)+150%))_translateY(var(--offset-y))] data-ending-style:data-[swipe-direction=up]:transform-[translateY(calc(var(--toast-swipe-movement-y)-150%))] data-expanded:data-ending-style:data-[swipe-direction=up]:transform-[translateY(calc(var(--toast-swipe-movement-y)-150%))] data-ending-style:[&:not([data-limited])]:transform-[translateY(150%)]",
                 data?.details ? "w-full" : "w-[300px]",
                 className,
               )}
@@ -91,28 +80,20 @@ const List = ({
                   </div>
                 </div>
                 {toast.data.details && (
-                  <Accordion allowToggle>
-                    <AccordionItem onPointerDown={(e) => e.stopPropagation()}>
-                      <AccordionButton
-                        justifyContent="space-between"
-                        fontSize="sm"
-                        py="1"
-                      >
+                  <Accordion.Root>
+                    <Accordion.Item onPointerDown={(e) => e.stopPropagation()}>
+                      <Accordion.Trigger className="font-sm py-1">
                         Details
-                        <AccordionIcon />
-                      </AccordionButton>
-                      <AccordionPanel>
+                      </Accordion.Trigger>
+                      <Accordion.Panel>
                         <CodeEditor
                           isReadOnly
                           value={toast.data.details.content}
                           lang={toast.data.details.lang}
-                          minWidth="300px"
-                          maxHeight="200px"
-                          maxWidth="calc(450px - 100px)"
                         />
-                      </AccordionPanel>
-                    </AccordionItem>
-                  </Accordion>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+                  </Accordion.Root>
                 )}
               </div>
 

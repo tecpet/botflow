@@ -1,9 +1,8 @@
-import { Stack } from "@chakra-ui/react";
 import { cardMappableFields } from "@typebot.io/blocks-inputs/cards/constants";
 import type { CardsBlock } from "@typebot.io/blocks-inputs/cards/schema";
 import type { Variable } from "@typebot.io/variables/schemas";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import { TableList, type TableListItemProps } from "@/components/TableList";
 
 type Props = {
@@ -24,7 +23,7 @@ export const CardsBlockSettings = ({ options, onOptionsChange }: Props) => {
   };
 
   return (
-    <Stack>
+    <div className="flex flex-col gap-2">
       <TableList
         addLabel={
           (options?.saveResponseMapping?.length ?? 0) === 0
@@ -36,7 +35,7 @@ export const CardsBlockSettings = ({ options, onOptionsChange }: Props) => {
       >
         {(props) => <CardSaveResponseItem {...props} />}
       </TableList>
-    </Stack>
+    </div>
   );
 };
 
@@ -58,17 +57,17 @@ const CardSaveResponseItem = ({
   };
 
   return (
-    <Stack p="4" rounded="md" flex="1" borderWidth="1px">
+    <div className="flex flex-col gap-2 p-4 rounded-md flex-1 border">
       <BasicSelect
         placeholder="Select a field"
         value={item.field}
         items={cardMappableFields}
         onChange={changeValueToExtract}
       />
-      <VariableSearchInput
+      <VariablesCombobox
         initialVariableId={item.variableId}
         onSelectVariable={changeVariableId}
       />
-    </Stack>
+    </div>
   );
 };

@@ -1,4 +1,3 @@
-import { FormLabel, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { fileVisibilityOptions } from "@typebot.io/blocks-inputs/file/constants";
 import { defaultTextInputOptions } from "@typebot.io/blocks-inputs/text/constants";
@@ -6,12 +5,11 @@ import type { TextInputBlock } from "@typebot.io/blocks-inputs/text/schema";
 import { inputModeOptions } from "@typebot.io/blocks-inputs/text/schema";
 import { Field } from "@typebot.io/ui/components/Field";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { TextInput } from "@/components/inputs";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
   options: TextInputBlock["options"];
@@ -82,31 +80,39 @@ export const TextInputSettings = ({ options, onOptionsChange }: Props) => {
     });
 
   return (
-    <Stack spacing={4}>
-      <SwitchWithLabel
-        label={t("blocks.inputs.text.settings.longText.label")}
-        initialValue={options?.isLong ?? defaultTextInputOptions.isLong}
-        onCheckChange={updateIsLong}
-      />
-      <TextInput
-        label={t("blocks.inputs.settings.placeholder.label")}
-        defaultValue={
-          options?.labels?.placeholder ??
-          defaultTextInputOptions.labels.placeholder
-        }
-        onChange={updatePlaceholder}
-      />
-      <TextInput
-        label={t("blocks.inputs.settings.button.label")}
-        defaultValue={
-          options?.labels?.button ?? defaultTextInputOptions.labels.button
-        }
-        onChange={updateButtonLabel}
-      />
-      <Stack>
-        <FormLabel mb="0" htmlFor="input-mode">
-          Input mode
-        </FormLabel>
+    <div className="flex flex-col gap-4">
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={options?.isLong ?? defaultTextInputOptions.isLong}
+          onCheckedChange={updateIsLong}
+        />
+        <Field.Label>
+          {t("blocks.inputs.text.settings.longText.label")}
+        </Field.Label>
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.settings.placeholder.label")}
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={
+            options?.labels?.placeholder ??
+            defaultTextInputOptions.labels.placeholder
+          }
+          onValueChange={updatePlaceholder}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>{t("blocks.inputs.settings.button.label")}</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={
+            options?.labels?.button ?? defaultTextInputOptions.labels.button
+          }
+          onValueChange={updateButtonLabel}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>Input mode</Field.Label>
         <BasicSelect
           value={options?.inputMode}
           defaultValue="text"
@@ -114,84 +120,98 @@ export const TextInputSettings = ({ options, onOptionsChange }: Props) => {
           onChange={updateInputMode}
           placeholder="Select input mode..."
         />
-      </Stack>
-      <SwitchWithRelatedSettings
-        label={"Allow audio clip"}
-        initialValue={
-          options?.audioClip?.isEnabled ??
-          defaultTextInputOptions.audioClip.isEnabled
-        }
-        onCheckChange={updateAudioClipEnabled}
-      >
-        <Stack>
-          <FormLabel mb="0" htmlFor="variable">
-            Save the URL in a variable:
-          </FormLabel>
-          <VariableSearchInput
-            initialVariableId={options?.audioClip?.saveVariableId}
-            onSelectVariable={updateAudioClipSaveVariableId}
+      </Field.Root>
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={
+              options?.audioClip?.isEnabled ??
+              defaultTextInputOptions.audioClip.isEnabled
+            }
+            onCheckedChange={updateAudioClipEnabled}
           />
-        </Stack>
-        <Field.Root>
-          <Field.Label>
-            Visibility:{" "}
-            <MoreInfoTooltip>
-              This setting determines who can see the uploaded files. "Public"
-              means that anyone who has the link can see the files. "Private"
-              means that only a members of this workspace can see the files.
-            </MoreInfoTooltip>
-          </Field.Label>
-          <BasicSelect
-            value={options?.audioClip?.visibility}
-            defaultValue={defaultTextInputOptions.audioClip.visibility}
-            onChange={updateAudioClipVisibility}
-            items={fileVisibilityOptions}
-          />
+          <Field.Label className="font-medium">Allow audio clip</Field.Label>
         </Field.Root>
-      </SwitchWithRelatedSettings>
-      <SwitchWithRelatedSettings
-        label={"Allow attachments"}
-        initialValue={
-          options?.attachments?.isEnabled ??
-          defaultTextInputOptions.attachments.isEnabled
-        }
-        onCheckChange={updateAttachmentsEnabled}
-      >
-        <Stack>
-          <FormLabel mb="0" htmlFor="variable">
-            Save the URLs in a variable:
-          </FormLabel>
-          <VariableSearchInput
-            initialVariableId={options?.attachments?.saveVariableId}
-            onSelectVariable={updateAttachmentsSaveVariableId}
+        {(options?.audioClip?.isEnabled ??
+          defaultTextInputOptions.audioClip.isEnabled) && (
+          <>
+            <Field.Root>
+              <Field.Label>Save the URL in a variable:</Field.Label>
+              <VariablesCombobox
+                initialVariableId={options?.audioClip?.saveVariableId}
+                onSelectVariable={updateAudioClipSaveVariableId}
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>
+                Visibility:
+                <MoreInfoTooltip>
+                  This setting determines who can see the uploaded files.
+                  "Public" means that anyone who has the link can see the files.
+                  "Private" means that only a members of this workspace can see
+                  the files.
+                </MoreInfoTooltip>
+              </Field.Label>
+              <BasicSelect
+                value={options?.audioClip?.visibility}
+                defaultValue={defaultTextInputOptions.audioClip.visibility}
+                onChange={updateAudioClipVisibility}
+                items={fileVisibilityOptions}
+              />
+            </Field.Root>
+          </>
+        )}
+      </Field.Container>
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={
+              options?.attachments?.isEnabled ??
+              defaultTextInputOptions.attachments.isEnabled
+            }
+            onCheckedChange={updateAttachmentsEnabled}
           />
-        </Stack>
-        <Field.Root>
-          <Field.Label>
-            Visibility:{" "}
-            <MoreInfoTooltip>
-              This setting determines who can see the uploaded files. "Public"
-              means that anyone who has the link can see the files. "Private"
-              means that only a members of this workspace can see the files.
-            </MoreInfoTooltip>
-          </Field.Label>
-          <BasicSelect
-            value={options?.attachments?.visibility}
-            defaultValue={defaultTextInputOptions.attachments.visibility}
-            onChange={updateVisibility}
-            items={fileVisibilityOptions}
-          />
+          <Field.Label className="font-medium">Allow attachments</Field.Label>
         </Field.Root>
-      </SwitchWithRelatedSettings>
-      <Stack>
-        <FormLabel mb="0" htmlFor="variable">
+        {(options?.attachments?.isEnabled ??
+          defaultTextInputOptions.attachments.isEnabled) && (
+          <>
+            <Field.Root>
+              <Field.Label>Save the URLs in a variable:</Field.Label>
+              <VariablesCombobox
+                initialVariableId={options?.attachments?.saveVariableId}
+                onSelectVariable={updateAttachmentsSaveVariableId}
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>
+                Visibility:
+                <MoreInfoTooltip>
+                  This setting determines who can see the uploaded files.
+                  "Public" means that anyone who has the link can see the files.
+                  "Private" means that only a members of this workspace can see
+                  the files.
+                </MoreInfoTooltip>
+              </Field.Label>
+              <BasicSelect
+                value={options?.attachments?.visibility}
+                defaultValue={defaultTextInputOptions.attachments.visibility}
+                onChange={updateVisibility}
+                items={fileVisibilityOptions}
+              />
+            </Field.Root>
+          </>
+        )}
+      </Field.Container>
+      <Field.Root>
+        <Field.Label>
           {t("blocks.inputs.settings.saveAnswer.label")}
-        </FormLabel>
-        <VariableSearchInput
+        </Field.Label>
+        <VariablesCombobox
           initialVariableId={options?.variableId}
           onSelectVariable={updateVariableId}
         />
-      </Stack>
-    </Stack>
+      </Field.Root>
+    </div>
   );
 };

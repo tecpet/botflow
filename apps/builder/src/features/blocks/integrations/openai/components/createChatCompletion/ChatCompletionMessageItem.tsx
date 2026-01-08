@@ -1,4 +1,3 @@
-import { HStack, Stack, Text } from "@chakra-ui/react";
 import {
   chatCompletionMessageCustomRoles,
   chatCompletionMessageRoles,
@@ -6,9 +5,9 @@ import {
 } from "@typebot.io/blocks-integrations/openai/constants";
 import type { ChatCompletionOpenAIOptions } from "@typebot.io/blocks-integrations/openai/schema";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { Textarea } from "@/components/inputs";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { DebouncedTextareaWithVariablesButton } from "@/components/inputs/DebouncedTextarea";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import type { TableListItemProps } from "@/components/TableList";
 
 type Props = TableListItemProps<
@@ -48,7 +47,7 @@ export const ChatCompletionMessageItem = ({ item, onItemChange }: Props) => {
   };
 
   return (
-    <Stack p="4" rounded="md" flex="1" borderWidth="1px">
+    <div className="flex flex-col gap-2 p-4 rounded-md flex-1 border">
       <BasicSelect
         value={item.role}
         onChange={changeRole}
@@ -64,7 +63,7 @@ export const ChatCompletionMessageItem = ({ item, onItemChange }: Props) => {
         onChangeDialogueVariableId={updateDialogueVariableId}
         onStartsByChange={updateStartsBy}
       />
-    </Stack>
+    </div>
   );
 };
 
@@ -87,30 +86,29 @@ const ChatCompletionMessageItemContent = ({
     case "user":
     case "system":
       return (
-        <Textarea
+        <DebouncedTextareaWithVariablesButton
           defaultValue={item.content}
-          onChange={onChangeSingleMessageContent}
+          onValueChange={onChangeSingleMessageContent}
           placeholder="Content"
-          minH="150px"
         />
       );
     case "Dialogue":
       return (
-        <Stack alignItems="flex-end">
-          <VariableSearchInput
+        <div className="flex flex-col gap-2 items-end">
+          <VariablesCombobox
             initialVariableId={item.dialogueVariableId}
             onSelectVariable={onChangeDialogueVariableId}
             placeholder="Dialogue variable"
           />
-          <HStack>
-            <Text>starts by</Text>
+          <div className="flex items-center gap-2">
+            <p>starts by</p>
             <BasicSelect
               value={item.startsBy ?? "user"}
               onChange={onStartsByChange}
               items={["user", "assistant"]}
             />
-          </HStack>
-        </Stack>
+          </div>
+        </div>
       );
     case "Messages sequence ✨":
       return null;

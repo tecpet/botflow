@@ -1,15 +1,7 @@
-import {
-  chakra,
-  Flex,
-  Heading,
-  HStack,
-  Image,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
 import type { BubbleProps } from "@typebot.io/js";
 import { isLight } from "@typebot.io/lib/hexToRgb";
 import { isDefined, isSvgSrc } from "@typebot.io/lib/utils";
+import { cx } from "@typebot.io/ui/lib/cva";
 import { PreviewMessageSettings } from "./PreviewMessageSettings";
 import { ThemeSettings } from "./ThemeSettings";
 
@@ -47,9 +39,9 @@ export const BubbleSettings = ({
   };
 
   return (
-    <Stack spacing="4">
-      <Heading size="sm">Chat bubble settings</Heading>
-      <Stack pl="4" spacing={4}>
+    <div className="flex flex-col gap-4">
+      <h3>Chat bubble settings</h3>
+      <div className="flex flex-col pl-4 gap-4">
         <PreviewMessageSettings
           defaultAvatar={defaultPreviewMessageAvatar}
           onChange={updatePreviewMessage}
@@ -59,46 +51,39 @@ export const BubbleSettings = ({
           onChange={updateTheme}
           isPreviewMessageEnabled={isDefined(previewMessage)}
         />
-        <Heading size="sm">Preview:</Heading>
-        <Stack alignItems="flex-end">
+        <h4>Preview:</h4>
+        <div className="flex flex-col gap-2 items-end">
           {isDefined(previewMessage) && (
-            <HStack
-              bgColor={theme?.previewMessage?.backgroundColor}
-              shadow="md"
-              rounded="md"
-              p="3"
-              maxW="280px"
-              spacing={4}
+            <div
+              className="flex items-center shadow-md rounded-md p-3 max-w-[280px] gap-4"
+              style={{
+                backgroundColor: theme?.previewMessage?.backgroundColor,
+              }}
             >
               {previewMessage.avatarUrl && (
-                <Image
+                <img
+                  className="rounded-full size-10 object-cover"
                   src={previewMessage.avatarUrl}
-                  w="40px"
-                  h="40px"
-                  rounded="full"
                   alt="Preview message avatar"
-                  objectFit="cover"
                 />
               )}
-              <Text color={theme?.previewMessage?.textColor}>
+              <p style={{ color: theme?.previewMessage?.textColor }}>
                 {previewMessage.message}
-              </Text>
-            </HStack>
+              </p>
+            </div>
           )}
-          <Flex
-            align="center"
-            justifyContent="center"
-            transition="all 0.2s ease-in-out"
-            boxSize={theme?.button?.size === "large" ? "64px" : "48px"}
-            bgColor={theme?.button?.backgroundColor}
-            rounded="full"
-            boxShadow="0 0 #0000,0 0 #0000,0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1)"
+          <div
+            className={cx(
+              "flex items-center justify-center rounded-full shadow transition-all",
+              theme?.button?.size === "large" ? "size-[64px]" : "size-[48px]",
+            )}
+            style={{ backgroundColor: theme?.button?.backgroundColor }}
           >
             <BubbleIcon buttonTheme={theme?.button} />
-          </Flex>
-        </Stack>
-      </Stack>
-    </Stack>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -132,28 +117,27 @@ const BubbleIcon = ({
     buttonTheme.customIconSrc.startsWith("data:image/svg+xml")
   )
     return (
-      <Image
+      <img
         src={buttonTheme.customIconSrc}
-        transition="all 0.2s ease-in-out"
-        boxSize={
+        className={cx(
+          "transition-all",
           isSvgSrc(buttonTheme.customIconSrc)
             ? buttonTheme?.size === "large"
-              ? "36px"
-              : "28px"
-            : "100%"
-        }
-        rounded={isSvgSrc(buttonTheme.customIconSrc) ? undefined : "full"}
+              ? "size-[36px]"
+              : "size-[28px]"
+            : "size-full object-cover rounded-full",
+        )}
         alt="Bubble button icon"
-        objectFit={isSvgSrc(buttonTheme.customIconSrc) ? undefined : "cover"}
       />
     );
   return (
-    <chakra.span
-      transition="all 0.2s ease-in-out"
-      fontSize={buttonTheme.size === "large" ? "36px" : "24px"}
-      lineHeight={buttonTheme.size === "large" ? "40px" : "32px"}
+    <span
+      className={cx(
+        "transition-all ease-in-out",
+        buttonTheme.size === "large" ? "text-3xl" : "text-2xl",
+      )}
     >
       {buttonTheme.customIconSrc}
-    </chakra.span>
+    </span>
   );
 };

@@ -139,10 +139,25 @@ const workspaceLimitReachedEventSchema = workspaceEvent.merge(
 const workspaceAutoQuarantinedEventSchema = workspaceEvent.merge(
   z.object({
     name: z.literal("Workspace automatically quarantined"),
-    data: z.object({
-      chatsLimit: z.number(),
-      totalChatsUsed: z.number(),
-    }),
+    data: z.discriminatedUnion("reason", [
+      z.object({
+        reason: z.literal("auto upgrade payment failed"),
+      }),
+      z.object({
+        reason: z.literal("subscription past due for too long"),
+      }),
+      z.object({
+        reason: z.literal("free limit reached"),
+        chatsLimit: z.number(),
+        totalChatsUsed: z.number(),
+      }),
+    ]),
+  }),
+);
+
+const workspaceUnpaidEventSchema = workspaceEvent.merge(
+  z.object({
+    name: z.literal("Workspace unpaid"),
   }),
 );
 
@@ -207,6 +222,7 @@ const builderEvents = [
   workspaceAutoQuarantinedEventSchema,
   subscriptionAutoUpdatedEventSchema,
   workspacePastDueEventSchema,
+  workspaceUnpaidEventSchema,
   workspaceNotPastDueEventSchema,
   userUpdatedEventSchema,
   customDomainAddedEventSchema,

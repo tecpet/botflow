@@ -1,9 +1,8 @@
-import { Flex, Stack, Text } from "@chakra-ui/react";
 import { GiphyFetch } from "@giphy/js-fetch-api";
 import { Grid } from "@giphy/react-components";
 import { env } from "@typebot.io/env";
 import { useState } from "react";
-import { TextInput } from "../inputs";
+import { DebouncedTextInput } from "../inputs/DebouncedTextInput";
 import { GiphyLogo } from "../logos/GiphyLogo";
 
 type GiphySearchFormProps = {
@@ -22,20 +21,18 @@ export const GiphyPicker = ({ onSubmit }: GiphySearchFormProps) => {
     giphyFetch.trending({ offset, limit: 10 });
 
   return !env.NEXT_PUBLIC_GIPHY_API_KEY ? (
-    <Text>NEXT_PUBLIC_GIPHY_API_KEY is missing in environment</Text>
+    <p>NEXT_PUBLIC_GIPHY_API_KEY is missing in environment</p>
   ) : (
-    <Stack spacing={4} pt="2">
-      <Flex align="center">
-        <TextInput
+    <div className="flex flex-col pt-2 gap-2">
+      <div className="flex items-center gap-4">
+        <DebouncedTextInput
           autoFocus
           placeholder="Search..."
-          onChange={setInputValue}
-          withVariableButton={false}
-          width="full"
+          onValueChange={setInputValue}
         />
-        <GiphyLogo w="100px" />
-      </Flex>
-      <Flex overflowY="auto" maxH="400px">
+        <GiphyLogo className="w-24" />
+      </div>
+      <div className="flex overflow-y-auto max-h-[400px] rounded-md">
         <Grid
           key={inputValue}
           onGifClick={(gif, e) => {
@@ -43,11 +40,10 @@ export const GiphyPicker = ({ onSubmit }: GiphySearchFormProps) => {
             onSubmit(gif.images.downsized.url);
           }}
           fetchGifs={inputValue === "" ? fetchGifsTrending : fetchGifs}
-          width={475}
           columns={3}
-          className="my-4"
+          width={475}
         />
-      </Flex>
-    </Stack>
+      </div>
+    </div>
   );
 };

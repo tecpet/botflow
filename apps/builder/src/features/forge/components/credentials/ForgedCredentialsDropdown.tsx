@@ -1,15 +1,15 @@
-import { Stack, Text } from "@chakra-ui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import type { ForgedBlockDefinition } from "@typebot.io/forge-repository/definitions";
 import { Button, type ButtonProps } from "@typebot.io/ui/components/Button";
 import { Menu } from "@typebot.io/ui/components/Menu";
 import { ArrowDown01Icon } from "@typebot.io/ui/icons/ArrowDown01Icon";
+import { PlusSignIcon } from "@typebot.io/ui/icons/PlusSignIcon";
 import { TrashIcon } from "@typebot.io/ui/icons/TrashIcon";
+import { cx } from "@typebot.io/ui/lib/cva";
 import { useRouter } from "next/router";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
-import { PlusIcon } from "@/components/icons";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { trpc } from "@/lib/queryClient";
 
@@ -128,7 +128,7 @@ export const ForgedCredentialsDropdown = ({
         disabled={currentUserMode === "guest" || isLoading}
         {...props}
       >
-        <PlusIcon />
+        <PlusSignIcon />
         Add {blockDef.auth?.name}
       </Button>
     );
@@ -136,19 +136,20 @@ export const ForgedCredentialsDropdown = ({
   return (
     <Menu.Root>
       <Menu.TriggerButton variant="secondary" className="justify-between">
-        <Text
-          noOfLines={1}
-          overflowY="visible"
-          h={props.size === "sm" ? "18px" : "20px"}
+        <p
+          className={cx(
+            "overflow-y-visible truncate",
+            props.size === "sm" ? "h-[18px]" : "h-[20px]",
+          )}
         >
           {currentCredential
             ? currentCredential.name
             : `Select ${blockDef.auth?.name}`}
-        </Text>
+        </p>
         <ArrowDown01Icon />
       </Menu.TriggerButton>
       <Menu.Popup>
-        <Stack maxH={"35vh"} overflowY="auto" spacing="0">
+        <div className="flex flex-col max-h-[35vh] overflow-y-auto gap-0">
           {data?.credentials.map((credentials) => (
             <Menu.Item
               key={credentials.id}
@@ -170,11 +171,11 @@ export const ForgedCredentialsDropdown = ({
           ))}
           {currentUserMode === "guest" ? null : (
             <Menu.Item onClick={onAddClick}>
-              <PlusIcon />
+              <PlusSignIcon />
               {t("connectNew")}
             </Menu.Item>
           )}
-        </Stack>
+        </div>
       </Menu.Popup>
     </Menu.Root>
   );

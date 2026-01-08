@@ -1,4 +1,3 @@
-import { FormLabel, Heading, HStack, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import {
   defaultBlur,
@@ -29,6 +28,7 @@ import type {
   Theme,
 } from "@typebot.io/theme/schemas";
 import type { TypebotV6 } from "@typebot.io/typebot/schemas/typebot";
+import { Field } from "@typebot.io/ui/components/Field";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { AvatarForm } from "./AvatarForm";
 import { ChatContainerForm } from "./ChatContainerForm";
@@ -85,15 +85,15 @@ export const ChatThemeSettings = ({
     onChatThemeChange({ ...chatTheme, buttonsInput: { layout } });
 
   return (
-    <Stack spacing={6}>
-      <Stack borderWidth={1} rounded="md" p="4" spacing={4}>
-        <Heading fontSize="lg">Container</Heading>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col border rounded-md p-4 gap-4">
+        <h3>Container</h3>
         <ChatContainerForm
           generalBackground={generalBackground}
           container={chatTheme?.container}
           onContainerChange={updateChatContainer}
         />
-      </Stack>
+      </div>
       <AvatarForm
         uploadFileProps={{
           workspaceId,
@@ -115,8 +115,8 @@ export const ChatThemeSettings = ({
         avatarProps={chatTheme?.guestAvatar}
         onAvatarChange={updateGuestAvatar}
       />
-      <Stack borderWidth={1} rounded="md" p="4" spacing={4}>
-        <Heading fontSize="lg">{t("theme.sideMenu.chat.botBubbles")}</Heading>
+      <div className="flex flex-col border rounded-md p-4 gap-4">
+        <h3>{t("theme.sideMenu.chat.botBubbles")}</h3>
         <ContainerThemeForm
           testId="hostBubblesTheme"
           theme={chatTheme?.hostBubbles}
@@ -133,10 +133,9 @@ export const ChatThemeSettings = ({
             },
           }}
         />
-      </Stack>
-
-      <Stack borderWidth={1} rounded="md" p="4" spacing={4}>
-        <Heading fontSize="lg">{t("theme.sideMenu.chat.userBubbles")}</Heading>
+      </div>
+      <div className="flex flex-col border rounded-md p-4 gap-4">
+        <h3>{t("theme.sideMenu.chat.userBubbles")}</h3>
         <ContainerThemeForm
           testId="guestBubblesTheme"
           theme={chatTheme?.guestBubbles}
@@ -154,9 +153,9 @@ export const ChatThemeSettings = ({
             },
           }}
         />
-      </Stack>
-      <Stack borderWidth={1} rounded="md" p="4" spacing={4}>
-        <Heading fontSize="lg">{t("theme.sideMenu.chat.buttons")}</Heading>
+      </div>
+      <div className="flex flex-col border rounded-md p-4 gap-4">
+        <h3>{t("theme.sideMenu.chat.buttons")}</h3>
         <ContainerThemeForm
           testId="buttonsTheme"
           theme={chatTheme?.buttons}
@@ -175,9 +174,9 @@ export const ChatThemeSettings = ({
             },
           }}
         />
-      </Stack>
-      <Stack borderWidth={1} rounded="md" p="4" spacing={4}>
-        <Heading fontSize="lg">{t("theme.sideMenu.chat.inputs")}</Heading>
+      </div>
+      <div className="flex flex-col border rounded-md p-4 gap-4">
+        <h3>{t("theme.sideMenu.chat.inputs")}</h3>
         <ContainerThemeForm
           testId="inputsTheme"
           theme={chatTheme?.inputs}
@@ -196,14 +195,12 @@ export const ChatThemeSettings = ({
             },
           }}
         />
-      </Stack>
-      <Stack borderWidth={1} rounded="md" p="4" spacing={4}>
-        <Heading fontSize="lg">Buttons input</Heading>
-        <HStack justify="space-between">
-          <FormLabel mb="0" mr="0">
-            Layout:
-          </FormLabel>
-          <HStack>
+      </div>
+      <div className="flex flex-col border rounded-md p-4 gap-4">
+        <h3>Buttons input</h3>
+        <Field.Root className="flex-row">
+          <Field.Label>Layout:</Field.Label>
+          <div className="flex items-center gap-2">
             <BasicSelect
               size="sm"
               value={chatTheme?.buttonsInput?.layout}
@@ -211,9 +208,9 @@ export const ChatThemeSettings = ({
               onChange={updateButtonsInputLayout}
               items={["wrap", "vertical"]}
             />
-          </HStack>
-        </HStack>
-      </Stack>
-    </Stack>
+          </div>
+        </Field.Root>
+      </div>
+    </div>
   );
 };

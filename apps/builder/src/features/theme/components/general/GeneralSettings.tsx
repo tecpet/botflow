@@ -1,19 +1,6 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Flex,
-  FormLabel,
-  Stack,
-  Switch,
-  useDisclosure,
-} from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import { env } from "@typebot.io/env";
-import { Plan } from "@typebot.io/prisma/enum";
 import { defaultFontType, fontTypes } from "@typebot.io/theme/constants";
 import type {
   Background,
@@ -21,9 +8,15 @@ import type {
   ProgressBar,
   Theme,
 } from "@typebot.io/theme/schemas";
-import { RadioButtons } from "@/components/inputs/RadioButtons";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Badge } from "@typebot.io/ui/components/Badge";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Label } from "@typebot.io/ui/components/Label";
+import { Radio, RadioGroup } from "@typebot.io/ui/components/RadioGroup";
+import { Switch } from "@typebot.io/ui/components/Switch";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import { SquareLock01Icon } from "@typebot.io/ui/icons/SquareLock01Icon";
 import { ChangePlanDialog } from "@/features/billing/components/ChangePlanDialog";
-import { LockTag } from "@/features/billing/components/LockTag";
 import { isFreePlan } from "@/features/billing/helpers/isFreePlan";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
@@ -46,7 +39,7 @@ export const GeneralSettings = ({
   onBrandingChange,
 }: Props) => {
   const { t } = useTranslate();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useOpenControls();
   const { workspace } = useWorkspace();
   const { typebot } = useTypebot();
   const isWorkspaceFreePlan = isFreePlan(workspace);
@@ -101,70 +94,70 @@ export const GeneralSettings = ({
       : generalTheme?.font?.type) ?? defaultFontType;
 
   return (
-    <Stack spacing={6}>
+    <div className="flex flex-col gap-6">
       <ChangePlanDialog
         isOpen={isOpen}
         onClose={onClose}
         type={t("billing.limitMessage.brand")}
       />
-      <Flex
-        justifyContent="space-between"
-        align="center"
+      <Field.Root
+        className="flex-row items-center justify-between"
         onClick={isWorkspaceFreePlan ? onOpen : undefined}
       >
-        <FormLabel htmlFor="branding" mb="0" cursor="pointer">
+        <Field.Label>
           {t("theme.sideMenu.global.typebotBrand")}{" "}
-          {isWorkspaceFreePlan && <LockTag plan={Plan.STARTER} />}
-        </FormLabel>
-        <Switch
-          id="branding"
-          isChecked={isBrandingEnabled}
-          onChange={updateBranding}
+          {isWorkspaceFreePlan && (
+            <Badge colorScheme="orange">
+              <SquareLock01Icon />
+            </Badge>
+          )}
+        </Field.Label>
+        <Switch checked={isBrandingEnabled} onCheckedChange={updateBranding} />
+      </Field.Root>
+      {typebot && (
+        <ProgressBarForm
+          progressBar={generalTheme?.progressBar}
+          onProgressBarChange={updateProgressBar}
+          typebotVersion={typebot.version}
         />
-      </Flex>
-      <Accordion allowToggle>
-        <AccordionItem>
-          <AccordionButton justifyContent="space-between">
-            Progress Bar
-            <AccordionIcon />
-          </AccordionButton>
-          <AccordionPanel>
-            {typebot && (
-              <ProgressBarForm
-                progressBar={generalTheme?.progressBar}
-                onProgressBarChange={updateProgressBar}
-                typebotVersion={typebot.version}
-              />
-            )}
-          </AccordionPanel>
-        </AccordionItem>
-        <AccordionItem>
-          <AccordionButton justifyContent="space-between">
+      )}
+      <Accordion.Root>
+        <Accordion.Item>
+          <Accordion.Trigger>
             {t("theme.sideMenu.global.font")}
-            <AccordionIcon />
-          </AccordionButton>
-          <AccordionPanel as={Stack}>
-            <RadioButtons
-              options={fontTypes}
+          </Accordion.Trigger>
+          <Accordion.Panel>
+            <RadioGroup
               defaultValue={fontType}
-              onSelect={updateFontType}
-            />
+              onValueChange={(value) =>
+                updateFontType(value as (typeof fontTypes)[number])
+              }
+            >
+              {fontTypes.map((type) => (
+                <Label
+                  key={type}
+                  className="hover:bg-gray-2/50 rounded-md p-2 border flex-1 flex justify-center"
+                >
+                  <Radio value={type} className="hidden" />
+                  {type}
+                </Label>
+              ))}
+            </RadioGroup>
             <FontForm font={generalTheme?.font} onFontChange={updateFont} />
-          </AccordionPanel>
-        </AccordionItem>
-        <AccordionItem>
-          <AccordionButton justifyContent="space-between">
+          </Accordion.Panel>
+        </Accordion.Item>
+        <Accordion.Item>
+          <Accordion.Trigger>
             {t("theme.sideMenu.global.background")}
-            <AccordionIcon />
-          </AccordionButton>
-          <AccordionPanel>
+          </Accordion.Trigger>
+          <Accordion.Panel>
             <BackgroundSelector
               background={generalTheme?.background}
               onBackgroundChange={handleBackgroundChange}
             />
-          </AccordionPanel>
-        </AccordionItem>
-      </Accordion>
-    </Stack>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion.Root>
+    </div>
   );
 };

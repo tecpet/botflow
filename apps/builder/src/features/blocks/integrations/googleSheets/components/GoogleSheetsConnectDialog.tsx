@@ -1,6 +1,4 @@
-import { Image, Text } from "@chakra-ui/react";
 import { Dialog } from "@typebot.io/ui/components/Dialog";
-import { AlertInfo } from "@/components/AlertInfo";
 import { ButtonLink } from "@/components/ButtonLink";
 import { GoogleLogo } from "@/components/GoogleLogo";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
@@ -38,20 +36,15 @@ export const GoogleSheetConnectDialogBody = ({
   return (
     <Dialog.Popup>
       <Dialog.Title>Connect Spreadsheets</Dialog.Title>
-      <Text>
+      <p>
         Make sure to check all the permissions so that the integration works as
         expected:
-      </Text>
-      <Image
+      </p>
+      <img
+        className="rounded-md"
         src="/images/google-spreadsheets-scopes.png"
         alt="Google Spreadsheets checkboxes"
-        rounded="md"
       />
-      <AlertInfo>
-        Google does not provide more granular permissions than &quot;read&quot;
-        or &quot;write&quot; access. That&apos;s why it states that Typebot can
-        also delete your spreadsheets which it won&apos;t.
-      </AlertInfo>
       <Dialog.Footer>
         {workspace?.id && (
           <ButtonLink

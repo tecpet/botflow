@@ -1,32 +1,24 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Flex,
-  HStack,
-  ListItem,
-  OrderedList,
-  Stack,
-  Text,
-  useDisclosure,
-} from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { LogicalOperator } from "@typebot.io/conditions/constants";
 import type { Comparison } from "@typebot.io/conditions/schemas";
 import { isDefined } from "@typebot.io/lib/utils";
 import { defaultSessionExpiryTimeout } from "@typebot.io/settings/constants";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Alert } from "@typebot.io/ui/components/Alert";
+import { Button } from "@typebot.io/ui/components/Button";
 import { Dialog } from "@typebot.io/ui/components/Dialog";
-import { AlertInfo } from "@/components/AlertInfo";
-import { NumberInput } from "@/components/inputs";
+import { Field } from "@typebot.io/ui/components/Field";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import { InformationSquareIcon } from "@typebot.io/ui/icons/InformationSquareIcon";
+import type { JSX } from "react";
+import { BasicNumberInput } from "@/components/inputs/BasicNumberInput";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
 import { TableList } from "@/components/TableList";
 import { TextLink } from "@/components/TextLink";
-import { UnlockPlanAlertInfo } from "@/components/UnlockPlanAlertInfo";
-import { PlanTag } from "@/features/billing/components/PlanTag";
+import { ChangePlanDialog } from "@/features/billing/components/ChangePlanDialog";
+import { PlanBadge } from "@/features/billing/components/PlanTag";
 import { hasProPerks } from "@/features/billing/helpers/hasProPerks";
 import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
@@ -47,7 +39,12 @@ export const WhatsAppDeployDialog = ({
     isOpen: isCredentialsDialogOpen,
     onOpen,
     onClose: onCredentialsDialogClose,
-  } = useDisclosure();
+  } = useOpenControls();
+  const {
+    isOpen: isChangePlanDialogOpen,
+    onOpen: onChangePlanDialogOpen,
+    onClose: onChangePlanDialogClose,
+  } = useOpenControls();
 
   const whatsAppSettings = typebot?.settings.whatsApp;
 
@@ -173,18 +170,36 @@ export const WhatsAppDeployDialog = ({
         <Dialog.Title>WhatsApp</Dialog.Title>
         <Dialog.CloseButton />
         {!hasProPerks(workspace) && (
-          <UnlockPlanAlertInfo excludedPlans={["STARTER"]}>
-            Upgrade your workspace to <PlanTag plan="PRO" /> to be able to
-            enable WhatsApp integration.
-          </UnlockPlanAlertInfo>
+          <Alert.Root>
+            <InformationSquareIcon />
+            <Alert.Description>
+              Upgrade your workspace to <PlanBadge plan="PRO" /> to be able to
+              enable WhatsApp integration.
+            </Alert.Description>
+            <Alert.Action>
+              <Button variant="secondary" onClick={onChangePlanDialogOpen}>
+                Upgrade
+              </Button>
+              <ChangePlanDialog
+                isOpen={isChangePlanDialogOpen}
+                onClose={onChangePlanDialogClose}
+                excludedPlans={["STARTER"]}
+              />
+            </Alert.Action>
+          </Alert.Root>
         )}
         {!isPublished && phoneNumberData && (
-          <AlertInfo>You have modifications that can be published.</AlertInfo>
+          <Alert.Root>
+            <InformationSquareIcon />
+            <Alert.Description>
+              You have modifications that can be published.
+            </Alert.Description>
+          </Alert.Root>
         )}
-        <OrderedList spacing={4} pl="4">
-          <ListItem>
-            <HStack>
-              <Text>Select a phone number:</Text>
+        <ol>
+          <li>
+            <div className="flex items-center gap-2">
+              <p>Select a phone number:</p>
               {workspace && (
                 <>
                   <WhatsAppCredentialsDialog
@@ -205,94 +220,105 @@ export const WhatsAppDeployDialog = ({
                   />
                 </>
               )}
-            </HStack>
-          </ListItem>
-          {typebot?.whatsAppCredentialsId && (
+            </div>
+          </li>
+          {typebot?.whatsAppCredentialsId && phoneNumberData && (
             <>
-              <ListItem>
-                <Accordion allowToggle>
-                  <AccordionItem>
-                    <AccordionButton justifyContent="space-between">
-                      Configure integration
-                      <AccordionIcon />
-                    </AccordionButton>
-                    <AccordionPanel as={Stack} spacing="4" pt="4">
-                      <HStack>
-                        <NumberInput
+              <li>
+                <Accordion.Root>
+                  <Accordion.Item>
+                    <Accordion.Trigger>Configure integration</Accordion.Trigger>
+                    <Accordion.Panel>
+                      <Field.Root className="inline-flex flex-row items-center">
+                        <Field.Label>
+                          Session expire timeout
+                          <MoreInfoTooltip>
+                            A number between 0 and 48 that represents the time
+                            in hours after which the session will expire if the
+                            user does not interact with the bot. The
+                            conversation restarts if the user sends a message
+                            after that expiration time.
+                          </MoreInfoTooltip>
+                        </Field.Label>
+                        <BasicNumberInput
                           max={48}
                           min={0}
-                          width="100px"
-                          label="Session expire timeout:"
                           defaultValue={whatsAppSettings?.sessionExpiryTimeout}
                           placeholder={defaultSessionExpiryTimeout.toString()}
-                          moreInfoTooltip="A number between 0 and 48 that represents the time in hours after which the session will expire if the user does not interact with the bot. The conversation restarts if the user sends a message after that expiration time."
                           onValueChange={updateSessionExpiryTimeout}
                           withVariableButton={false}
-                          suffix="hours"
                         />
-                      </HStack>
-                      <SwitchWithRelatedSettings
-                        label={"Start bot condition"}
-                        initialValue={isDefined(
-                          whatsAppSettings?.startCondition,
+                        hours
+                      </Field.Root>
+                      <Field.Container>
+                        <Field.Root className="flex-row items-center">
+                          <Switch
+                            checked={isDefined(
+                              whatsAppSettings?.startCondition,
+                            )}
+                            onCheckedChange={updateIsStartConditionEnabled}
+                          />
+                          <Field.Label>Start bot condition</Field.Label>
+                        </Field.Root>
+                        {isDefined(whatsAppSettings?.startCondition) && (
+                          <TableList<Comparison>
+                            initialItems={
+                              whatsAppSettings?.startCondition?.comparisons ??
+                              []
+                            }
+                            onItemsChange={updateStartConditionComparisons}
+                            ComponentBetweenItems={() => (
+                              <div className="flex justify-center">
+                                <BasicSelect
+                                  value={
+                                    whatsAppSettings?.startCondition
+                                      ?.logicalOperator
+                                  }
+                                  onChange={updateStartConditionLogicalOperator}
+                                  items={Object.values(LogicalOperator)}
+                                />
+                              </div>
+                            )}
+                            addLabel="Add a comparison"
+                          >
+                            {(props) => <WhatsAppComparisonItem {...props} />}
+                          </TableList>
                         )}
-                        onCheckChange={updateIsStartConditionEnabled}
-                      >
-                        <TableList<Comparison>
-                          initialItems={
-                            whatsAppSettings?.startCondition?.comparisons ?? []
-                          }
-                          onItemsChange={updateStartConditionComparisons}
-                          ComponentBetweenItems={() => (
-                            <Flex justify="center">
-                              <BasicSelect
-                                value={
-                                  whatsAppSettings?.startCondition
-                                    ?.logicalOperator
-                                }
-                                onChange={updateStartConditionLogicalOperator}
-                                items={Object.values(LogicalOperator)}
-                              />
-                            </Flex>
-                          )}
-                          addLabel="Add a comparison"
-                        >
-                          {(props) => <WhatsAppComparisonItem {...props} />}
-                        </TableList>
-                      </SwitchWithRelatedSettings>
-                    </AccordionPanel>
-                  </AccordionItem>
-                </Accordion>
-              </ListItem>
+                      </Field.Container>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion.Root>
+              </li>
 
-              <ListItem>
-                <SwitchWithLabel
-                  isDisabled={!hasProPerks(workspace)}
-                  label="Enable WhatsApp integration"
-                  initialValue={typebot?.settings.whatsApp?.isEnabled ?? false}
-                  onCheckChange={toggleEnableWhatsApp}
-                  justifyContent="flex-start"
-                />
-              </ListItem>
-              <ListItem>
-                <HStack>
-                  <Text>Publish your bot:</Text>
+              <li>
+                <Field.Root className="flex-row items-center">
+                  <Switch
+                    checked={typebot?.settings.whatsApp?.isEnabled ?? false}
+                    disabled={!hasProPerks(workspace)}
+                    onCheckedChange={toggleEnableWhatsApp}
+                  />
+                  <Field.Label>Enable WhatsApp integration</Field.Label>
+                </Field.Root>
+              </li>
+              <li>
+                <div className="flex items-center gap-2">
+                  <p>Publish your bot:</p>
                   <PublishButton size="sm" isMoreMenuDisabled />
-                </HStack>
-              </ListItem>
+                </div>
+              </li>
               {phoneNumberData && (
-                <ListItem>
+                <li>
                   <TextLink
                     href={`https://wa.me/${phoneNumberData.name}?text=Start`}
                     isExternal
                   >
                     Try it out
                   </TextLink>
-                </ListItem>
+                </li>
               )}
             </>
           )}
-        </OrderedList>
+        </ol>
       </Dialog.Popup>
     </Dialog.Root>
   );

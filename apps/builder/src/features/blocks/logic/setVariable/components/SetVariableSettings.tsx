@@ -1,11 +1,3 @@
-import {
-  Alert,
-  AlertIcon,
-  FormLabel,
-  Stack,
-  Tag,
-  Text,
-} from "@chakra-ui/react";
 import { isInputBlock } from "@typebot.io/blocks-core/helpers";
 import {
   defaultSetVariableOptions,
@@ -17,15 +9,24 @@ import {
 import type { SetVariableBlock } from "@typebot.io/blocks-logic/setVariable/schema";
 import { timeZones } from "@typebot.io/lib/timeZones";
 import { isDefined } from "@typebot.io/lib/utils";
+import { Alert } from "@typebot.io/ui/components/Alert";
+import { Badge } from "@typebot.io/ui/components/Badge";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Label } from "@typebot.io/ui/components/Label";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Radio, RadioGroup } from "@typebot.io/ui/components/RadioGroup";
+import { Switch } from "@typebot.io/ui/components/Switch";
+import { InformationSquareIcon } from "@typebot.io/ui/icons/InformationSquareIcon";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { Textarea, TextInput } from "@/components/inputs";
+import type { JSX } from "react";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
-import { RadioButtons } from "@/components/inputs/RadioButtons";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { DebouncedTextareaWithVariablesButton } from "@/components/inputs/DebouncedTextarea";
+import { DebouncedTextInput } from "@/components/inputs/DebouncedTextInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import { WhatsAppLogo } from "@/components/logos/WhatsAppLogo";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
+import { UnsafeScriptAlert } from "../../script/components/UnsafeScriptAlert";
 
 type Props = {
   options: SetVariableBlock["options"];
@@ -76,23 +77,17 @@ export const SetVariableSettings = ({ options, onOptionsChange }: Props) => {
     );
 
   return (
-    <Stack spacing={4}>
-      <Stack>
-        <FormLabel mb="0" htmlFor="variable-search">
-          Search or create variable:
-        </FormLabel>
-        <VariableSearchInput
+    <div className="flex flex-col gap-4">
+      <Field.Root>
+        <Field.Label>Search or create variable:</Field.Label>
+        <VariablesCombobox
           onSelectVariable={updateVariableId}
           initialVariableId={options?.variableId}
-          id="variable-search"
         />
-      </Stack>
-
-      <Stack spacing="4">
-        <Stack>
-          <Text mb="0" fontWeight="medium">
-            Value:
-          </Text>
+      </Field.Root>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <p className="mb-0 font-medium">Value:</p>
           <BasicSelect
             value={options?.type ?? defaultSetVariableOptions.type}
             items={setVarTypes.map((type) => ({
@@ -104,20 +99,27 @@ export const SetVariableSettings = ({ options, onOptionsChange }: Props) => {
             }))}
             onChange={updateValueType}
           />
-        </Stack>
+        </div>
 
         {selectedVariable && !isSessionOnly && !isLinkedToAnswer && (
-          <SwitchWithLabel
-            key={selectedVariable.id}
-            label="Save in results"
-            moreInfoContent="By default, the variable is saved only for the user chat session. Check this option if you want to also store the variable in the typebot Results table."
-            initialValue={!selectedVariable.isSessionVariable}
-            onCheckChange={updateIsSessionVariable}
-          />
+          <Field.Root className="flex-row items-center">
+            <Switch
+              checked={!selectedVariable.isSessionVariable}
+              onCheckedChange={updateIsSessionVariable}
+            />
+            <Field.Label>
+              Save in results{" "}
+              <MoreInfoTooltip>
+                By default, the variable is saved only for the user chat
+                session. Check this option if you want to also store the
+                variable in the typebot Results table.
+              </MoreInfoTooltip>
+            </Field.Label>
+          </Field.Root>
         )}
         <SetVariableValue options={options} onOptionsChange={onOptionsChange} />
-      </Stack>
-    </Stack>
+      </div>
+    </div>
   );
 };
 
@@ -217,65 +219,84 @@ const SetVariableValue = ({
     });
   };
 
+  const updateIsUnsafe = () => onOptionsChange({ ...options, isUnsafe: false });
+
   switch (options?.type) {
     case "Custom":
     case undefined:
       return (
-        <>
-          <SwitchWithLabel
-            label="Execute on client"
-            moreInfoContent="Check this if you need access to client-only variables like `window` or `document`."
-            initialValue={
-              options?.isExecutedOnClient ??
-              defaultSetVariableOptions.isExecutedOnClient
+        <div className="flex flex-col gap-2">
+          <RadioGroup
+            onValueChange={(value) => updateIsCode(value as "Text" | "Code")}
+            defaultValue={
+              (options?.isCode ?? defaultSetVariableOptions.isCode)
+                ? "Code"
+                : "Text"
             }
-            onCheckChange={updateClientExecution}
-          />
-          <Stack>
-            <RadioButtons
-              size="sm"
-              options={["Text", "Code"]}
-              defaultValue={
-                (options?.isCode ?? defaultSetVariableOptions.isCode)
-                  ? "Code"
-                  : "Text"
-              }
-              onSelect={updateIsCode}
-            />
-            {options?.isCode ? (
-              <Stack>
-                <TextInput
-                  placeholder="Code description"
-                  defaultValue={options?.expressionDescription}
-                  onChange={updateExpressionDescription}
-                  withVariableButton={false}
+          >
+            <Label className="hover:bg-gray-2/50 rounded-md p-2 border flex-1 flex justify-center">
+              <Radio value="Text" className="hidden" />
+              Text
+            </Label>
+            <Label className="hover:bg-gray-2/50 rounded-md p-2 border flex-1 flex justify-center">
+              <Radio value="Code" className="hidden" />
+              Code
+            </Label>
+          </RadioGroup>
+          {options?.isCode ? (
+            <div className="flex flex-col gap-2">
+              <DebouncedTextInput
+                placeholder="Code description"
+                defaultValue={options?.expressionDescription}
+                onValueChange={updateExpressionDescription}
+              />
+              <CodeEditor
+                defaultValue={options?.expressionToEvaluate ?? ""}
+                onChange={updateExpression}
+                lang="javascript"
+                withLineNumbers={true}
+              />
+              <Field.Root className="flex-row items-center">
+                <Switch
+                  checked={
+                    options?.isExecutedOnClient ??
+                    defaultSetVariableOptions.isExecutedOnClient
+                  }
+                  onCheckedChange={updateClientExecution}
                 />
-                <CodeEditor
-                  defaultValue={options?.expressionToEvaluate ?? ""}
-                  onChange={updateExpression}
-                  lang="javascript"
-                  withLineNumbers={true}
-                />
-                <VariableSearchInput
-                  label="Save error"
+                <Field.Label>
+                  Execute on client{" "}
+                  <MoreInfoTooltip>
+                    Check this if you need access to client-only variables like
+                    `window` or `document`.
+                  </MoreInfoTooltip>
+                </Field.Label>
+              </Field.Root>
+              {options?.isUnsafe === true &&
+                options?.isExecutedOnClient === true &&
+                options.isCode && (
+                  <UnsafeScriptAlert onTrustClick={updateIsUnsafe} />
+                )}
+              <Field.Root>
+                <Field.Label>Save error</Field.Label>
+                <VariablesCombobox
                   initialVariableId={options.saveErrorInVariableId}
                   onSelectVariable={updateSaveErrorInVariableId}
                 />
-              </Stack>
-            ) : (
-              <Textarea
-                defaultValue={options?.expressionToEvaluate ?? ""}
-                onChange={updateExpression}
-                width="full"
-              />
-            )}
-          </Stack>
-        </>
+              </Field.Root>
+            </div>
+          ) : (
+            <DebouncedTextareaWithVariablesButton
+              defaultValue={options?.expressionToEvaluate ?? ""}
+              onValueChange={updateExpression}
+            />
+          )}
+        </div>
       );
     case "Pop":
     case "Shift":
       return (
-        <VariableSearchInput
+        <VariablesCombobox
           initialVariableId={options.saveItemInVariableId}
           onSelectVariable={updateListVariableId}
           placeholder={
@@ -285,61 +306,65 @@ const SetVariableValue = ({
       );
     case "Map item with same index": {
       return (
-        <Stack p="2" rounded="md" borderWidth={1}>
-          <VariableSearchInput
+        <div className="flex flex-col gap-2 p-2 rounded-md border">
+          <VariablesCombobox
             initialVariableId={options.mapListItemParams?.baseItemVariableId}
             onSelectVariable={updateItemVariableId}
             placeholder="Base item"
           />
-          <VariableSearchInput
+          <VariablesCombobox
             initialVariableId={options.mapListItemParams?.baseListVariableId}
             onSelectVariable={updateBaseListVariableId}
             placeholder="Base list"
           />
-          <VariableSearchInput
+          <VariablesCombobox
             initialVariableId={options.mapListItemParams?.targetListVariableId}
             onSelectVariable={updateTargetListVariableId}
             placeholder="Target list"
           />
-        </Stack>
+        </div>
       );
     }
     case "Append value(s)": {
-      return <Textarea defaultValue={options.item} onChange={updateItem} />;
+      return (
+        <DebouncedTextareaWithVariablesButton
+          defaultValue={options.item}
+          onValueChange={updateItem}
+        />
+      );
     }
     case "Moment of the day": {
       return (
-        <Alert fontSize="sm">
-          <AlertIcon />
-          <Text>
-            Will return either <Tag size="sm">morning</Tag>,{" "}
-            <Tag size="sm">afternoon</Tag>,<Tag size="sm">evening</Tag> or{" "}
-            <Tag size="sm">night</Tag> based on the current user time.
-          </Text>
-        </Alert>
+        <Alert.Root>
+          <InformationSquareIcon />
+          <Alert.Description>
+            Will return either <Badge>morning</Badge>, <Badge>afternoon</Badge>,
+            <Badge>evening</Badge> or <Badge>night</Badge> based on the current
+            user time.
+          </Alert.Description>
+        </Alert.Root>
       );
     }
 
     case "Environment name": {
       return (
-        <Alert fontSize="sm">
-          <AlertIcon />
-          <Text>
-            Will return either <Tag size="sm">web</Tag> or{" "}
-            <Tag size="sm">whatsapp</Tag>.
-          </Text>
-        </Alert>
+        <Alert.Root>
+          <InformationSquareIcon />
+          <Alert.Description>
+            Will return either <Badge>web</Badge> or <Badge>whatsapp</Badge>.
+          </Alert.Description>
+        </Alert.Root>
       );
     }
     case "Device type": {
       return (
-        <Alert fontSize="sm">
-          <AlertIcon />
-          <Text>
-            Will return either <Tag size="sm">desktop</Tag>,{" "}
-            <Tag size="sm">tablet</Tag> or <Tag size="sm">mobile</Tag>.
-          </Text>
-        </Alert>
+        <Alert.Root>
+          <InformationSquareIcon />
+          <Alert.Description>
+            Will return either <Badge>desktop</Badge>, <Badge>tablet</Badge> or{" "}
+            <Badge>mobile</Badge>.
+          </Alert.Description>
+        </Alert.Root>
       );
     }
     case "Now":

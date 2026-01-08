@@ -1,4 +1,3 @@
-import { Stack } from "@chakra-ui/react";
 import {
   chatCompletionResponseValues,
   defaultOpenAIResponseMappingItem,
@@ -6,7 +5,7 @@ import {
 import type { ChatCompletionOpenAIOptions } from "@typebot.io/blocks-integrations/openai/schema";
 import type { Variable } from "@typebot.io/variables/schemas";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import type { TableListItemProps } from "@/components/TableList";
 
 type Props = TableListItemProps<
@@ -26,17 +25,17 @@ export const ChatCompletionResponseItem = ({ item, onItemChange }: Props) => {
   };
 
   return (
-    <Stack p="4" rounded="md" flex="1" borderWidth="1px">
+    <div className="flex flex-col gap-2 p-4 rounded-md flex-1 border">
       <BasicSelect
         value={item.valueToExtract}
         defaultValue={defaultOpenAIResponseMappingItem.valueToExtract}
         items={chatCompletionResponseValues}
         onChange={changeValueToExtract}
       />
-      <VariableSearchInput
+      <VariablesCombobox
         onSelectVariable={changeVariableId}
         initialVariableId={item.variableId}
       />
-    </Stack>
+    </div>
   );
 };

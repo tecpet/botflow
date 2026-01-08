@@ -1,12 +1,12 @@
-import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultImageBubbleContent } from "@typebot.io/blocks-bubbles/image/constants";
 import type { ImageBubbleBlock } from "@typebot.io/blocks-bubbles/image/schema";
 import { isDefined, isNotEmpty } from "@typebot.io/lib/utils";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import { useState } from "react";
 import { ImageUploadContent } from "@/components/ImageUploadContent";
-import { TextInput } from "@/components/inputs";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import type { FilePathUploadProps } from "@/features/upload/api/generateUploadUrl";
 
 type Props = {
@@ -51,7 +51,7 @@ export const ImageBubbleSettings = ({
   };
 
   return (
-    <Stack spacing={4}>
+    <div className="flex flex-col gap-4">
       <ImageUploadContent
         uploadFileProps={uploadFileProps}
         defaultUrl={block.content?.url}
@@ -62,25 +62,29 @@ export const ImageBubbleSettings = ({
           icon: true,
         }}
       />
-      <Stack>
-        <SwitchWithLabel
-          label={t("editor.blocks.bubbles.image.switchWithLabel.onClick.label")}
-          initialValue={showClickLinkInput}
-          onCheckChange={toggleClickLink}
-        />
+      <div className="flex flex-col gap-2">
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={showClickLinkInput}
+            onCheckedChange={toggleClickLink}
+          />
+          <Field.Label>
+            {t("editor.blocks.bubbles.image.switchWithLabel.onClick.label")}
+          </Field.Label>
+        </Field.Root>
         {showClickLinkInput && (
           <>
-            <TextInput
+            <DebouncedTextInputWithVariablesButton
               autoFocus
               placeholder="https://example.com"
-              onChange={updateClickLinkUrl}
+              onValueChange={updateClickLinkUrl}
               defaultValue={block.content?.clickLink?.url}
             />
-            <TextInput
+            <DebouncedTextInputWithVariablesButton
               placeholder={t(
                 "editor.blocks.bubbles.image.switchWithLabel.onClick.placeholder",
               )}
-              onChange={updateClickLinkAltText}
+              onValueChange={updateClickLinkAltText}
               defaultValue={
                 block.content?.clickLink?.alt ??
                 defaultImageBubbleContent.clickLink.alt
@@ -88,7 +92,7 @@ export const ImageBubbleSettings = ({
             />
           </>
         )}
-      </Stack>
-    </Stack>
+      </div>
+    </div>
   );
 };

@@ -1,8 +1,10 @@
-import { Alert, Heading, HStack, Input, Stack, Text } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
+import { Alert } from "@typebot.io/ui/components/Alert";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Dialog } from "@typebot.io/ui/components/Dialog";
+import { Input } from "@typebot.io/ui/components/Input";
+import { InformationSquareIcon } from "@typebot.io/ui/icons/InformationSquareIcon";
 import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/queryClient";
 
@@ -58,7 +60,6 @@ export const CreateCustomDomainDialog = ({
       domain: hostnameDetails.domain,
       subdomain: hostnameDetails.subdomain,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputValue]);
 
   const onAddDomainClick = async () => {
@@ -68,81 +69,58 @@ export const CreateCustomDomainDialog = ({
   return (
     <Dialog.Root isOpen={isOpen} onClose={onClose}>
       <Dialog.Popup className="max-w-xl" initialFocus={inputRef}>
-        <Dialog.Title>
-          <Heading size="md">{t("customDomain.modal.heading")}</Heading>
-        </Dialog.Title>
+        <Dialog.Title>{t("customDomain.modal.heading")}</Dialog.Title>
         <Dialog.CloseButton />
-        <Stack>
+        <div className="flex flex-col gap-2">
           <Input
             ref={inputRef}
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onValueChange={setInputValue}
             placeholder="bot.my-domain.com"
           />
           {hostname.domain !== "" && (
             <>
-              <Text>{t("customDomain.modal.recordText")}</Text>
+              <p>{t("customDomain.modal.recordText")}</p>
               {hostname.subdomain ? (
-                <HStack
-                  bgColor="gray.700"
-                  color="white"
-                  rounded="md"
-                  p={4}
-                  spacing={8}
-                >
-                  <Stack>
-                    <Text fontWeight="bold">
-                      {t("customDomain.modal.type")}
-                    </Text>
-                    <Text>CNAME</Text>
-                  </Stack>
-                  <Stack>
-                    <Text fontWeight="bold">
-                      {t("customDomain.modal.name")}
-                    </Text>
-                    <Text>{hostname.subdomain}</Text>
-                  </Stack>
-                  <Stack>
-                    <Text fontWeight="bold">
-                      {t("customDomain.modal.value")}
-                    </Text>
-                    <Text>cname.vercel-dns.com</Text>
-                  </Stack>
-                </HStack>
+                <div className="flex items-center rounded-md p-4 gap-8 bg-gray-9 text-white">
+                  <div className="flex flex-col gap-2">
+                    <p className="font-bold">{t("customDomain.modal.type")}</p>
+                    <p>CNAME</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="font-bold">{t("customDomain.modal.name")}</p>
+                    <p>{hostname.subdomain}</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="font-bold">{t("customDomain.modal.value")}</p>
+                    <p>cname.vercel-dns.com</p>
+                  </div>
+                </div>
               ) : (
-                <HStack
-                  bgColor="gray.700"
-                  color="white"
-                  rounded="md"
-                  p={4}
-                  spacing={8}
-                >
-                  <Stack>
-                    <Text fontWeight="bold">
-                      {t("customDomain.modal.type")}
-                    </Text>
-                    <Text>A</Text>
-                  </Stack>
-                  <Stack>
-                    <Text fontWeight="bold">
-                      {t("customDomain.modal.name")}
-                    </Text>
-                    <Text>@</Text>
-                  </Stack>
-                  <Stack>
-                    <Text fontWeight="bold">
-                      {t("customDomain.modal.value")}
-                    </Text>
-                    <Text>76.76.21.21</Text>
-                  </Stack>
-                </HStack>
+                <div className="flex items-center rounded-md p-4 gap-8 bg-gray-9 text-white">
+                  <div className="flex flex-col gap-2">
+                    <p className="font-bold">{t("customDomain.modal.type")}</p>
+                    <p>A</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="font-bold">{t("customDomain.modal.name")}</p>
+                    <p>@</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="font-bold">{t("customDomain.modal.value")}</p>
+                    <p>76.76.21.21</p>
+                  </div>
+                </div>
               )}
-              <Alert rounded="md">
-                {t("customDomain.modal.warningMessage")}
-              </Alert>
+              <Alert.Root>
+                <InformationSquareIcon />
+                <Alert.Description>
+                  {t("customDomain.modal.warningMessage")}
+                </Alert.Description>
+              </Alert.Root>
             </>
           )}
-        </Stack>
+        </div>
         <Dialog.Footer>
           <Button
             onClick={onAddDomainClick}

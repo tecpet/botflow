@@ -1,15 +1,15 @@
-import { Box, Center, Input, SimpleGrid, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import {
   type ButtonProps,
   buttonVariants,
 } from "@typebot.io/ui/components/Button";
+import { Input } from "@typebot.io/ui/components/Input";
 import { Popover } from "@typebot.io/ui/components/Popover";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import type React from "react";
 import { useId, useState } from "react";
 import tinyColor from "tinycolor2";
 import { useDebouncedCallback } from "use-debounce";
-import { useOpenControls } from "@/hooks/useOpenControls";
 
 const colorsSelection: `#${string}`[] = [
   "#666460",
@@ -60,10 +60,13 @@ export const ColorPicker = ({
         aria-label={t("colorPicker.pickColor.ariaLabel")}
         variant="secondary"
         size="icon"
-        className="min-w-0 rounded-md border-1"
+        className="min-w-0 rounded-md border"
         disabled={isDisabled}
       >
-        <Box rounded="full" boxSize="14px" bgColor={displayedValue} />
+        <div
+          className="rounded-full size-[14px]"
+          style={{ backgroundColor: displayedValue }}
+        />
       </Popover.TriggerButton>
       <Popover.Popup className="p-0 max-w-48" side={side}>
         <div
@@ -73,10 +76,12 @@ export const ColorPicker = ({
             color: tinyColor(displayedValue).isLight() ? "gray.900" : "white",
           }}
         >
-          <Center height="100%">{displayedValue}</Center>
+          <div className="flex items-center justify-center h-full">
+            {displayedValue}
+          </div>
         </div>
-        <Stack p="2">
-          <SimpleGrid columns={5} spacing={2}>
+        <div className="flex flex-col gap-2 p-2">
+          <div className="grid gap-2 grid-cols-[repeat(5,1fr)]">
             {colorsSelection.map((color) => (
               <button
                 key={color}
@@ -87,19 +92,18 @@ export const ColorPicker = ({
                     "--border-width": color === "#FFFFFF" ? "1px" : "0px",
                   } as React.CSSProperties
                 }
-                className="h-5 w-5 p-0 min-w-0 rounded-md border-[length:var(--border-width)] bg-[var(--bg)] hover:bg-[var(--bg)]"
+                className="h-5 w-5 p-0 min-w-0 rounded-md border-(length:--border-width) bg-(--bg) hover:bg-(--bg)"
                 onClick={handleClick(color)}
               />
             ))}
-          </SimpleGrid>
+          </div>
           <Input
-            borderRadius={3}
-            marginTop={3}
+            className="rounded-sm mt-3"
             placeholder="#2a9d8f"
             aria-label={t("colorPicker.colorValue.ariaLabel")}
             size="sm"
             value={displayedValue}
-            onChange={(e) => handleColorChange(e.target.value)}
+            onValueChange={handleColorChange}
           />
           <NativeColorPicker
             size="sm"
@@ -108,7 +112,7 @@ export const ColorPicker = ({
           >
             {t("colorPicker.advancedColors")}
           </NativeColorPicker>
-        </Stack>
+        </div>
       </Popover.Popup>
     </Popover.Root>
   );
@@ -134,9 +138,9 @@ const NativeColorPicker = ({
       <label htmlFor={inputId} className={buttonVariants({ variant, size })}>
         {props.children}
       </label>
-      <Input
+      <input
         type="color"
-        display="none"
+        className="hidden"
         id={inputId}
         value={color}
         onChange={(e) => debouncedOnColorChange(e.target.value)}

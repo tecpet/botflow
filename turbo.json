@@ -6,7 +6,11 @@
   "envMode": "loose",
   "tasks": {
     "typecheck": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["@typebot.io/react#build"]
+    },
+    "@typebot.io/react#build": {
+      "dependsOn": ["^build"]
     },
     "dev": {
       "cache": false,
@@ -33,7 +37,7 @@
       "outputLogs": "new-only"
     },
     "api:generate": {
-      "dependsOn": ["bot-engine#build", "@typebot.io/prisma#db:generate"],
+      "dependsOn": ["@typebot.io/prisma#db:generate"],
       "cache": false
     },
     "db:generate": {

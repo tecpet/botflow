@@ -78,6 +78,7 @@ export const executeSetVariable = async (
             scriptToExecute: {
               ...scriptToExecute,
               isCode,
+              isUnsafe: block.options.isUnsafe,
             },
           },
           expectsDedicatedReply: true,
@@ -404,7 +405,7 @@ type ParsedTranscriptProps = {
   answers: Pick<Answer, "blockId" | "content" | "attachedFileUrls">[];
   setVariableHistory: Pick<
     SetVariableHistoryItem,
-    "blockId" | "variableId" | "value"
+    "blockId" | "variableId" | "value" | "blockIndex"
   >[];
   visitedEdges: string[];
 };
@@ -486,6 +487,7 @@ const parseResultTranscriptProps = async (
       setVariableHistory: {
         select: {
           blockId: true,
+          blockIndex: true,
           variableId: true,
           index: true,
           value: true,

@@ -1,22 +1,12 @@
-import {
-  Flex,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Input,
-  InputGroup,
-  InputRightElement,
-  Stack,
-  Text,
-  useDisclosure,
-} from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { Button } from "@typebot.io/ui/components/Button";
+import { Field } from "@typebot.io/ui/components/Field";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import { HardDriveIcon } from "@typebot.io/ui/icons/HardDriveIcon";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { CopyButton } from "@/components/CopyButton";
 import { EditableEmojiOrImageIcon } from "@/components/EditableEmojiOrImageIcon";
-import { HardDriveIcon } from "@/components/icons";
-import { TextInput } from "@/components/inputs";
+import { CopyInput } from "@/components/inputs/CopyInput";
+import { DebouncedTextInput } from "@/components/inputs/DebouncedTextInput";
 import { useWorkspace } from "../WorkspaceProvider";
 
 export const WorkspaceSettingsForm = ({ onClose }: { onClose: () => void }) => {
@@ -37,49 +27,38 @@ export const WorkspaceSettingsForm = ({ onClose }: { onClose: () => void }) => {
   };
 
   return (
-    <Stack spacing="6" w="full">
-      <FormControl>
-        <FormLabel>{t("workspace.settings.icon.title")}</FormLabel>
-        <Flex>
-          {workspace && (
-            <EditableEmojiOrImageIcon
-              uploadFileProps={{
-                workspaceId: workspace.id,
-                fileName: "icon",
-              }}
-              icon={workspace.icon}
-              onChangeIcon={handleChangeIcon}
-              size="lg"
-              defaultIcon={HardDriveIcon}
-            />
-          )}
-        </Flex>
-      </FormControl>
+    <div className="flex flex-col gap-6 w-full">
+      <Field.Root>
+        <Field.Label>{t("workspace.settings.icon.title")}</Field.Label>
+        {workspace && (
+          <EditableEmojiOrImageIcon
+            uploadFileProps={{
+              workspaceId: workspace.id,
+              fileName: "icon",
+            }}
+            icon={workspace.icon}
+            onChangeIcon={handleChangeIcon}
+            size="lg"
+            defaultIcon={HardDriveIcon}
+          />
+        )}
+      </Field.Root>
       {workspace && (
         <>
-          <TextInput
-            label={t("workspace.settings.name.label")}
-            withVariableButton={false}
-            defaultValue={workspace?.name}
-            onChange={handleNameChange}
-          />
-          <FormControl>
-            <FormLabel>ID:</FormLabel>
-            <InputGroup>
-              <Input
-                type={"text"}
-                defaultValue={workspace.id}
-                pr="16"
-                readOnly
-              />
-              <InputRightElement width="72px">
-                <CopyButton textToCopy={workspace.id} />
-              </InputRightElement>
-            </InputGroup>
-            <FormHelperText>
+          <Field.Root>
+            <Field.Label>{t("workspace.settings.name.label")}</Field.Label>
+            <DebouncedTextInput
+              defaultValue={workspace?.name}
+              onValueChange={handleNameChange}
+            />
+          </Field.Root>
+          <Field.Root>
+            <Field.Label>ID:</Field.Label>
+            <CopyInput value={workspace.id} />
+            <Field.Description>
               {t("workspace.settings.id.helperText")}
-            </FormHelperText>
-          </FormControl>
+            </Field.Description>
+          </Field.Root>
         </>
       )}
       {workspace && workspaces && workspaces.length > 1 && (
@@ -88,7 +67,7 @@ export const WorkspaceSettingsForm = ({ onClose }: { onClose: () => void }) => {
           workspaceName={workspace?.name}
         />
       )}
-    </Stack>
+    </div>
   );
 };
 
@@ -100,7 +79,7 @@ const DeleteWorkspaceButton = ({
   onConfirm: () => Promise<void>;
 }) => {
   const { t } = useTranslate();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useOpenControls();
   return (
     <>
       <Button variant="destructive" onClick={onOpen}>
@@ -112,11 +91,11 @@ const DeleteWorkspaceButton = ({
         onClose={onClose}
         confirmButtonLabel="Delete"
       >
-        <Text>
+        <p>
           {t("workspace.settings.deleteButton.confirmMessage", {
             workspaceName,
           })}
-        </Text>
+        </p>
       </ConfirmDialog>
     </>
   );

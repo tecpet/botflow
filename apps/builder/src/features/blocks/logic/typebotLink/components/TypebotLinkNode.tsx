@@ -1,9 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import { Tag, Text, Wrap } from "@chakra-ui/react";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { trpc } from "@/lib/queryClient";
-import { useQuery } from "@tanstack/react-query";
 import type { TypebotLinkBlock } from "@typebot.io/blocks-logic/typebotLink/schema";
 import { byId, isNotEmpty } from "@typebot.io/lib/utils";
+import { Badge } from "@typebot.io/ui/components/Badge";
 import { isSingleVariable } from "@typebot.io/variables/isSingleVariable";
 import { useMemo } from "react";
 
@@ -43,8 +44,7 @@ export const TypebotLinkNode = ({ block }: Props) => {
     (variable) => variable.id === block.options?.variableId,
   )?.name;
 
-  if (!block.options?.variableId && block.options?.fluxByVariable)
-    return <Text color="gray.500">Configure...</Text>;
+  if (!block.options?.variableId && block.options?.fluxByVariable) return <Badge>Configure...</Badge>;
 
   if (block.options?.variableId)
     return (
@@ -52,11 +52,7 @@ export const TypebotLinkNode = ({ block }: Props) => {
         Ir para{" "}
         {dynamicVariableName ? (
           <>
-            <Wrap spacing={1}>
-              <Tag bg="orange.400" color="white">
-                {dynamicVariableName}
-              </Tag>
-            </Wrap>
+            to <Badge colorScheme="purple">{dynamicVariableName}</Badge>
           </>
         ) : (
           <></>
@@ -64,22 +60,21 @@ export const TypebotLinkNode = ({ block }: Props) => {
       </Text>
     );
 
-  if (!groupTitle && !block.options?.fluxByVariable)
-    return <Text color="gray.500">Configure...</Text>;
+  if (!block.options?.typebotId) return <Badge>Configure...</Badge>;
 
   return (
-    <Text>
+    <p>
       Ir para{" "}
       {groupTitle ? (
         <>
-          to <Tag colorScheme="purple">{groupTitle}</Tag>
+          to <Badge colorScheme="purple">{groupTitle}</Badge>
         </>
       ) : null}{" "}
       {!isCurrentTypebot ? (
         <>
-          in <Tag>{linkedTypebot?.name}</Tag>
+          in <Badge>{linkedTypebot?.name}</Badge>
         </>
       ) : null}
-    </Text>
+    </p>
   );
 };

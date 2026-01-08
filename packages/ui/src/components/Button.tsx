@@ -1,11 +1,12 @@
+import { mergeProps, useRender } from "@base-ui-components/react";
 import * as React from "react";
 import { cn } from "../lib/cn";
 import { cva, cx, type VariantProps } from "../lib/cva";
 
 const buttonVariants = cva(
   cx(
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors cursor-pointer select-none flex-shrink-0",
-    "focus-visible:ring-2 focus-visible:ring-orange-8 outline-none",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors cursor-pointer select-none shrink-0",
+    "focus-visible:ring-2 focus-visible:ring-orange-8 outline-hidden",
     // We don't use `disabled:` so that the styling works with custom asChild elements
     "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
   ),
@@ -15,7 +16,7 @@ const buttonVariants = cva(
         default:
           "bg-orange-9 hover:bg-orange-10 active:bg-orange-11 text-gray-1 dark:text-gray-12",
         secondary: "bg-gray-3 hover:bg-gray-4 active:bg-gray-5",
-        outline: "bg-transparent border border-orange-8 text-orange-11",
+        outline: "bg-transparent border hover:bg-gray-2 active:bg-gray-3",
         "outline-secondary":
           "bg-transparent border border-gray-7 text-gray-12 hover:bg-gray-2 active:bg-gray-4",
         ghost:
@@ -40,24 +41,40 @@ const buttonVariants = cva(
       size: "default",
       iconStyle: "auto",
     },
+    compoundVariants: [
+      {
+        size: "xs",
+        iconStyle: "auto",
+        class: "[&_svg]:size-3",
+      },
+    ],
   },
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends useRender.ComponentProps<"button">,
     VariantProps<typeof buttonVariants> {}
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, iconStyle, ...props }, ref) => {
-    return (
-      <button
-        {...props}
-        ref={ref}
-        className={cn(buttonVariants({ variant, size, iconStyle }), className)}
-        data-disabled={props.disabled}
-      />
-    );
+  ({ className, variant, size, iconStyle, render, ...props }, ref) => {
+    const typeValue: React.ButtonHTMLAttributes<HTMLButtonElement>["type"] =
+      render ? undefined : "button";
+
+    const defaultProps = {
+      "data-slot": "button",
+      "data-disabled": props.disabled,
+      className: cn(buttonVariants({ variant, size, iconStyle, className })),
+      type: typeValue,
+    };
+
+    return useRender({
+      ref,
+      defaultTagName: "button",
+      render,
+      props: mergeProps<"button">(defaultProps, props),
+    });
   },
 );
+Button.displayName = "Button";
 
 export { Button, buttonVariants };

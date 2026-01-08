@@ -1,10 +1,10 @@
-import { FormControl, FormLabel, Stack, Text } from "@chakra-ui/react";
 import { openAIVoices } from "@typebot.io/blocks-integrations/openai/constants";
 import type { CreateSpeechOpenAIOptions } from "@typebot.io/blocks-integrations/openai/schema";
+import { Field } from "@typebot.io/ui/components/Field";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { Textarea } from "@/components/inputs";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { DebouncedTextareaWithVariablesButton } from "@/components/inputs/DebouncedTextarea";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import { TextLink } from "@/components/TextLink";
 import { ModelsDropdown } from "../ModelsDropdown";
 
@@ -51,14 +51,14 @@ export const OpenAICreateSpeechSettings = ({
   };
 
   return (
-    <Stack spacing={4} pt="2">
-      <Text fontSize="sm" color="gray.500">
+    <div className="flex flex-col gap-4 pt-2">
+      <p className="text-sm" color="gray.500">
         Read the{" "}
         <TextLink href={apiReferenceUrl} isExternal>
           API reference
         </TextLink>{" "}
         to better understand the available options.
-      </Text>
+      </p>
       {options.credentialsId && (
         <>
           <ModelsDropdown
@@ -69,13 +69,20 @@ export const OpenAICreateSpeechSettings = ({
             type="tts"
             onChange={updateModel}
           />
-          <Textarea
-            defaultValue={options.input}
-            onChange={updateInput}
-            label="Input:"
-          />
-          <FormControl>
-            <FormLabel>Voice:</FormLabel>
+          <Field.Root>
+            <Field.Label>Input:</Field.Label>
+            <Field.Control
+              render={(props) => (
+                <DebouncedTextareaWithVariablesButton
+                  {...props}
+                  defaultValue={options.input}
+                  onValueChange={updateInput}
+                />
+              )}
+            />
+          </Field.Root>
+          <Field.Root>
+            <Field.Label>Voice:</Field.Label>
             <BasicSelect
               value={options.voice}
               onChange={updateVoice}
@@ -83,16 +90,16 @@ export const OpenAICreateSpeechSettings = ({
               placeholder="Select a voice"
               className="w-full"
             />
-          </FormControl>
-          <FormControl>
-            <FormLabel>Save URL:</FormLabel>
-            <VariableSearchInput
+          </Field.Root>
+          <Field.Root>
+            <Field.Label>Save URL:</Field.Label>
+            <VariablesCombobox
               initialVariableId={options.saveUrlInVariableId}
               onSelectVariable={updateSaveUrlInVariableId}
             />
-          </FormControl>
+          </Field.Root>
         </>
       )}
-    </Stack>
+    </div>
   );
 };

@@ -1,20 +1,12 @@
-import {
-  Box,
-  chakra,
-  Flex,
-  Heading,
-  HStack,
-  Image,
-  Stack,
-  Switch,
-} from "@chakra-ui/react";
 import { isSvgSrc } from "@typebot.io/lib/utils";
 import type { AvatarProps } from "@typebot.io/theme/schemas";
+import { Field } from "@typebot.io/ui/components/Field";
 import { Popover } from "@typebot.io/ui/components/Popover";
+import { Switch } from "@typebot.io/ui/components/Switch";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import React from "react";
 import { ImageUploadContent } from "@/components/ImageUploadContent";
 import type { FilePathUploadProps } from "@/features/upload/api/generateUploadUrl";
-import { useOpenControls } from "@/hooks/useOpenControls";
 import { DefaultAvatar } from "../DefaultAvatar";
 
 type Props = {
@@ -42,55 +34,45 @@ export const AvatarForm = ({
 
   const isDefaultAvatar = !avatarProps?.url || avatarProps.url.includes("{{");
   return (
-    <Stack borderWidth={1} rounded="md" p="4" spacing={4}>
-      <Flex justifyContent="space-between">
-        <HStack>
-          <Heading as="label" fontSize="lg" htmlFor={title} mb="1">
+    <div className="flex flex-col border rounded-md p-4 gap-4">
+      <div className="flex justify-between">
+        <Field.Root className="flex-row items-center">
+          <Field.Label className="font-medium font-heading text-lg">
             {title}
-          </Heading>
-          <Switch isChecked={isChecked} id={title} onChange={handleOnCheck} />
-        </HStack>
+          </Field.Label>
+          <Switch
+            checked={isChecked}
+            id={title}
+            onCheckedChange={handleOnCheck}
+          />
+        </Field.Root>
         {isChecked && (
-          <Flex ref={popoverContainerRef}>
+          <div className="flex" ref={popoverContainerRef}>
             <Popover.Root {...controls}>
               <Popover.Trigger>
                 {isDefaultAvatar ? (
-                  <Box>
+                  <div>
                     <DefaultAvatar
                       cursor="pointer"
-                      _hover={{ filter: "brightness(.9)" }}
+                      className="hover:brightness-90"
                     />
-                  </Box>
+                  </div>
                 ) : isSvgSrc(avatarProps?.url) ? (
-                  <Image
+                  <img
                     src={avatarProps.url}
                     alt="Website image"
-                    cursor="pointer"
-                    _hover={{ filter: "brightness(.9)" }}
-                    transition="filter 200ms"
-                    boxSize="40px"
+                    className="cursor-pointer transition-filter duration-200 rounded-md hover:brightness-90 size-10"
                   />
                 ) : avatarProps?.url?.startsWith("http") ? (
-                  <Image
+                  <img
                     src={avatarProps.url}
                     alt="Website image"
-                    cursor="pointer"
-                    _hover={{ filter: "brightness(.9)" }}
-                    transition="filter 200ms"
-                    rounded="full"
-                    boxSize="40px"
-                    objectFit="cover"
+                    className="cursor-pointer transition-filter duration-200 rounded-md hover:brightness-90 size-10 object-cover"
                   />
                 ) : (
-                  <chakra.span
-                    fontSize="40px"
-                    lineHeight="1"
-                    cursor="pointer"
-                    _hover={{ filter: "brightness(.9)" }}
-                    transition="filter 200ms"
-                  >
+                  <span className="text-4xl leading-none cursor-pointer transition-filter hover:brightness-90">
                     {avatarProps?.url}
-                  </chakra.span>
+                  </span>
                 )}
               </Popover.Trigger>
               <Popover.Popup className="w-[500px]">
@@ -108,9 +90,9 @@ export const AvatarForm = ({
                 />
               </Popover.Popup>
             </Popover.Root>
-          </Flex>
+          </div>
         )}
-      </Flex>
-    </Stack>
+      </div>
+    </div>
   );
 };

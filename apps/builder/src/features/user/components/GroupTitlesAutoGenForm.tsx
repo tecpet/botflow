@@ -1,4 +1,3 @@
-import { HStack, Stack } from "@chakra-ui/react";
 import type { BlockV6 } from "@typebot.io/blocks-core/schemas/schema";
 import type { Credentials } from "@typebot.io/credentials/schemas";
 import { forgedBlocks } from "@typebot.io/forge-repository/definitions";
@@ -7,13 +6,13 @@ import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { defaultGroupTitleGenPrompt } from "@typebot.io/user/constants";
 import type { GroupTitlesAutoGeneration } from "@typebot.io/user/schemas";
 import { useState } from "react";
-import { Textarea } from "@/components/inputs";
+import { BasicAutocompleteInput } from "@/components/inputs/BasicAutocompleteInput";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { DebouncedTextarea } from "@/components/inputs/DebouncedTextarea";
 import { CredentialsCreateDialog } from "@/features/credentials/components/CredentialsCreateDialog";
 import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
 import { BlockIcon } from "@/features/editor/components/BlockIcon";
 import { BlockLabel } from "@/features/editor/components/BlockLabel";
-import { AutocompleteInput } from "@/features/forge/components/ForgeAutocompleteInput";
 import { ForgeSelectInput } from "@/features/forge/components/ForgeSelectInput";
 import { useForgedBlock } from "@/features/forge/hooks/useForgedBlock";
 
@@ -51,9 +50,9 @@ export const GroupTitlesAutoGenForm = ({
   };
 
   return (
-    <Stack>
-      <HStack>
-        <HStack>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <Field.Root className="flex-row items-center">
             <Field.Label>Provider:</Field.Label>
             <BasicSelect
@@ -73,7 +72,7 @@ export const GroupTitlesAutoGenForm = ({
               onChange={updateProvider}
             />
           </Field.Root>
-        </HStack>
+        </div>
         {provider && (
           <CredentialsDropdown
             scope={{ type: "user", userId }}
@@ -88,7 +87,7 @@ export const GroupTitlesAutoGenForm = ({
           />
         )}
         {blockDef && credentialsId && actionDef?.aiGenerate && (
-          <HStack>
+          <div className="flex items-center gap-0">
             {actionDef.aiGenerate.models.type === "dynamic" ? (
               <ForgeSelectInput
                 defaultValue={model}
@@ -105,7 +104,7 @@ export const GroupTitlesAutoGenForm = ({
                 }}
               />
             ) : (
-              <AutocompleteInput
+              <BasicAutocompleteInput
                 items={actionDef.aiGenerate.models.items}
                 defaultValue={model}
                 onChange={(value) => {
@@ -118,19 +117,25 @@ export const GroupTitlesAutoGenForm = ({
             <MoreInfoTooltip>
               We recommend choosing a small model for this feature
             </MoreInfoTooltip>
-          </HStack>
+          </div>
         )}
-      </HStack>
-      <Textarea
-        label="Prompt:"
-        withVariableButton={false}
-        defaultValue={prompt ?? defaultGroupTitleGenPrompt}
-        onChange={(value) => {
-          onChange({
-            prompt: value,
-          });
-        }}
-      />
+      </div>
+      <Field.Root>
+        <Field.Label>Prompt:</Field.Label>
+        <Field.Control
+          render={(props) => (
+            <DebouncedTextarea
+              {...props}
+              defaultValue={prompt ?? defaultGroupTitleGenPrompt}
+              onValueChange={(value) => {
+                onChange({
+                  prompt: value,
+                });
+              }}
+            />
+          )}
+        />
+      </Field.Root>
       <CredentialsCreateDialog
         type={credsCreatingType as Credentials["type"]}
         scope="user"
@@ -140,6 +145,6 @@ export const GroupTitlesAutoGenForm = ({
         }}
         onSubmit={updateCredentialsId}
       />
-    </Stack>
+    </div>
   );
 };

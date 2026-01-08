@@ -1,16 +1,15 @@
-import { chakra } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import {
   type ButtonProps,
   buttonVariants,
 } from "@typebot.io/ui/components/Button";
+import { Upload01Icon } from "@typebot.io/ui/icons/Upload01Icon";
 import type { ChangeEvent } from "react";
 import { useId, useState } from "react";
 import type { FilePathUploadProps } from "@/features/upload/api/generateUploadUrl";
 import { compressFile } from "@/helpers/compressFile";
 import { trpc } from "@/lib/queryClient";
 import { toast } from "@/lib/toast";
-import { UploadIcon } from "../icons";
 
 type UploadButtonProps = {
   fileType: "image" | "audio";
@@ -76,11 +75,11 @@ export const UploadButton = ({
 
   return (
     <>
-      <chakra.input
+      <input
         data-testid="file-upload-input"
         type="file"
         id={`file-input-${id}`}
-        display="none"
+        className="hidden"
         onChange={handleInputChange}
         accept={fileType === "image" ? "image/avif, image/*" : "audio/*"}
       />
@@ -89,7 +88,7 @@ export const UploadButton = ({
         className={buttonVariants({ variant, size })}
         data-disabled={isUploading}
       >
-        <UploadIcon />
+        <Upload01Icon />
         {children}
       </label>
     </>

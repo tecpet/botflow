@@ -1,14 +1,14 @@
-import { FormControl, FormLabel, HStack, Stack } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import { taxIdTypes } from "@typebot.io/billing/taxIdTypes";
 import { isDefined } from "@typebot.io/lib/utils";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Dialog } from "@typebot.io/ui/components/Dialog";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Input } from "@typebot.io/ui/components/Input";
 import { useRouter } from "next/router";
 import type { FormEvent } from "react";
 import React, { useState } from "react";
-import { TextInput } from "@/components/inputs";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { trpc } from "@/lib/queryClient";
 
@@ -55,7 +55,7 @@ export const PreCheckoutDialog = ({
     company: existingCompany ?? "",
     email: existingEmail ?? "",
     vat: {
-      type: undefined as (typeof vatCodeLabels)[number]["value"] | undefined,
+      code: undefined as (typeof vatCodeLabels)[number]["value"] | undefined,
       value: "",
     },
   });
@@ -69,12 +69,12 @@ export const PreCheckoutDialog = ({
     setCustomer((customer) => ({ ...customer, email }));
   };
 
-  const updateVatType = (vatCode?: (typeof vatCodeLabels)[number]["value"]) => {
+  const updateVatCode = (vatCode?: (typeof vatCodeLabels)[number]["value"]) => {
     setCustomer((customer) => ({
       ...customer,
       vat: {
         ...customer.vat,
-        type: vatCode,
+        code: vatCode,
       },
     }));
     const vatPlaceholder = taxIdTypes.find(
@@ -98,59 +98,61 @@ export const PreCheckoutDialog = ({
     e.preventDefault();
     if (!selectedSubscription) return;
     const { email, company, vat } = customer;
+    const vatType = taxIdTypes.find(
+      (taxIdType) => taxIdType.code === vat.code,
+    )?.type;
     createCheckoutSession({
       ...selectedSubscription,
       email,
       company,
       returnUrl: window.location.href,
       vat:
-        vat.value && vat.type
-          ? { type: vat.type, value: vat.value }
-          : undefined,
+        vatType && vat.value ? { type: vatType, value: vat.value } : undefined,
     });
   };
 
   return (
     <Dialog.Root isOpen={isDefined(selectedSubscription)} onClose={onClose}>
       <Dialog.Popup render={<form onSubmit={goToCheckout} />}>
-        <Stack spacing="4">
-          <TextInput
-            isRequired
-            label={t("billing.preCheckoutModal.companyInput.label")}
-            defaultValue={customer.company}
-            onChange={updateCustomerCompany}
-            withVariableButton={false}
-            debounceTimeout={0}
-          />
-          <TextInput
-            isRequired
-            type="email"
-            label={t("billing.preCheckoutModal.emailInput.label")}
-            defaultValue={customer.email}
-            onChange={updateCustomerEmail}
-            withVariableButton={false}
-            debounceTimeout={0}
-          />
-          <FormControl>
-            <FormLabel>{t("billing.preCheckoutModal.taxId.label")}</FormLabel>
-            <HStack>
+        <div className="flex flex-col gap-4">
+          <Field.Root>
+            <Field.Label>
+              {t("billing.preCheckoutModal.companyInput.label")}
+            </Field.Label>
+            <Input
+              defaultValue={customer.company}
+              onValueChange={updateCustomerCompany}
+            />
+          </Field.Root>
+          <Field.Root>
+            <Field.Label>
+              {t("billing.preCheckoutModal.emailInput.label")}
+            </Field.Label>
+            <Input
+              type="email"
+              defaultValue={customer.email}
+              onValueChange={updateCustomerEmail}
+            />
+          </Field.Root>
+          <Field.Root>
+            <Field.Label>
+              {t("billing.preCheckoutModal.taxId.label")}
+            </Field.Label>
+            <div className="flex items-center gap-2">
               <BasicSelect
                 placeholder={t("billing.preCheckoutModal.taxId.placeholder")}
-                value={customer.vat.type}
+                value={customer.vat.code}
                 items={vatCodeLabels}
-                onChange={updateVatType}
+                onChange={updateVatCode}
               />
-              <TextInput
+              <Input
                 ref={vatValueInputRef}
-                onChange={updateVatValue}
-                withVariableButton={false}
-                debounceTimeout={0}
+                onValueChange={updateVatValue}
                 placeholder={vatValuePlaceholder}
-                flexShrink={0}
-                className="flex-1"
+                className="flex-1 shrink-0"
               />
-            </HStack>
-          </FormControl>
+            </div>
+          </Field.Root>
 
           <Button
             type="submit"
@@ -162,7 +164,7 @@ export const PreCheckoutDialog = ({
           >
             {t("billing.preCheckoutModal.submitButton.label")}
           </Button>
-        </Stack>
+        </div>
       </Dialog.Popup>
     </Dialog.Root>
   );

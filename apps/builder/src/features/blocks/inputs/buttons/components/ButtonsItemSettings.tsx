@@ -1,10 +1,11 @@
-import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import type { ButtonItem } from "@typebot.io/blocks-inputs/choice/schema";
 import { LogicalOperator } from "@typebot.io/conditions/constants";
 import type { Condition } from "@typebot.io/conditions/schemas";
-import { TextInput } from "@/components/inputs";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
+import { Field } from "@typebot.io/ui/components/Field";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { ConditionForm } from "@/features/blocks/logic/condition/components/ConditionForm";
 
 type Props = {
@@ -40,33 +41,46 @@ export const ButtonsItemSettings = ({ item, onSettingsChange }: Props) => {
     });
 
   return (
-    <Stack spacing={4}>
-      <SwitchWithRelatedSettings
-        label={t("blocks.inputs.settings.displayCondition.label")}
-        moreInfoContent={t(
-          "blocks.inputs.button.buttonSettings.displayCondition.infoText.label",
-        )}
-        initialValue={item.displayCondition?.isEnabled ?? false}
-        onCheckChange={updateIsDisplayConditionEnabled}
-      >
-        <ConditionForm
-          condition={
-            item.displayCondition?.condition ?? {
-              comparisons: [],
-              logicalOperator: LogicalOperator.AND,
+    <div className="flex flex-col gap-4">
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={item.displayCondition?.isEnabled ?? false}
+            onCheckedChange={updateIsDisplayConditionEnabled}
+          />
+          <Field.Label>
+            {t("blocks.inputs.settings.displayCondition.label")}
+            <MoreInfoTooltip>
+              {t(
+                "blocks.inputs.button.buttonSettings.displayCondition.infoText.label",
+              )}
+            </MoreInfoTooltip>
+          </Field.Label>
+        </Field.Root>
+        {(item.displayCondition?.isEnabled ?? false) && (
+          <ConditionForm
+            condition={
+              item.displayCondition?.condition ?? {
+                comparisons: [],
+                logicalOperator: LogicalOperator.AND,
+              }
             }
-          }
-          onConditionChange={updateDisplayCondition}
-        />
-      </SwitchWithRelatedSettings>
-      <TextInput
-        label={t("blocks.inputs.internalValue.label")}
-        moreInfoTooltip={t(
-          "blocks.inputs.button.buttonSettings.internalValue.helperText",
+            onConditionChange={updateDisplayCondition}
+          />
         )}
-        defaultValue={item.value}
-        onChange={updateButtonValue}
-      />
-    </Stack>
+      </Field.Container>
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.internalValue.label")}
+          <MoreInfoTooltip>
+            {t("blocks.inputs.button.buttonSettings.internalValue.helperText")}
+          </MoreInfoTooltip>
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={item.value}
+          onValueChange={updateButtonValue}
+        />
+      </Field.Root>
+    </div>
   );
 };

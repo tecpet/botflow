@@ -1,11 +1,12 @@
-import { Input, InputGroup, InputRightElement } from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import type { ForgedBlockDefinition } from "@typebot.io/forge-repository/definitions";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Dialog } from "@typebot.io/ui/components/Dialog";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Input } from "@typebot.io/ui/components/Input";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { useState } from "react";
-import { CopyButton } from "@/components/CopyButton";
-import { TextInput } from "@/components/inputs/TextInput";
+import { CopyInput } from "@/components/inputs/CopyInput";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { queryClient, trpc } from "@/lib/queryClient";
 import { toast } from "@/lib/toast";
@@ -144,14 +145,13 @@ export const ForgedOAuthCredentialsCreateDialogBody = ({
         />
       }
     >
-      <TextInput
-        label="Label"
-        moreInfoTooltip={`Choose a name to identify this ${blockDef.auth.name}`}
-        onChange={setName}
-        placeholder="My account"
-        withVariableButton={false}
-        debounceTimeout={0}
-      />
+      <Field.Root>
+        <Field.Label>
+          Label
+          <MoreInfoTooltip>{`Choose a name to identify this ${blockDef.auth.name}`}</MoreInfoTooltip>
+        </Field.Label>
+        <Input onValueChange={setName} placeholder="My account" />
+      </Field.Root>
       {"defaultClientEnvKeys" in blockDef.auth ? (
         <div className="flex gap-4 w-full items-center">
           <p>OAuth app</p>
@@ -174,18 +174,15 @@ export const ForgedOAuthCredentialsCreateDialogBody = ({
       {tab === "your-app" ? (
         <div className="flex flex-col gap-2">
           <span>Redirect URL</span>
-          <ReadOnlyInput value={`${document.location.origin}/oauth/redirect`} />
-          <TextInput
-            label="Client ID"
-            onChange={setClientId}
-            withVariableButton={false}
-          />
-          <TextInput
-            type="password"
-            label="Client secret"
-            onChange={setClientSecret}
-            withVariableButton={false}
-          />
+          <CopyInput value={`${document.location.origin}/oauth/redirect`} />
+          <Field.Root>
+            <Field.Label>Client ID</Field.Label>
+            <Input onValueChange={setClientId} />
+          </Field.Root>
+          <Field.Root>
+            <Field.Label>Client secret</Field.Label>
+            <Input type="password" onValueChange={setClientSecret} />
+          </Field.Root>
         </div>
       ) : null}
 
@@ -207,12 +204,3 @@ export const ForgedOAuthCredentialsCreateDialogBody = ({
     </Dialog.Popup>
   );
 };
-
-const ReadOnlyInput = ({ value }: { value: string }) => (
-  <InputGroup>
-    <Input type={"text"} value={value} />
-    <InputRightElement width="60px">
-      <CopyButton size="sm" textToCopy={value} />
-    </InputRightElement>
-  </InputGroup>
-);

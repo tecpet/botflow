@@ -1,12 +1,12 @@
-import { FormLabel, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultDateInputOptions } from "@typebot.io/blocks-inputs/date/constants";
 import type { DateInputBlock } from "@typebot.io/blocks-inputs/date/schema";
+import { Field } from "@typebot.io/ui/components/Field";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { TextInput } from "@/components/inputs";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
   options: DateInputBlock["options"];
@@ -42,75 +42,106 @@ export const DateInputSettings = ({ options, onOptionsChange }: Props) => {
   };
 
   return (
-    <Stack spacing={4}>
-      <SwitchWithRelatedSettings
-        label={t("blocks.inputs.date.settings.isRange.label")}
-        initialValue={options?.isRange ?? defaultDateInputOptions.isRange}
-        onCheckChange={updateIsRange}
-      >
-        <TextInput
-          label={t("blocks.inputs.date.settings.from.label")}
-          defaultValue={
-            options?.labels?.from ?? defaultDateInputOptions.labels.from
-          }
-          onChange={updateFromLabel}
+    <div className="flex flex-col gap-4">
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={options?.isRange ?? defaultDateInputOptions.isRange}
+            onCheckedChange={updateIsRange}
+          />
+          <Field.Label className="font-medium">
+            {t("blocks.inputs.date.settings.isRange.label")}
+          </Field.Label>
+        </Field.Root>
+        {(options?.isRange ?? defaultDateInputOptions.isRange) && (
+          <>
+            <Field.Root>
+              <Field.Label>
+                {t("blocks.inputs.date.settings.from.label")}
+              </Field.Label>
+              <DebouncedTextInputWithVariablesButton
+                defaultValue={
+                  options?.labels?.from ?? defaultDateInputOptions.labels.from
+                }
+                onValueChange={updateFromLabel}
+              />
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>
+                {t("blocks.inputs.date.settings.to.label")}
+              </Field.Label>
+              <DebouncedTextInputWithVariablesButton
+                defaultValue={
+                  options?.labels?.to ?? defaultDateInputOptions.labels.to
+                }
+                onValueChange={updateToLabel}
+              />
+            </Field.Root>
+          </>
+        )}
+      </Field.Container>
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={options?.hasTime ?? defaultDateInputOptions.hasTime}
+          onCheckedChange={updateHasTime}
         />
-        <TextInput
-          label={t("blocks.inputs.date.settings.to.label")}
+        <Field.Label>
+          {t("blocks.inputs.date.settings.withTime.label")}
+        </Field.Label>
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>{t("blocks.inputs.settings.button.label")}</Field.Label>
+        <DebouncedTextInputWithVariablesButton
           defaultValue={
-            options?.labels?.to ??
-            t("blocks.inputs.date.settings.toInputValue.label")
+            options?.labels?.button ?? defaultDateInputOptions.labels.button
           }
-          onChange={updateToLabel}
+          onValueChange={updateButtonLabel}
         />
-      </SwitchWithRelatedSettings>
-      <SwitchWithLabel
-        label={t("blocks.inputs.date.settings.withTime.label")}
-        initialValue={options?.hasTime ?? defaultDateInputOptions.hasTime}
-        onCheckChange={updateHasTime}
-      />
-      <TextInput
-        label={t("blocks.inputs.settings.button.label")}
-        defaultValue={
-          options?.labels?.button ?? defaultDateInputOptions.labels.button
-        }
-        onChange={updateButtonLabel}
-      />
-      <TextInput
-        label={t("blocks.inputs.settings.min.label")}
-        defaultValue={options?.min}
-        placeholder={options?.hasTime ? "YYYY-MM-DDTHH:mm" : "YYYY-MM-DD"}
-        onChange={updateMin}
-      />
-      <TextInput
-        label={t("blocks.inputs.settings.max.label")}
-        defaultValue={options?.max}
-        placeholder={options?.hasTime ? "YYYY-MM-DDTHH:mm" : "YYYY-MM-DD"}
-        onChange={updateMax}
-      />
-      <TextInput
-        label={t("blocks.inputs.date.settings.format.label")}
-        defaultValue={
-          options?.format ??
-          (options?.hasTime
-            ? defaultDateInputOptions.formatWithTime
-            : defaultDateInputOptions.format)
-        }
-        moreInfoTooltip={`
-					${t("blocks.inputs.date.settings.format.example.label")} dd/MM/yyyy, MM/dd/yy, yyyy-MM-dd
-				`}
-        placeholder={options?.hasTime ? "dd/MM/yyyy HH:mm" : "dd/MM/yyyy"}
-        onChange={updateFormat}
-      />
-      <Stack>
-        <FormLabel mb="0" htmlFor="variable">
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>{t("blocks.inputs.settings.min.label")}</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={options?.min}
+          placeholder={options?.hasTime ? "YYYY-MM-DDTHH:mm" : "YYYY-MM-DD"}
+          onValueChange={updateMin}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>{t("blocks.inputs.settings.max.label")}</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={options?.max}
+          placeholder={options?.hasTime ? "YYYY-MM-DDTHH:mm" : "YYYY-MM-DD"}
+          onValueChange={updateMax}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.date.settings.format.label")}
+          <MoreInfoTooltip>
+            {t("blocks.inputs.date.settings.format.example.label")} dd/MM/yyyy,
+            MM/dd/yy, yyyy-MM-dd
+          </MoreInfoTooltip>
+        </Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={
+            options?.format ??
+            (options?.hasTime
+              ? defaultDateInputOptions.formatWithTime
+              : defaultDateInputOptions.format)
+          }
+          placeholder={options?.hasTime ? "dd/MM/yyyy HH:mm" : "dd/MM/yyyy"}
+          onValueChange={updateFormat}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>
           {t("blocks.inputs.settings.saveAnswer.label")}
-        </FormLabel>
-        <VariableSearchInput
+        </Field.Label>
+        <VariablesCombobox
           initialVariableId={options?.variableId}
           onSelectVariable={updateVariable}
         />
-      </Stack>
-    </Stack>
+      </Field.Root>
+    </div>
   );
 };

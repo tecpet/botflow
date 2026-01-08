@@ -1,32 +1,41 @@
-@import "@typebot.io/ui/colors.css";
+@import "tailwindcss";
+@import "@typebot.io/ui/theme.css";
+@source "../../";
+@source "../../../../../packages/ui/src/";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-h1 {
-  @apply text-4xl md:text-6xl;
+:root {
+  --header-height: 56px;
 }
 
-h2 {
-  @apply text-4xl;
-}
+@layer base {
+  h1 {
+    @apply text-3xl;
+  }
 
-h3 {
-  @apply text-2xl;
-}
+  h2 {
+    @apply text-2xl;
+  }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  @apply font-heading font-medium;
-}
+  h3 {
+    @apply text-xl;
+  }
 
-.text-align-inherit {
-  text-align: inherit;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display font-medium;
+  }
+
+  ol {
+    @apply list-decimal pl-4 flex flex-col gap-4 ms-4;
+  }
+
+  code {
+    @apply bg-gray-3 px-1 py-0.5 rounded-md text-sm text-gray-11;
+  }
 }
 
 /* Offset top position so that it is right below onboarding header */

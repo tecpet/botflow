@@ -14,12 +14,12 @@ export type ButtonProps = {
 >;
 
 export const buttonVariants = cva(
-  "font-semibold focus:outline-none filter hover:brightness-90 active:brightness-75 disabled:opacity-50 disabled:cursor-not-allowed disabled:brightness-100 flex justify-center flex-shrink-0 transition-[filter] duration-200",
+  "font-semibold focus:outline-none filter hover:brightness-90 active:brightness-75 disabled:opacity-50 disabled:cursor-not-allowed disabled:brightness-100 flex justify-center shrink-0 transition-[filter] duration-200 cursor-pointer",
   {
     variants: {
       variant: {
         primary:
-          "typebot-button bg-button-bg text-button-text border-button-border rounded-button border-button blur-button shadow-button",
+          "typebot-button bg-button-bg text-button-text border-button-border rounded-button border-(length:--typebot-button-border-width) blur-button shadow-button",
         secondary:
           "secondary-button bg-host-bubble-bg text-host-bubble-text rounded-host-bubble border-host-bubble border-host-bubble-border",
       },

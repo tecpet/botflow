@@ -69,7 +69,7 @@ const importingTypebotSchema = z.preprocess(
 
 type ImportingTypebot = z.infer<typeof importingTypebotSchema>;
 
-const migrateImportingTypebot = (
+const migrateImportingTypebot = async (
   typebot: ImportingTypebot,
 ): Promise<TypebotV6> => {
   const fullTypebot = {
@@ -87,7 +87,7 @@ const migrateImportingTypebot = (
     publicId: null,
     riskLevel: null,
   } satisfies Typebot;
-  return migrateTypebot(fullTypebot);
+  return (await migrateTypebot(fullTypebot)).typebot;
 };
 
 export const importTypebot = authenticatedProcedure
@@ -109,6 +109,7 @@ export const importTypebot = authenticatedProcedure
         ),
       typebot: importingTypebotSchema,
       fromTemplate: z.string().optional(),
+      enableSafetyFlags: z.boolean().optional(),
     }),
   )
   .output(
@@ -118,7 +119,7 @@ export const importTypebot = authenticatedProcedure
   )
   .mutation(
     async ({
-      input: { typebot, workspaceId, fromTemplate },
+      input: { typebot, workspaceId, fromTemplate, enableSafetyFlags },
       ctx: { user },
     }) => {
       const workspace = await prisma.workspace.findUnique({
@@ -146,7 +147,10 @@ export const importTypebot = authenticatedProcedure
 
       const groups = (
         duplicatingBot.groups
-          ? await sanitizeGroups(workspace)(duplicatingBot.groups)
+          ? await sanitizeGroups(duplicatingBot.groups, {
+              workspace,
+              enableSafetyFlags,
+            })
           : []
       ) as TypebotV6["groups"];
 

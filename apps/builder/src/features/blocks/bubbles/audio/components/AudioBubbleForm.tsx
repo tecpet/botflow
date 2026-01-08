@@ -1,12 +1,12 @@
-import { Flex, HStack, Stack, Text } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultAudioBubbleContent } from "@typebot.io/blocks-bubbles/audio/constants";
 import type { AudioBubbleBlock } from "@typebot.io/blocks-bubbles/audio/schema";
 import { Button } from "@typebot.io/ui/components/Button";
+import { Field } from "@typebot.io/ui/components/Field";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import { useState } from "react";
 import { UploadButton } from "@/components/ImageUploadContent/UploadButton";
-import { TextInput } from "@/components/inputs";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import type { FilePathUploadProps } from "@/features/upload/api/generateUploadUrl";
 
 type Props = {
@@ -29,8 +29,8 @@ export const AudioBubbleForm = ({
     onContentChange({ ...content, isAutoplayEnabled });
 
   return (
-    <Stack>
-      <HStack>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
         <Button
           variant={currentTab === "upload" ? "outline" : "ghost"}
           onClick={() => setCurrentTab("upload")}
@@ -45,11 +45,11 @@ export const AudioBubbleForm = ({
         >
           {t("editor.blocks.bubbles.audio.settings.embedLink.label")}
         </Button>
-      </HStack>
-      <Stack p="2" spacing={4}>
-        <Stack>
+      </div>
+      <div className="flex flex-col p-2 gap-4">
+        <div className="flex flex-col gap-2">
           {currentTab === "upload" && (
-            <Flex justify="center" py="2">
+            <div className="flex justify-center py-2">
               <UploadButton
                 fileType="audio"
                 filePathProps={uploadFileProps}
@@ -57,32 +57,36 @@ export const AudioBubbleForm = ({
               >
                 {t("editor.blocks.bubbles.audio.settings.chooseFile.label")}
               </UploadButton>
-            </Flex>
+            </div>
           )}
           {currentTab === "link" && (
             <>
-              <TextInput
+              <DebouncedTextInputWithVariablesButton
                 placeholder={t(
                   "editor.blocks.bubbles.audio.settings.worksWith.placeholder",
                 )}
                 defaultValue={content?.url ?? ""}
-                onChange={updateUrl}
+                onValueChange={updateUrl}
               />
-              <Text fontSize="sm" color="gray.400" textAlign="center">
+              <p className="text-sm text-center" color="gray.400">
                 {t("editor.blocks.bubbles.audio.settings.worksWith.text")}
-              </Text>
+              </p>
             </>
           )}
-        </Stack>
-        <SwitchWithLabel
-          label={t("editor.blocks.bubbles.audio.settings.autoplay.label")}
-          initialValue={
-            content?.isAutoplayEnabled ??
-            defaultAudioBubbleContent.isAutoplayEnabled
-          }
-          onCheckChange={updateAutoPlay}
-        />
-      </Stack>
-    </Stack>
+        </div>
+        <Field.Root>
+          <Field.Label>
+            {t("editor.blocks.bubbles.audio.settings.autoplay.label")}
+          </Field.Label>
+          <Switch
+            checked={
+              content?.isAutoplayEnabled ??
+              defaultAudioBubbleContent.isAutoplayEnabled
+            }
+            onCheckedChange={updateAutoPlay}
+          />
+        </Field.Root>
+      </div>
+    </div>
   );
 };

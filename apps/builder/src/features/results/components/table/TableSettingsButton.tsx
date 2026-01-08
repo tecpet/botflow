@@ -1,15 +1,12 @@
-import { HStack, Text } from "@chakra-ui/react";
 import type { ResultHeaderCell } from "@typebot.io/results/schemas/results";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Popover } from "@typebot.io/ui/components/Popover";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import { ArrowRight01Icon } from "@typebot.io/ui/icons/ArrowRight01Icon";
+import { Download01Icon } from "@typebot.io/ui/icons/Download01Icon";
+import { LeftToRightListBulletIcon } from "@typebot.io/ui/icons/LeftToRightListBulletIcon";
+import { MoreHorizontalIcon } from "@typebot.io/ui/icons/MoreHorizontalIcon";
 import { useState } from "react";
-import {
-  ChevronRightIcon,
-  DownloadIcon,
-  ListIcon,
-  MoreHorizontalIcon,
-} from "@/components/icons";
-import { useOpenControls } from "@/hooks/useOpenControls";
 import { ColumnSettings } from "./ColumnSettings";
 import { ExportAllResultsDialog } from "./ExportAllResultsDialog";
 
@@ -28,16 +25,14 @@ export const TableSettingsButton = (props: Props) => {
   return (
     <>
       <Popover.Root {...controls}>
-        <Popover.Trigger>
-          <Button
-            variant="secondary"
-            size="icon"
-            aria-label="Open table settings"
-            className="size-8"
-          >
-            <MoreHorizontalIcon />
-          </Button>
-        </Popover.Trigger>
+        <Popover.TriggerButton
+          variant="secondary"
+          size="icon"
+          aria-label="Open table settings"
+          className="size-8"
+        >
+          <MoreHorizontalIcon />
+        </Popover.TriggerButton>
         <Popover.Popup className="w-[300px] p-0" side="bottom" align="end">
           <TableSettingsMenu
             {...props}
@@ -86,22 +81,21 @@ const TableSettingsMenu = ({
             variant="ghost"
             className="rounded-b-none justify-between"
           >
-            <HStack>
-              <ListIcon />
-              <Text>Column settings</Text>
-            </HStack>
-
-            <ChevronRightIcon color="gray.400" />
+            <div className="flex items-center gap-2">
+              <LeftToRightListBulletIcon />
+              <p>Column settings</p>
+            </div>
+            <ArrowRight01Icon />
           </Button>
           <Button
             onClick={onExportAllClick}
             variant="ghost"
             className="rounded-t-none justify-between"
           >
-            <HStack>
-              <DownloadIcon />
-              <Text>Export all</Text>
-            </HStack>
+            <div className="flex items-center gap-2">
+              <Download01Icon />
+              <p>Export all</p>
+            </div>
           </Button>
         </div>
       );

@@ -1,17 +1,13 @@
-import {
-  Flex,
-  HStack,
-  useColorModeValue,
-  useDisclosure,
-} from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { isNotDefined } from "@typebot.io/lib/utils";
 import { Button } from "@typebot.io/ui/components/Button";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import { HardDriveIcon } from "@typebot.io/ui/icons/HardDriveIcon";
+import { Settings01Icon } from "@typebot.io/ui/icons/Settings01Icon";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { EmojiOrImageIcon } from "@/components/EmojiOrImageIcon";
-import { HardDriveIcon, SettingsIcon } from "@/components/icons";
 import { useUser } from "@/features/user/hooks/useUser";
 import { WorkspaceDropdown } from "@/features/workspace/components/WorkspaceDropdown";
 import { WorkspaceSettingsDialog } from "@/features/workspace/components/WorkspaceSettingsDialog";
@@ -26,7 +22,7 @@ export const DashboardHeader = () => {
 
   const isRedirectFromCredentialsCreation = asPath.includes("credentials");
 
-  const { isOpen, onOpen, onClose } = useDisclosure({
+  const { isOpen, onOpen, onClose } = useOpenControls({
     defaultIsOpen: isRedirectFromCredentialsCreation,
   });
 
@@ -39,26 +35,15 @@ export const DashboardHeader = () => {
   };
 
   return (
-    <Flex
-      w="full"
-      borderBottomWidth="1px"
-      justify="center"
-      bg={useColorModeValue("white", "gray.900")}
-    >
-      <Flex
-        justify="space-between"
-        alignItems="center"
-        h="16"
-        maxW="1000px"
-        flex="1"
-      >
+    <div className="flex w-full border-b justify-center bg-gray-1 dark:bg-gray-2">
+      <div className="flex justify-between items-center h-16 flex-1 max-w-[1000px]">
         <Link href="/typebots" data-testid="typebot-logo">
           <EmojiOrImageIcon
             icon={workspace?.icon}
             defaultIcon={HardDriveIcon}
           />
         </Link>
-        <HStack>
+        <div className="flex items-center gap-2">
           {user && workspace && !workspace.isPastDue && (
             <WorkspaceSettingsDialog
               isOpen={isOpen}
@@ -76,7 +61,7 @@ export const DashboardHeader = () => {
               onClick={onOpen}
               disabled={isNotDefined(workspace) || isLoggingOut}
             >
-              <SettingsIcon />
+              <Settings01Icon />
               {t("dashboard.header.settingsButton.label")}
             </Button>
           )}
@@ -87,8 +72,8 @@ export const DashboardHeader = () => {
             onCreateNewWorkspaceClick={handleCreateNewWorkspace}
             onWorkspaceSelected={switchWorkspace}
           />
-        </HStack>
-      </Flex>
-    </Flex>
+        </div>
+      </div>
+    </div>
   );
 };

@@ -1,17 +1,11 @@
-import {
-  Alert,
-  AlertIcon,
-  Heading,
-  HStack,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { Plan } from "@typebot.io/prisma/enum";
+import { Alert } from "@typebot.io/ui/components/Alert";
+import { TriangleAlertIcon } from "@typebot.io/ui/icons/TriangleAlertIcon";
 import type { Workspace } from "@typebot.io/workspaces/schemas";
 import { useSubscriptionQuery } from "../hooks/useSubscriptionQuery";
 import { BillingPortalButton } from "./BillingPortalButton";
-import { PlanTag } from "./PlanTag";
+import { PlanBadge } from "./PlanTag";
 
 type Props = {
   workspace: Pick<Workspace, "id" | "plan" | "stripeId">;
@@ -27,27 +21,29 @@ export const CurrentSubscriptionSummary = ({ workspace }: Props) => {
     workspace.stripeId;
 
   return (
-    <Stack spacing="4">
-      <Heading fontSize="3xl">
-        {t("billing.currentSubscription.heading")}
-      </Heading>
-      <HStack data-testid="current-subscription">
-        <Text>{t("billing.currentSubscription.subheading")} </Text>
-        <PlanTag plan={workspace.plan} />
+    <div className="flex flex-col gap-4">
+      <h2 className="text-3xl">{t("billing.currentSubscription.heading")}</h2>
+      <div
+        className="flex items-center gap-2"
+        data-testid="current-subscription"
+      >
+        <p>{t("billing.currentSubscription.subheading")} </p>
+        <PlanBadge plan={workspace.plan} />
         {data?.subscription?.cancelDate && (
-          <Text fontSize="sm">
+          <p className="text-sm">
             ({t("billing.currentSubscription.cancelDate")}{" "}
             {data.subscription.cancelDate.toDateString()})
-          </Text>
+          </p>
         )}
-      </HStack>
+      </div>
       {data?.subscription?.status === "past_due" && (
-        <Alert fontSize="sm" status="error">
-          <AlertIcon />
-          {t("billing.currentSubscription.pastDueAlert")}
-        </Alert>
+        <Alert.Root variant="error">
+          <TriangleAlertIcon />
+          <Alert.Description>
+            {t("billing.currentSubscription.pastDueAlert")}
+          </Alert.Description>
+        </Alert.Root>
       )}
-
       {isSubscribed && (
         <BillingPortalButton
           workspaceId={workspace.id}
@@ -56,6 +52,6 @@ export const CurrentSubscriptionSummary = ({ workspace }: Props) => {
           }
         />
       )}
-    </Stack>
+    </div>
   );
 };

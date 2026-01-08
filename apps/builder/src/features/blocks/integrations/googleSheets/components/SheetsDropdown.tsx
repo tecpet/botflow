@@ -1,4 +1,4 @@
-import { HStack, Input } from "@chakra-ui/react";
+import { Input } from "@typebot.io/ui/components/Input";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import type { Sheet } from "../types";
@@ -16,16 +16,16 @@ export const SheetsDropdown = ({
   sheetId,
   onSelectSheetId,
 }: Props) => {
-  if (isLoading) return <Input value="Loading..." isDisabled />;
+  if (isLoading) return <Input value="Loading..." disabled />;
   if (!sheets || sheets.length === 0)
     return (
-      <HStack>
-        <Input value="No sheets found" isDisabled />
+      <div className="flex items-center gap-2">
+        <Input value="No sheets found" disabled />
         <MoreInfoTooltip>
           Make sure your spreadsheet contains at least a sheet with a header
           row. Also make sure your header row does not contain duplicates.
         </MoreInfoTooltip>
-      </HStack>
+      </div>
     );
   return (
     <BasicSelect

@@ -1,17 +1,9 @@
-import {
-  Code,
-  Input,
-  InputGroup,
-  InputRightElement,
-  ListItem,
-  OrderedList,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
 import { env } from "@typebot.io/env";
+import { Alert } from "@typebot.io/ui/components/Alert";
 import { Dialog } from "@typebot.io/ui/components/Dialog";
-import { AlertInfo } from "@/components/AlertInfo";
-import { CopyButton } from "@/components/CopyButton";
+import { InformationSquareIcon } from "@typebot.io/ui/icons/InformationSquareIcon";
+import type { JSX } from "react";
+import { CopyInput } from "@/components/inputs/CopyInput";
 import type { DialogProps } from "../DeployButton";
 
 export const NotionDeployDialog = ({
@@ -26,29 +18,26 @@ export const NotionDeployDialog = ({
         <Dialog.Title>Notion</Dialog.Title>
         <Dialog.CloseButton />
         {!isPublished && (
-          <AlertInfo>You need to publish your bot first.</AlertInfo>
+          <Alert.Root>
+            <InformationSquareIcon />
+            <Alert.Description>
+              You need to publish your bot first.
+            </Alert.Description>
+          </Alert.Root>
         )}
-        <OrderedList spacing={4}>
-          <ListItem>
-            Type <Code>/embed</Code>
-          </ListItem>
-          <ListItem>
-            <Stack>
-              <Text>Paste your typebot URL</Text>
-              <InputGroup size="sm">
-                <Input
-                  type={"text"}
-                  defaultValue={`${env.NEXT_PUBLIC_VIEWER_URL[0]}/${publicId}`}
-                />
-                <InputRightElement width="60px">
-                  <CopyButton
-                    textToCopy={`${env.NEXT_PUBLIC_VIEWER_URL[0]}/${publicId}`}
-                  />
-                </InputRightElement>
-              </InputGroup>
-            </Stack>
-          </ListItem>
-        </OrderedList>
+        <ol>
+          <li>
+            Type <code>/embed</code>
+          </li>
+          <li>
+            <div className="flex flex-col gap-2">
+              <p>Paste your typebot URL</p>
+              <CopyInput
+                value={`${env.NEXT_PUBLIC_VIEWER_URL[0]}/${publicId}`}
+              />
+            </div>
+          </li>
+        </ol>
       </Dialog.Popup>
     </Dialog.Root>
   );

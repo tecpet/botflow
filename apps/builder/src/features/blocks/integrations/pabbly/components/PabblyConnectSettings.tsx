@@ -1,10 +1,12 @@
-import { Alert, AlertIcon, Stack, Text } from "@chakra-ui/react";
 import type { HttpRequest } from "@typebot.io/blocks-integrations/httpRequest/schema";
 import type { PabblyConnectBlock } from "@typebot.io/blocks-integrations/pabblyConnect/schema";
+import { Alert } from "@typebot.io/ui/components/Alert";
+import { Input } from "@typebot.io/ui/components/Input";
+import { ArrowUpRight01Icon } from "@typebot.io/ui/icons/ArrowUpRight01Icon";
+import { CheckmarkSquare02Icon } from "@typebot.io/ui/icons/CheckmarkSquare02Icon";
+import { InformationSquareIcon } from "@typebot.io/ui/icons/InformationSquareIcon";
 import { useRef } from "react";
 import { ButtonLink } from "@/components/ButtonLink";
-import { ExternalLinkIcon } from "@/components/icons";
-import { TextInput } from "@/components/inputs";
 import { HttpRequestAdvancedConfigForm } from "../../httpRequest/components/HttpRequestAdvancedConfigForm";
 
 type Props = {
@@ -41,30 +43,37 @@ export const PabblyConnectSettings = ({
   };
 
   return (
-    <Stack spacing={0}>
-      <Stack spacing={4}>
-        <Alert status={url ? "success" : "info"} rounded="md">
-          <AlertIcon />
-          {url ? (
-            "Your scenario is correctly configured 🚀"
-          ) : (
-            <Stack>
-              <Text>Head up to Pabbly Connect to get the webhook URL:</Text>
+    <div className="flex flex-col gap-0">
+      <div className="flex flex-col gap-4">
+        {url ? (
+          <Alert.Root variant="success">
+            <CheckmarkSquare02Icon />
+            <Alert.Description>
+              Your scenario is correctly configured 🚀
+            </Alert.Description>
+          </Alert.Root>
+        ) : (
+          <Alert.Root>
+            <InformationSquareIcon />
+            <Alert.Description>
+              Head up to Pabbly Connect to get the webhook URL:
+            </Alert.Description>
+            <Alert.Action>
               <ButtonLink
+                variant="secondary"
                 href="https://www.pabbly.com/connect/integrations/typebot/"
                 target="_blank"
+                size="xs"
               >
-                Pabbly.com <ExternalLinkIcon />
+                Pabbly.com <ArrowUpRight01Icon />
               </ButtonLink>
-            </Stack>
-          )}
-        </Alert>
-        <TextInput
+            </Alert.Action>
+          </Alert.Root>
+        )}
+        <Input
           placeholder="Paste webhook URL..."
           defaultValue={url ?? ""}
-          onChange={updateUrl}
-          withVariableButton={false}
-          debounceTimeout={0}
+          onValueChange={updateUrl}
         />
         <HttpRequestAdvancedConfigForm
           blockId={blockId}
@@ -74,8 +83,8 @@ export const PabblyConnectSettings = ({
           onOptionsChange={onOptionsChange}
           onNewTestResponse={handleNewTestResponse}
         />
-      </Stack>
+      </div>
       <div ref={bottomRef} />
-    </Stack>
+    </div>
   );
 };

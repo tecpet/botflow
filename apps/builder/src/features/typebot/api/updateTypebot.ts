@@ -146,7 +146,7 @@ export const updateTypebot = authenticatedProcedure
       )
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Custom domain not available",
+          message: "Domain + pathname already in use",
         });
 
       if (typebot.publicId) {
@@ -166,7 +166,9 @@ export const updateTypebot = authenticatedProcedure
       }
 
       const groups = typebot.groups
-        ? await sanitizeGroups(existingTypebot.workspace)(typebot.groups)
+        ? await sanitizeGroups(typebot.groups, {
+            workspace: existingTypebot.workspace,
+          })
         : undefined;
 
       const newTypebot = await prisma.typebot.update({
@@ -216,7 +218,7 @@ export const updateTypebot = authenticatedProcedure
         },
       });
 
-      const migratedTypebot = await migrateTypebot(
+      const { typebot: migratedTypebot } = await migrateTypebot(
         typebotSchema.parse(newTypebot),
       );
 

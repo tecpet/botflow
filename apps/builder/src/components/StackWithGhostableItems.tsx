@@ -1,7 +1,7 @@
-import { Stack, type StackProps } from "@chakra-ui/react";
 import { isDefined } from "@typebot.io/lib/utils";
 import { Button } from "@typebot.io/ui/components/Button";
 import { cn } from "@typebot.io/ui/lib/cn";
+import { cx } from "@typebot.io/ui/lib/cva";
 import React, { createContext, forwardRef, useContext, useMemo } from "react";
 import { useHoverExpandDebounce } from "@/features/graph/hooks/useHoverExpandDebounce";
 
@@ -38,8 +38,10 @@ export const StacksWithGhostableItems = forwardRef<
   HTMLDivElement,
   {
     gapPixel: number;
-  } & StackProps
->(({ gapPixel, children, ...props }, ref) => {
+    className?: string;
+    children: React.ReactNode;
+  }
+>(({ gapPixel, children, className }, ref) => {
   const childrenArray = React.Children.toArray(children);
 
   const childrenGroups = useMemo(() => {
@@ -52,7 +54,8 @@ export const StacksWithGhostableItems = forwardRef<
 
     childrenArray.forEach((child) => {
       const isGhostableItem =
-        React.isValidElement(child) && isDefined(child.props.ghostLabel);
+        React.isValidElement(child) &&
+        isDefined((child.props as any).ghostLabel);
       if (!isGhostableItem) {
         console.error(
           "Child is not a GhostableItem",
@@ -61,7 +64,7 @@ export const StacksWithGhostableItems = forwardRef<
         );
         return;
       }
-      const isNull = isGhostableItem && child.props.children === null;
+      const isNull = isGhostableItem && (child.props as any).children === null;
 
       if ((isNull && !inNullGroup) || (!isNull && inNullGroup)) {
         if (currentGroup.length > 0) {
@@ -88,7 +91,7 @@ export const StacksWithGhostableItems = forwardRef<
   }, [childrenArray]);
 
   return (
-    <Stack ref={ref} gap={0} {...props}>
+    <div className={cn("flex flex-col gap-0", className)} ref={ref}>
       {childrenGroups.map((group, index) => (
         <StackWithGhostableItems
           key={`${group.isNullGroup}-${index}`}
@@ -99,7 +102,7 @@ export const StacksWithGhostableItems = forwardRef<
           {group.children}
         </StackWithGhostableItems>
       ))}
-    </Stack>
+    </div>
   );
 });
 
@@ -129,20 +132,25 @@ const StackWithGhostableItems = ({
       ghostItemHeight={gapPixel / childrenLength}
       closeExpanded={onAbort}
     >
-      <Stack
-        gap={isNullGroup ? (isExpanded ? 1 : 0) : gapPixel + "px"}
+      <div
+        style={
+          {
+            "--gap": (isNullGroup ? (isExpanded ? 1 : 0) : gapPixel) + "px",
+            "--mb": gapPixel + "px",
+          } as React.CSSProperties
+        }
+        className={cx(
+          "flex flex-col gap-(--gap) transition-opacity",
+          !isNullGroup || isHovered ? "opacity-100" : "opacity-0",
+          isNullGroup && groups.at(index + 1)?.isNullGroup
+            ? "mb-(--mb)"
+            : undefined,
+        )}
         onMouseEnter={onHover}
         onMouseLeave={onLeave}
-        opacity={!isNullGroup || isHovered ? 1 : 0}
-        transition="opacity 0.2s ease"
-        mb={
-          isNullGroup && groups.at(index + 1)?.isNullGroup
-            ? gapPixel + "px"
-            : undefined
-        }
       >
         {children}
-      </Stack>
+      </div>
     </StackProvider>
   );
 };
@@ -178,7 +186,7 @@ export const GhostableItem = ({
             } as React.CSSProperties
           }
           className={cn(
-            "transition-all duration-200 h-[var(--available-height)] text-xs py-0",
+            "transition-all duration-200 h-(--available-height) text-xs py-0",
             className,
           )}
           onClick={() => {

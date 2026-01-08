@@ -1,14 +1,4 @@
 import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Stack,
-  Text,
-  useDisclosure,
-} from "@chakra-ui/react";
-import {
   defaultOpenAIOptions,
   openAITasks,
 } from "@typebot.io/blocks-integrations/openai/constants";
@@ -18,8 +8,12 @@ import type {
   CreateSpeechOpenAIOptions,
   OpenAIBlock,
 } from "@typebot.io/blocks-integrations/openai/schema";
-import { TextInput } from "@/components/inputs";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Field } from "@typebot.io/ui/components/Field";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import type { JSX } from "react";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import { CredentialsDropdown } from "@/features/credentials/components/CredentialsDropdown";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { OpenAICreateSpeechSettings } from "./audio/OpenAICreateSpeechSettings";
@@ -38,7 +32,7 @@ export const OpenAISettings = ({
   onOptionsChange,
 }: Props) => {
   const { workspace } = useWorkspace();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useOpenControls();
 
   const updateCredentialsId = (credentialsId: string | undefined) => {
     onOptionsChange({
@@ -71,7 +65,7 @@ export const OpenAISettings = ({
   const baseUrl = options?.baseUrl ?? defaultOpenAIOptions.baseUrl;
 
   return (
-    <Stack>
+    <div className="flex flex-col gap-2">
       {workspace && (
         <>
           <CredentialsDropdown
@@ -91,30 +85,29 @@ export const OpenAISettings = ({
       )}
       {options?.credentialsId && (
         <>
-          <Accordion allowToggle>
-            <AccordionItem>
-              <AccordionButton>
-                <Text w="full" textAlign="left">
-                  Customize provider
-                </Text>
-                <AccordionIcon />
-              </AccordionButton>
-              <AccordionPanel as={Stack} spacing={4}>
-                <TextInput
-                  label="Base URL"
-                  defaultValue={baseUrl}
-                  onChange={updateBaseUrl}
-                />
-                {baseUrl !== defaultOpenAIOptions.baseUrl && (
-                  <TextInput
-                    label="API version"
-                    defaultValue={options.apiVersion}
-                    onChange={updateApiVersion}
+          <Accordion.Root>
+            <Accordion.Item>
+              <Accordion.Trigger>Customize provider</Accordion.Trigger>
+              <Accordion.Panel>
+                <Field.Root>
+                  <Field.Label>Base URL</Field.Label>
+                  <DebouncedTextInputWithVariablesButton
+                    defaultValue={baseUrl}
+                    onValueChange={updateBaseUrl}
                   />
+                </Field.Root>
+                {baseUrl !== defaultOpenAIOptions.baseUrl && (
+                  <Field.Root>
+                    <Field.Label>API version</Field.Label>
+                    <DebouncedTextInputWithVariablesButton
+                      defaultValue={options.apiVersion}
+                      onValueChange={updateApiVersion}
+                    />
+                  </Field.Root>
                 )}
-              </AccordionPanel>
-            </AccordionItem>
-          </Accordion>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion.Root>
 
           <BasicSelect
             value={options.task}
@@ -130,7 +123,7 @@ export const OpenAISettings = ({
           )}
         </>
       )}
-    </Stack>
+    </div>
   );
 };
 

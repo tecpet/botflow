@@ -1,7 +1,7 @@
-import { Stack } from "@chakra-ui/react";
 import type { CustomFont } from "@typebot.io/theme/schemas";
-import { TextInput } from "@/components/inputs";
+import { Field } from "@typebot.io/ui/components/Field";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
+import { DebouncedTextInput } from "@/components/inputs/DebouncedTextInput";
 
 type Props = {
   font: CustomFont;
@@ -12,15 +12,15 @@ export const CustomFontForm = ({ font, onFontChange }: Props) => {
   const updateFamily = (family: string) => onFontChange({ ...font, family });
   const updateCss = (css: string) => onFontChange({ ...font, css });
   return (
-    <Stack>
-      <TextInput
-        direction="row"
-        label="Family:"
-        placeholder='MyAwesomeWebFont, "Helvetica Neue", sans-serif'
-        defaultValue={font.family}
-        onChange={updateFamily}
-        withVariableButton={false}
-      />
+    <div className="flex flex-col gap-2">
+      <Field.Root className="flex-row items-center">
+        <Field.Label>Family:</Field.Label>
+        <DebouncedTextInput
+          placeholder='MyAwesomeWebFont, "Helvetica Neue", sans-serif'
+          defaultValue={font.family}
+          onValueChange={updateFamily}
+        />
+      </Field.Root>
       <CodeEditor
         onChange={updateCss}
         defaultValue={font.css}
@@ -32,6 +32,6 @@ export const CustomFontForm = ({ font, onFontChange }: Props) => {
 }`}
         maxHeight="200px"
       />
-    </Stack>
+    </div>
   );
 };

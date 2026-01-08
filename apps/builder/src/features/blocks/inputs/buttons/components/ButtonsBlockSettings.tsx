@@ -1,13 +1,12 @@
-import { FormControl, FormLabel, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { defaultChoiceInputOptions } from "@typebot.io/blocks-inputs/choice/constants";
 import type { ChoiceInputBlock } from "@typebot.io/blocks-inputs/choice/schema";
+import { Field } from "@typebot.io/ui/components/Field";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import type { Variable } from "@typebot.io/variables/schemas";
-import { TextInput } from "@/components/inputs";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
   options?: ChoiceInputBlock["options"];
@@ -33,68 +32,96 @@ export const ButtonsBlockSettings = ({ options, onOptionsChange }: Props) => {
   ) => onOptionsChange({ ...options, areInitialSearchButtonsVisible });
 
   return (
-    <Stack spacing={4}>
-      <SwitchWithRelatedSettings
-        label={t("blocks.inputs.settings.multipleChoice.label")}
-        initialValue={
-          options?.isMultipleChoice ??
-          defaultChoiceInputOptions.isMultipleChoice
-        }
-        onCheckChange={updateIsMultiple}
-      >
-        <TextInput
-          label={t("blocks.inputs.settings.submitButton.label")}
-          defaultValue={
-            options?.buttonLabel ?? t("blocks.inputs.settings.buttonText.label")
-          }
-          onChange={updateButtonLabel}
-        />
-      </SwitchWithRelatedSettings>
-      <SwitchWithRelatedSettings
-        label={t("blocks.inputs.settings.isSearchable.label")}
-        initialValue={
-          options?.isSearchable ?? defaultChoiceInputOptions.isSearchable
-        }
-        onCheckChange={updateIsSearchable}
-      >
-        <SwitchWithLabel
-          label="Default display buttons"
-          initialValue={
-            options?.areInitialSearchButtonsVisible ??
-            defaultChoiceInputOptions.areInitialSearchButtonsVisible
-          }
-          onCheckChange={updateAreInitialSearchButtonsVisible}
-        />
-        <TextInput
-          label={t("blocks.inputs.settings.input.placeholder.label")}
-          defaultValue={
-            options?.searchInputPlaceholder ??
-            t("blocks.inputs.settings.input.filterOptions.label")
-          }
-          onChange={updateSearchInputPlaceholder}
-        />
-      </SwitchWithRelatedSettings>
-      <FormControl>
-        <FormLabel>
-          {t("blocks.inputs.button.settings.dynamicData.label")}{" "}
+    <div className="flex flex-col gap-4">
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={
+              options?.isMultipleChoice ??
+              defaultChoiceInputOptions.isMultipleChoice
+            }
+            onCheckedChange={updateIsMultiple}
+          />
+          <Field.Label className="font-medium">
+            {t("blocks.inputs.settings.multipleChoice.label")}
+          </Field.Label>
+        </Field.Root>
+        {(options?.isMultipleChoice ??
+          defaultChoiceInputOptions.isMultipleChoice) && (
+          <Field.Root>
+            <Field.Label>
+              {t("blocks.inputs.settings.submitButton.label")}
+            </Field.Label>
+            <DebouncedTextInputWithVariablesButton
+              defaultValue={
+                options?.buttonLabel ??
+                t("blocks.inputs.settings.buttonText.label")
+              }
+              onValueChange={updateButtonLabel}
+            />
+          </Field.Root>
+        )}
+      </Field.Container>
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={
+              options?.isSearchable ?? defaultChoiceInputOptions.isSearchable
+            }
+            onCheckedChange={updateIsSearchable}
+          />
+          <Field.Label className="font-medium">
+            {t("blocks.inputs.settings.isSearchable.label")}
+          </Field.Label>
+        </Field.Root>
+        {(options?.isSearchable ?? defaultChoiceInputOptions.isSearchable) && (
+          <>
+            <Field.Root className="flex-row items-center">
+              <Switch
+                checked={
+                  options?.areInitialSearchButtonsVisible ??
+                  defaultChoiceInputOptions.areInitialSearchButtonsVisible
+                }
+                onCheckedChange={updateAreInitialSearchButtonsVisible}
+              />
+              <Field.Label>Default display buttons</Field.Label>
+            </Field.Root>
+            <Field.Root>
+              <Field.Label>
+                {t("blocks.inputs.settings.input.placeholder.label")}
+              </Field.Label>
+              <DebouncedTextInputWithVariablesButton
+                defaultValue={
+                  options?.searchInputPlaceholder ??
+                  t("blocks.inputs.settings.input.filterOptions.label")
+                }
+                onValueChange={updateSearchInputPlaceholder}
+              />
+            </Field.Root>
+          </>
+        )}
+      </Field.Container>
+      <Field.Root>
+        <Field.Label>
+          {t("blocks.inputs.button.settings.dynamicData.label")}
           <MoreInfoTooltip>
             {t("blocks.inputs.button.settings.dynamicData.infoText.label")}
           </MoreInfoTooltip>
-        </FormLabel>
-        <VariableSearchInput
+        </Field.Label>
+        <VariablesCombobox
           initialVariableId={options?.dynamicVariableId}
           onSelectVariable={updateDynamicDataVariable}
         />
-      </FormControl>
-      <Stack>
-        <FormLabel mb="0" htmlFor="variable">
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>
           {t("blocks.inputs.settings.saveAnswer.label")}
-        </FormLabel>
-        <VariableSearchInput
+        </Field.Label>
+        <VariablesCombobox
           initialVariableId={options?.variableId}
           onSelectVariable={updateSaveVariable}
         />
-      </Stack>
-    </Stack>
+      </Field.Root>
+    </div>
   );
 };

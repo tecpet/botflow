@@ -1,18 +1,13 @@
-import {
-  Heading,
-  Stack,
-  useColorModeValue,
-  useDisclosure,
-  VStack,
-} from "@chakra-ui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslate } from "@tolgee/react";
 import type { Typebot } from "@typebot.io/typebot/schemas/typebot";
 import { Button } from "@typebot.io/ui/components/Button";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import { Download01Icon } from "@typebot.io/ui/icons/Download01Icon";
+import { GridViewIcon } from "@typebot.io/ui/icons/GridViewIcon";
 import { LayoutBottomIcon } from "@typebot.io/ui/icons/LayoutBottomIcon";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { DownloadIcon, TemplateIcon } from "@/components/icons";
 import { useUser } from "@/features/user/hooks/useUser";
 import { useWorkspace } from "@/features/workspace/WorkspaceProvider";
 import { trpc } from "@/lib/queryClient";
@@ -24,7 +19,7 @@ export const CreateNewTypebotButtons = () => {
   const { workspace } = useWorkspace();
   const { user } = useUser();
   const router = useRouter();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useOpenControls();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -62,7 +57,7 @@ export const CreateNewTypebotButtons = () => {
 
   const handleCreateSubmit = async (
     typebot?: Typebot,
-    fromTemplate?: string,
+    args?: { enableSafetyFlags?: boolean; fromTemplate?: string },
   ) => {
     if (!user || !workspace) return;
     const folderId = router.query.folderId?.toString() ?? null;
@@ -73,7 +68,8 @@ export const CreateNewTypebotButtons = () => {
           ...typebot,
           folderId,
         },
-        fromTemplate,
+        fromTemplate: args?.fromTemplate,
+        enableSafetyFlags: args?.enableSafetyFlags,
       });
     else
       createTypebot({
@@ -86,18 +82,10 @@ export const CreateNewTypebotButtons = () => {
   };
 
   return (
-    <VStack w="full" pt="20" spacing={10}>
-      <Stack
-        w="full"
-        maxW="650px"
-        p="10"
-        gap={10}
-        rounded="lg"
-        borderWidth={1}
-        bgColor={useColorModeValue("white", "gray.900")}
-      >
-        <Heading>{t("templates.buttons.heading")}</Heading>
-        <Stack w="full" spacing={6}>
+    <div className="flex flex-col items-center w-full pt-20 gap-10">
+      <div className="flex flex-col w-full max-w-[650px] p-10 gap-10 rounded-lg border bg-gray-1">
+        <h2>{t("templates.buttons.heading")}</h2>
+        <div className="flex flex-col w-full gap-6">
           <Button
             variant="outline-secondary"
             className="w-full py-8 text-lg [&_svg]:size-5 [&_svg]:text-blue-10"
@@ -115,7 +103,7 @@ export const CreateNewTypebotButtons = () => {
             disabled={isLoading}
             size="lg"
           >
-            <TemplateIcon />
+            <GridViewIcon />
             {t("templates.buttons.fromTemplateButton.label")}
           </Button>
           <ImportTypebotFromFileButton
@@ -125,18 +113,17 @@ export const CreateNewTypebotButtons = () => {
             onNewTypebot={handleCreateSubmit}
             size="lg"
           >
-            <DownloadIcon />
+            <Download01Icon />
             {t("templates.buttons.importFileButton.label")}
           </ImportTypebotFromFileButton>
-        </Stack>
-      </Stack>
-
+        </div>
+      </div>
       <TemplatesDialog
         isOpen={isOpen}
         onClose={onClose}
         onTypebotChoose={handleCreateSubmit}
         isLoading={isLoading}
       />
-    </VStack>
+    </div>
   );
 };

@@ -180,8 +180,7 @@ export const webhookHandler = async (
           if (
             subscription.status === "past_due" &&
             previous &&
-            previous.status !== "past_due" &&
-            !existingWorkspace.isPastDue
+            previous.status !== "past_due"
           ) {
             await prisma.workspace.updateMany({
               where: {
@@ -205,8 +204,7 @@ export const webhookHandler = async (
           if (
             subscription.status === "unpaid" &&
             previous &&
-            previous.status !== "unpaid" &&
-            !existingWorkspace.isQuarantined
+            previous.status !== "unpaid"
           ) {
             if (!subscription.cancel_at_period_end)
               await stripe.subscriptions.update(subscription.id, {
@@ -220,6 +218,24 @@ export const webhookHandler = async (
                 isQuarantined: true,
               },
             });
+
+            await trackEvents(
+              existingWorkspace.members.flatMap((m) => [
+                {
+                  name: "Workspace unpaid",
+                  workspaceId: existingWorkspace.id,
+                  userId: m.userId,
+                },
+                {
+                  name: "Workspace automatically quarantined",
+                  workspaceId: existingWorkspace.id,
+                  userId: m.userId,
+                  data: {
+                    reason: "subscription past due for too long",
+                  },
+                },
+              ]),
+            );
 
             return res.send({ message: "Workspace quarantined" });
           }

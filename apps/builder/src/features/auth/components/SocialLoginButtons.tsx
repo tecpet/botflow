@@ -1,13 +1,12 @@
-import { Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { omit } from "@typebot.io/lib/utils";
 import { Button } from "@typebot.io/ui/components/Button";
+import { GithubIcon } from "@typebot.io/ui/icons/GithubIcon";
 import { useRouter } from "next/router";
 import { type getProviders, signIn, useSession } from "next-auth/react";
 import { stringify } from "qs";
 import { useState } from "react";
 import { GoogleLogo } from "@/components/GoogleLogo";
-import { GithubIcon } from "@/components/icons";
 import { AzureAdLogo } from "@/components/logos/AzureAdLogo";
 import { FacebookLogo } from "@/components/logos/FacebookLogo";
 import { GitlabLogo } from "@/components/logos/GitlabLogo";
@@ -48,7 +47,7 @@ export const SocialLoginButtons = ({ providers }: Props) => {
   const handleKeyCloackClick = () => handleSignIn("keycloak");
 
   return (
-    <Stack>
+    <div className="flex flex-col gap-2">
       {providers?.github && (
         <Button
           onClick={handleGitHubClick}
@@ -145,6 +144,6 @@ export const SocialLoginButtons = ({ providers }: Props) => {
           {t("auth.socialLogin.keycloakButton.label")}
         </Button>
       )}
-    </Stack>
+    </div>
   );
 };

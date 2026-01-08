@@ -1,6 +1,6 @@
-import { Box, Image, Text } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import type { ImageBubbleBlock } from "@typebot.io/blocks-bubbles/image/schema";
+import { cx } from "@typebot.io/ui/lib/cva";
 import { findUniqueVariable } from "@typebot.io/variables/findUniqueVariable";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { VariableTag } from "@/features/graph/components/nodes/block/VariableTag";
@@ -16,23 +16,23 @@ export const ImageBubbleContent = ({ block }: Props) => {
     ? findUniqueVariable(typebot?.variables)(block.content?.url)
     : null;
   return !block.content?.url ? (
-    <Text color={"gray.500"}>{t("clickToEdit")}</Text>
+    <p color={"gray.500"}>{t("clickToEdit")}</p>
   ) : variable ? (
-    <Text>
+    <p>
       Display <VariableTag variableName={variable.name} />
-    </Text>
+    </p>
   ) : (
-    <Box w="full">
-      <Image
-        pointerEvents="none"
+    <div className="w-full">
+      <img
+        className={cx(
+          "object-cover rounded-md pointer-events-none",
+          block.content?.url.startsWith("data:image/svg")
+            ? "max-h-[80px]"
+            : undefined,
+        )}
         src={block.content?.url}
         alt="Group image"
-        maxH={
-          block.content?.url.startsWith("data:image/svg") ? "80px" : undefined
-        }
-        rounded="md"
-        objectFit="cover"
       />
-    </Box>
+    </div>
   );
 };

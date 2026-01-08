@@ -1,8 +1,10 @@
-import { sendMessage } from "@typebot.io/telemetry/sendMessage";
+import { formatChurnAgentDiscordMessages } from "../churnAgent/formatChurnAgentDiscordMessages";
+import { getYesterdayChurnSummary } from "../churnAgent/getYesterdayChurnSummary";
 import { cleanExpiredData } from "../helpers/cleanExpiredData";
 import { formatSubscriptionMessage } from "../helpers/formatSubscriptionMessage";
 import { getLandingPageVisitors } from "../helpers/getLandingPageVisitors";
 import { getSubscriptionTransitions } from "../helpers/getSubscriptionTransitions";
+import { sendDiscordMessage } from "../helpers/sendDiscordMessage";
 import { trackAndReportYesterdaysResults } from "../helpers/trackAndReportYesterdaysResults";
 
 export const main = async () => {
@@ -15,7 +17,8 @@ export const main = async () => {
   // const { totalDeletedWorkspaces } = await deleteOrWarnInactiveWorkspaces();
   // reportMessage += `🔥 ${totalDeletedWorkspaces} workspaces were deleted.\n`;
 
-  await sendMessage(`Daily report:
+  await sendDiscordMessage(
+    `Daily report:
     
 📥 ${totalResults} collected results
 🏭 ${totalWorkspaces} active workspaces
@@ -24,7 +27,24 @@ export const main = async () => {
 ${formatSubscriptionMessage(subscriptionTransitions)}
 
 [Go to daily dashboard](https://eu.posthog.com/project/${process.env.POSTHOG_PROJECT_ID}/dashboard/${process.env.POSTHOG_DAILY_DASHBOARD_ID})
-[Go to web analytics](https://eu.posthog.com/project/${process.env.POSTHOG_PROJECT_ID}/web)`);
+[Go to web analytics](https://eu.posthog.com/project/${process.env.POSTHOG_PROJECT_ID}/web)`,
+    {
+      channelId: process.env.DISCORD_CHANNEL_ID!,
+    },
+  );
+
+  if (!process.env.DISCORD_CHANNEL_ID) {
+    console.log("DISCORD_CHANNEL_ID is not set, skipping churn agent");
+    return;
+  }
+
+  await getYesterdayChurnSummary({
+    onSummaryGenerated: async (churnSummary) => {
+      await sendDiscordMessage(formatChurnAgentDiscordMessages(churnSummary), {
+        channelId: process.env.DISCORD_CHANNEL_ID!,
+      });
+    },
+  });
 };
 
 main().then();

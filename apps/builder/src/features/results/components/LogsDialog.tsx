@@ -1,20 +1,10 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  chakra,
-  HStack,
-  Spinner,
-  Stack,
-  Tag,
-  type TagProps,
-  Text,
-} from "@chakra-ui/react";
 import { isDefined } from "@typebot.io/lib/utils";
 import type { Log } from "@typebot.io/logs/schemas";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Badge } from "@typebot.io/ui/components/Badge";
 import { Dialog } from "@typebot.io/ui/components/Dialog";
+import { LoaderCircleIcon } from "@typebot.io/ui/icons/LoaderCircleIcon";
+import { CodeEditor } from "@/components/inputs/CodeEditor";
 import { useLogs } from "../hooks/useLogs";
 
 type Props = {
@@ -33,8 +23,8 @@ export const LogsDialog = ({ typebotId, resultId, onClose }: Props) => {
         {logs?.map((log, idx) => (
           <LogCard key={idx} log={log} />
         ))}
-        {isLoading && <Spinner />}
-        {!isLoading && (logs ?? []).length === 0 && <Text>No logs found.</Text>}
+        {isLoading && <LoaderCircleIcon className="animate-spin" />}
+        {!isLoading && (logs ?? []).length === 0 && <p>No logs found.</p>}
       </Dialog.Popup>
     </Dialog.Root>
   );
@@ -43,79 +33,107 @@ export const LogsDialog = ({ typebotId, resultId, onClose }: Props) => {
 const LogCard = ({ log }: { log: Log }) => {
   if (log.details)
     return (
-      <Accordion allowToggle>
-        <AccordionItem style={{ borderBottomWidth: 0, borderWidth: 0 }}>
-          <AccordionButton
-            as={HStack}
-            p="4"
-            cursor="pointer"
-            justifyContent="space-between"
-            borderRadius="md"
-          >
-            <HStack gap={3} alignItems="flex-start">
-              <StatusTag status={log.status} flexShrink={0} mt={0.5} />
-              <Stack>
-                <Text>
+      <Accordion.Root>
+        <Accordion.Item>
+          <Accordion.Trigger>
+            <div className="flex gap-3 items-start">
+              <StatusTag status={log.status} className="shrink-0 mt-0.5" />
+              <div className="flex flex-col gap-2">
+                <p>
                   {log.context && (
-                    <chakra.span fontWeight="medium">
-                      {log.context}:
-                    </chakra.span>
+                    <span className="font-medium">{log.context}:</span>
                   )}{" "}
                   {log.description}
-                </Text>
-              </Stack>
-            </HStack>
-            <AccordionIcon />
-          </AccordionButton>
-          <AccordionPanel
-            as="pre"
-            overflow="auto"
-            borderWidth="1px"
-            borderRadius="md"
-          >
-            {log.details}
-          </AccordionPanel>
-        </AccordionItem>
-      </Accordion>
+                </p>
+              </div>
+            </div>
+          </Accordion.Trigger>
+          <Accordion.Panel>
+            <DetailsViewer details={log.details} />
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion.Root>
     );
   return (
-    <HStack p="4" gap={3} alignItems="flex-start">
-      <StatusTag status={log.status} flexShrink={0} mt={0.5} />
-      <Text>
-        {log.context && (
-          <chakra.span fontWeight="medium">{log.context}:</chakra.span>
-        )}{" "}
+    <div className="flex p-4 gap-3 items-start">
+      <StatusTag status={log.status} className="shrink-0 mt-0.5" />
+      <p>
+        {log.context && <span className="font-medium">{log.context}:</span>}{" "}
         {log.description}
-      </Text>
-    </HStack>
+      </p>
+    </div>
   );
 };
 
-const StatusTag = ({ status, ...tagProps }: { status: string } & TagProps) => {
+const StatusTag = ({
+  status,
+  className,
+}: {
+  status: string;
+  className?: string;
+}) => {
   switch (status) {
     case "error":
       return (
-        <Tag colorScheme={"red"} {...tagProps}>
+        <Badge colorScheme={"red"} className={className}>
           Fail
-        </Tag>
+        </Badge>
       );
     case "warning":
       return (
-        <Tag colorScheme={"orange"} {...tagProps}>
+        <Badge colorScheme={"orange"} className={className}>
           Warn
-        </Tag>
+        </Badge>
       );
     case "info":
       return (
-        <Tag colorScheme={"blue"} {...tagProps}>
+        <Badge colorScheme={"blue"} className={className}>
           Info
-        </Tag>
+        </Badge>
       );
     default:
       return (
-        <Tag colorScheme={"green"} {...tagProps}>
+        <Badge colorScheme={"green"} className={className}>
           Ok
-        </Tag>
+        </Badge>
       );
+  }
+};
+
+const DetailsViewer = ({ details }: { details: string }) => {
+  const { formatted, isJson } = beautifyDetails(details);
+
+  if (!isJson) {
+    return (
+      <pre className="max-h-96 overflow-auto whitespace-pre-wrap wrap-break-word p-4 font-mono text-sm">
+        {formatted}
+      </pre>
+    );
+  }
+
+  return (
+    <CodeEditor
+      value={formatted}
+      lang="json"
+      isReadOnly
+      withVariableButton={false}
+      maxHeight="400px"
+      withLineNumbers
+    />
+  );
+};
+
+const beautifyDetails = (details: string) => {
+  try {
+    const parsed = JSON.parse(details);
+    return {
+      formatted: JSON.stringify(parsed, null, 2),
+      isJson: true,
+    };
+  } catch {
+    return {
+      formatted: details,
+      isJson: false,
+    };
   }
 };

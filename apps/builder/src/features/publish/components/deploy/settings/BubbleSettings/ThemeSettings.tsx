@@ -1,19 +1,10 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  HStack,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
 import type {
   BubbleProps,
   BubbleTheme,
   ButtonTheme,
   PreviewMessageTheme,
 } from "@typebot.io/js";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { ButtonThemeSettings } from "./ButtonThemeSettings";
 import { PreviewMessageThemeSettings } from "./PreviewMessageThemeSettings";
@@ -51,17 +42,12 @@ export const ThemeSettings = ({
   };
 
   return (
-    <Accordion allowMultiple>
-      <AccordionItem>
-        <AccordionButton px="0">
-          <HStack flex="1">
-            <Text>Theme</Text>
-          </HStack>
-          <AccordionIcon />
-        </AccordionButton>
-        <AccordionPanel as={Stack} pb={4} spacing={4} px="0">
-          <HStack justify="space-between">
-            <Text>Placement</Text>
+    <Accordion.Root>
+      <Accordion.Item>
+        <Accordion.Trigger>Theme</Accordion.Trigger>
+        <Accordion.Panel>
+          <div className="flex items-center gap-2 justify-between">
+            <p>Placement</p>
             <BasicSelect
               size="sm"
               value={theme?.placement}
@@ -72,7 +58,7 @@ export const ThemeSettings = ({
               ]}
               onChange={updatePlacement}
             />
-          </HStack>
+          </div>
           <ButtonThemeSettings
             buttonTheme={theme?.button}
             onChange={updateButtonTheme}
@@ -83,8 +69,8 @@ export const ThemeSettings = ({
               onChange={updatePreviewMessageTheme}
             />
           ) : null}
-        </AccordionPanel>
-      </AccordionItem>
-    </Accordion>
+        </Accordion.Panel>
+      </Accordion.Item>
+    </Accordion.Root>
   );
 };

@@ -1,10 +1,9 @@
-import { Flex, HStack, Text } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { env } from "@typebot.io/env";
 import { isDefined } from "@typebot.io/lib/utils";
 import { Button } from "@typebot.io/ui/components/Button";
+import { FileEmpty02Icon } from "@typebot.io/ui/icons/FileEmpty02Icon";
 import { useEffect, useState } from "react";
-import { FileIcon } from "@/components/icons";
 import { trpc } from "@/lib/queryClient";
 import { GoogleSheetsLogo } from "./GoogleSheetsLogo";
 
@@ -98,11 +97,11 @@ export const GoogleSpreadsheetPicker = ({
 
   if (spreadsheetData && spreadsheetData.name !== "")
     return (
-      <Flex justifyContent="space-between">
-        <HStack spacing={2}>
+      <div className="flex justify-between">
+        <div className="flex items-center gap-2">
           <GoogleSheetsLogo />
-          <Text fontWeight="medium">{spreadsheetData.name}</Text>
-        </HStack>
+          <p className="font-medium">{spreadsheetData.name}</p>
+        </div>
         <Button
           size="icon"
           onClick={createPicker}
@@ -110,9 +109,9 @@ export const GoogleSpreadsheetPicker = ({
           aria-label={"Pick another spreadsheet"}
           variant="secondary"
         >
-          <FileIcon />
+          <FileEmpty02Icon />
         </Button>
-      </Flex>
+      </div>
     );
   return (
     <Button

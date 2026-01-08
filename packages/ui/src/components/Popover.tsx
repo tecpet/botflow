@@ -21,17 +21,19 @@ const Root = ({
 }) => (
   <PopoverPrimitive.Root
     open={isOpen}
-    onOpenChange={(open, event) => {
+    onOpenChange={(open, details) => {
       if (!open) {
-        if (!onClose || !event) return;
+        if (!onClose || !details) return;
         if (
           isOpen !== undefined &&
-          (event.target as HTMLElement)?.closest("[data-base-ui-click-trigger]")
+          (details.event.target as HTMLElement)?.closest(
+            "[data-base-ui-click-trigger]",
+          )
         )
           return;
-        onClose(event);
+        onClose(details.event);
       } else {
-        onOpen?.(event);
+        onOpen?.(details.event);
       }
     }}
     onOpenChangeComplete={(open) => (open ? undefined : onCloseComplete?.())}
@@ -41,13 +43,16 @@ const Root = ({
 
 const Trigger = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Trigger>,
-  PopoverPrimitive.Trigger.Props
->(({ children, className, ...props }, ref) => (
+  Omit<PopoverPrimitive.Trigger.Props, "nativeButton" | "render"> & {
+    render?: (props: any) => React.ReactElement | React.ReactElement;
+  }
+>(({ className, render, children, ...props }, ref) => (
   <PopoverPrimitive.Trigger
     {...props}
     className={className}
     ref={ref}
     nativeButton={false}
+    render={render ?? <span />}
   >
     {children}
   </PopoverPrimitive.Trigger>
@@ -101,14 +106,14 @@ const Popup = React.forwardRef<
             {...props}
             ref={ref}
             className={cn(
-              "bg-gray-1 p-2 rounded-lg border overflow-auto border-gray-4 shadow-md max-h-[var(--available-height)] max-w-[var(--available-width)] flex flex-col gap-2",
-              "data-[open]:animate-in data-[open]:fade-in-0",
-              "data-[closed]:animate-out data-[closed]:fade-out-0",
+              "bg-gray-1 p-2 rounded-lg border overflow-auto border-gray-4 shadow-md max-h-(--available-height) max-w-(--available-width) flex flex-col gap-2",
+              "data-open:animate-in data-open:fade-in-0",
+              "data-closed:animate-out data-closed:fade-out-0",
               "data-[side=bottom]:slide-in-from-top-2 data-[side=bottom]:slide-out-to-top-1",
               "data-[side=top]:slide-in-from-bottom-2 data-[side=top]:slide-out-to-bottom-1",
               "data-[side=right]:slide-in-from-left-2 data-[side=right]:slide-out-to-left-1",
               "data-[side=left]:slide-in-from-right-2 data-[side=left]:slide-out-to-right-1",
-              matchWidth && "min-w-[var(--anchor-width)]",
+              matchWidth && "min-w-(--anchor-width)",
               className,
             )}
           >

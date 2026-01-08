@@ -1,6 +1,6 @@
-import { Stack } from "@chakra-ui/react";
 import type { KeyValue } from "@typebot.io/blocks-integrations/httpRequest/schema";
-import { TextInput } from "@/components/inputs";
+import { Field } from "@typebot.io/ui/components/Field";
+import { DebouncedTextInputWithVariablesButton } from "@/components/inputs/DebouncedTextInput";
 import type { TableListItemProps } from "@/components/TableList";
 
 export const QueryParamsInputs = (props: TableListItemProps<KeyValue>) => (
@@ -37,19 +37,23 @@ export const KeyValueInputs = ({
     onItemChange({ ...item, value });
   };
   return (
-    <Stack p="4" rounded="md" flex="1" borderWidth="1px">
-      <TextInput
-        label="Key:"
-        defaultValue={item.key ?? ""}
-        onChange={handleKeyChange}
-        placeholder={keyPlaceholder}
-      />
-      <TextInput
-        label="Value:"
-        defaultValue={item.value ?? ""}
-        onChange={handleValueChange}
-        placeholder={valuePlaceholder}
-      />
-    </Stack>
+    <div className="flex flex-col gap-2 p-4 rounded-md flex-1 border">
+      <Field.Root>
+        <Field.Label>Key:</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={item.key ?? ""}
+          onValueChange={handleKeyChange}
+          placeholder={keyPlaceholder}
+        />
+      </Field.Root>
+      <Field.Root>
+        <Field.Label>Value:</Field.Label>
+        <DebouncedTextInputWithVariablesButton
+          defaultValue={item.value ?? ""}
+          onValueChange={handleValueChange}
+          placeholder={valuePlaceholder}
+        />
+      </Field.Root>
+    </div>
   );
 };

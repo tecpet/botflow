@@ -1,14 +1,15 @@
-import { Stack } from "@chakra-ui/react";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { useQuery } from "@tanstack/react-query";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { trpc } from "@/lib/queryClient";
-import { useQuery } from "@tanstack/react-query";
 import { defaultTypebotLinkOptions } from "@typebot.io/blocks-logic/typebotLink/constants";
 import type { TypebotLinkBlock } from "@typebot.io/blocks-logic/typebotLink/schema";
 import { isNotEmpty } from "@typebot.io/lib/utils";
+import { Field } from "@typebot.io/ui/components/Field";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import { GroupsDropdown } from "./GroupsDropdown";
 import { TypebotsDropdown } from "./TypebotsDropdown";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 
 type Props = {
   options: TypebotLinkBlock["options"];
@@ -60,24 +61,27 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
     options?.typebotId === "current";
 
   return (
-    <Stack>
-      <SwitchWithLabel
-        label="Definir fluxo por variável"
-        moreInfoContent=""
-        initialValue={
-          options?.fluxByVariable ?? defaultTypebotLinkOptions.fluxByVariable
-        }
-        onCheckChange={updateFluxByVariable}
-      />
+    <div className="flex flex-col gap-2">
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={
+            options?.fluxByVariable ?? defaultTypebotLinkOptions.fluxByVariable
+          }
+          onCheckedChange={updateFluxByVariable}
+        />
+        <Field.Label>
+          Definir fluxo por variável{" "}
+        </Field.Label>
+      </Field.Root>
       {options?.fluxByVariable && (
-        <Stack>
-          <VariableSearchInput
+        <Field.Root>
+          <VariablesCombobox
             initialVariableId={options?.variableId}
-            onSelectVariable={(v) => updateVariableId(v?.id)}
+            onSelectVariable={updateVariableId}
           />
-        </Stack>
+        </Field.Root>
       )}
-      {!options?.fluxByVariable && typebot && (
+      {typebot && (
         <TypebotsDropdown
           idsToExclude={[typebot.id]}
           typebotId={options?.typebotId}
@@ -104,15 +108,22 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
         />
       )}
       {!isCurrentTypebotSelected && (
-        <SwitchWithLabel
-          label="Merge answers"
-          moreInfoContent="If enabled, the answers collected in the linked typebot will be merged with the results of the current typebot."
-          initialValue={
-            options?.mergeResults ?? defaultTypebotLinkOptions.mergeResults
-          }
-          onCheckChange={updateMergeResults}
-        />
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={
+              options?.mergeResults ?? defaultTypebotLinkOptions.mergeResults
+            }
+            onCheckedChange={updateMergeResults}
+          />
+          <Field.Label>
+            Merge answers{" "}
+            <MoreInfoTooltip>
+              If enabled, the answers collected in the linked typebot will be
+              merged with the results of the current typebot.
+            </MoreInfoTooltip>
+          </Field.Label>
+        </Field.Root>
       )}
-    </Stack>
+    </div>
   );
 };

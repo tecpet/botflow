@@ -17,6 +17,11 @@
       "!**/test/assets/**/*.json"
     ]
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": {
@@ -38,7 +43,8 @@
         "noStaticElementInteractions": "off"
       },
       "performance": {
-        "noAccumulatingSpread": "off"
+        "noAccumulatingSpread": "off",
+        "noImgElement": "off"
       },
       "style": {
         "noNonNullAssertion": "off",

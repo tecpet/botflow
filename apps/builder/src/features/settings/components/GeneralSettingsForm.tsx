@@ -1,17 +1,3 @@
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  FormControl,
-  FormLabel,
-  HStack,
-  Stack,
-  Tag,
-  Text,
-  useColorModeValue,
-} from "@chakra-ui/react";
 import { T, useTranslate } from "@tolgee/react";
 import { isDefined } from "@typebot.io/lib/utils";
 import {
@@ -19,10 +5,12 @@ import {
   rememberUserStorages,
 } from "@typebot.io/settings/constants";
 import type { Settings, SystemMessages } from "@typebot.io/settings/schemas";
+import { Accordion } from "@typebot.io/ui/components/Accordion";
+import { Badge } from "@typebot.io/ui/components/Badge";
+import { Field } from "@typebot.io/ui/components/Field";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
 import { SystemMessagesForm } from "./SystemMessagesForm";
 
 type Props = {
@@ -35,7 +23,6 @@ export const GeneralSettingsForm = ({
   onGeneralSettingsChange,
 }: Props) => {
   const { t } = useTranslate();
-  const keyBg = useColorModeValue(undefined, "gray.600");
   const toggleRememberUser = (isEnabled: boolean) =>
     onGeneralSettingsChange({
       ...generalSettings,
@@ -78,82 +65,105 @@ export const GeneralSettingsForm = ({
   };
 
   return (
-    <Stack spacing={6}>
-      <SwitchWithLabel
-        label={t("settings.sideMenu.general.prefillInput")}
-        initialValue={
-          generalSettings?.isInputPrefillEnabled ??
-          defaultSettings.general.isInputPrefillEnabled
-        }
-        onCheckChange={handleInputPrefillChange}
-        moreInfoContent={t("settings.sideMenu.general.prefillInput.tooltip")}
-      />
-      <SwitchWithLabel
-        label={t("settings.sideMenu.general.hideQueryParams")}
-        initialValue={
-          generalSettings?.isHideQueryParamsEnabled ??
-          defaultSettings.general.isHideQueryParamsEnabled
-        }
-        onCheckChange={handleHideQueryParamsChange}
-        moreInfoContent={t("settings.sideMenu.general.hideQueryParams.tooltip")}
-      />
-      <SwitchWithRelatedSettings
-        label={t("settings.sideMenu.general.rememberUser")}
-        moreInfoContent={t("settings.sideMenu.general.rememberUser.tooltip")}
-        initialValue={
-          generalSettings?.rememberUser?.isEnabled ??
+    <div className="flex flex-col gap-6">
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={
+            generalSettings?.isInputPrefillEnabled ??
+            defaultSettings.general.isInputPrefillEnabled
+          }
+          onCheckedChange={handleInputPrefillChange}
+        />
+        <Field.Label>
+          {t("settings.sideMenu.general.prefillInput")}{" "}
+          <MoreInfoTooltip>
+            {t("settings.sideMenu.general.prefillInput.tooltip")}
+          </MoreInfoTooltip>
+        </Field.Label>
+      </Field.Root>
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={
+            generalSettings?.isHideQueryParamsEnabled ??
+            defaultSettings.general.isHideQueryParamsEnabled
+          }
+          onCheckedChange={handleHideQueryParamsChange}
+        />
+        <Field.Label>
+          {t("settings.sideMenu.general.hideQueryParams")}{" "}
+          <MoreInfoTooltip>
+            {t("settings.sideMenu.general.hideQueryParams.tooltip")}
+          </MoreInfoTooltip>
+        </Field.Label>
+      </Field.Root>
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={
+              generalSettings?.rememberUser?.isEnabled ??
+              (isDefined(generalSettings?.isNewResultOnRefreshEnabled)
+                ? !generalSettings?.isNewResultOnRefreshEnabled
+                : false)
+            }
+            onCheckedChange={toggleRememberUser}
+          />
+          <Field.Label>
+            {t("settings.sideMenu.general.rememberUser")}{" "}
+            <MoreInfoTooltip>
+              {t("settings.sideMenu.general.rememberUser.tooltip")}
+            </MoreInfoTooltip>
+          </Field.Label>
+        </Field.Root>
+        {(generalSettings?.rememberUser?.isEnabled ??
           (isDefined(generalSettings?.isNewResultOnRefreshEnabled)
             ? !generalSettings?.isNewResultOnRefreshEnabled
-            : false)
-        }
-        onCheckChange={toggleRememberUser}
-      >
-        <FormControl as={HStack} justifyContent="space-between">
-          <FormLabel mb="0">
-            {t("settings.sideMenu.general.rememberUser.storage")}{" "}
-            <MoreInfoTooltip>
-              <Stack>
-                <Text>
-                  <T
-                    keyName="settings.sideMenu.general.rememberUser.storage.session.tooltip"
-                    params={{
-                      tag: <Tag size="sm" bgColor={keyBg} />,
-                    }}
-                  />
-                </Text>
-                <Text>
-                  <T
-                    keyName="settings.sideMenu.general.rememberUser.storage.local.tooltip"
-                    params={{
-                      tag: <Tag size="sm" bgColor={keyBg} />,
-                    }}
-                  />
-                </Text>
-              </Stack>
-            </MoreInfoTooltip>
-          </FormLabel>
-          <BasicSelect
-            value={generalSettings?.rememberUser?.storage}
-            defaultValue={defaultSettings.general.rememberUser.storage}
-            onChange={updateRememberUserStorage}
-            items={rememberUserStorages}
-          />
-        </FormControl>
-      </SwitchWithRelatedSettings>
-      <Accordion allowToggle>
-        <AccordionItem>
-          <AccordionButton justifyContent="space-between">
+            : false)) && (
+          <Field.Root>
+            <Field.Label>
+              {t("settings.sideMenu.general.rememberUser.storage")}
+              <MoreInfoTooltip>
+                <div className="flex flex-col gap-2">
+                  <p>
+                    <T
+                      keyName="settings.sideMenu.general.rememberUser.storage.session.tooltip"
+                      params={{
+                        tag: <Badge />,
+                      }}
+                    />
+                  </p>
+                  <p>
+                    <T
+                      keyName="settings.sideMenu.general.rememberUser.storage.local.tooltip"
+                      params={{
+                        tag: <Badge />,
+                      }}
+                    />
+                  </p>
+                </div>
+              </MoreInfoTooltip>
+            </Field.Label>
+            <BasicSelect
+              value={generalSettings?.rememberUser?.storage}
+              defaultValue={defaultSettings.general.rememberUser.storage}
+              onChange={updateRememberUserStorage}
+              items={rememberUserStorages}
+            />
+          </Field.Root>
+        )}
+      </Field.Container>
+      <Accordion.Root>
+        <Accordion.Item>
+          <Accordion.Trigger>
             {t("settings.sideMenu.general.systemMessages")}
-            <AccordionIcon />
-          </AccordionButton>
-          <AccordionPanel>
+          </Accordion.Trigger>
+          <Accordion.Panel>
             <SystemMessagesForm
               systemMessages={generalSettings?.systemMessages}
               onSystemMessagesChange={updateSystemMessages}
             />
-          </AccordionPanel>
-        </AccordionItem>
-      </Accordion>
-    </Stack>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion.Root>
+    </div>
   );
 };

@@ -1,9 +1,7 @@
-import { chakra } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
-import { Button } from "@typebot.io/ui/components/Button";
 import { Popover } from "@typebot.io/ui/components/Popover";
-import { UsersIcon } from "@/components/icons";
-import { useOpenControls } from "@/hooks/useOpenControls";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
+import { UsersIcon } from "@typebot.io/ui/icons/UsersIcon";
 import { SharePopoverContent } from "./SharePopoverContent";
 
 export const ShareTypebotButton = ({ isLoading }: { isLoading: boolean }) => {
@@ -12,19 +10,15 @@ export const ShareTypebotButton = ({ isLoading }: { isLoading: boolean }) => {
 
   return (
     <Popover.Root {...controls}>
-      <Popover.Trigger>
-        <Button
-          disabled={isLoading}
-          aria-label={t("share.button.popover.ariaLabel")}
-          variant="secondary"
-          size="sm"
-        >
-          <UsersIcon fontSize="md" />
-          <chakra.span display={{ base: "none", xl: "inline" }}>
-            {t("share.button.label")}
-          </chakra.span>
-        </Button>
-      </Popover.Trigger>
+      <Popover.TriggerButton
+        disabled={isLoading}
+        aria-label={t("share.button.popover.ariaLabel")}
+        variant="secondary"
+        size="sm"
+      >
+        <UsersIcon />
+        <span className="hidden xl:inline">{t("share.button.label")}</span>
+      </Popover.TriggerButton>
       <Popover.Popup className="w-[430px]" side="bottom" align="end">
         <SharePopoverContent />
       </Popover.Popup>

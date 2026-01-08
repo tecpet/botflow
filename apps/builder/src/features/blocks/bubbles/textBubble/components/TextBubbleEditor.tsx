@@ -1,4 +1,3 @@
-import { useTranslate } from "@tolgee/react";
 import type { TElement, Value } from "@typebot.io/rich-text/plate";
 import {
   Plate,
@@ -10,13 +9,13 @@ import { plateCorePlugins } from "@typebot.io/rich-text/plateCorePlugins";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Popover } from "@typebot.io/ui/components/Popover";
 import { Separator } from "@typebot.io/ui/components/Separator";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import { CodeIcon } from "@typebot.io/ui/icons/CodeIcon";
 import type { Variable } from "@typebot.io/variables/schemas";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { VariableSearchInput } from "@/components/inputs/VariableSearchInput";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
 import { useGraph } from "@/features/graph/providers/GraphProvider";
-import { useOpenControls } from "@/hooks/useOpenControls";
 import { useOutsideClick } from "@/hooks/useOutsideClick";
 import { plateUIPlugins } from "../plateUIPlugins";
 
@@ -28,6 +27,7 @@ type TextBubbleEditorContentProps = {
 };
 
 const VARIABLE_POPOVER_OFFSET_Y = 5;
+const VARIABLE_POPOVER_OFFSET_X = 50;
 
 export const TextBubbleEditor = ({
   id,
@@ -35,7 +35,6 @@ export const TextBubbleEditor = ({
   onChange,
   onClose,
 }: TextBubbleEditorContentProps) => {
-  const { t } = useTranslate();
   const { graphPosition } = useGraph();
   const editor = usePlateEditor({
     id,
@@ -86,7 +85,11 @@ export const TextBubbleEditor = ({
           relativeRect.top +
           VARIABLE_POPOVER_OFFSET_Y) /
         scale,
-      left: (selectionBoundingRect.left - relativeRect.left) / scale,
+      left:
+        (selectionBoundingRect.left -
+          relativeRect.left +
+          VARIABLE_POPOVER_OFFSET_X) /
+        scale,
     });
     variablesPopoverControls.onOpen();
   };
@@ -160,18 +163,16 @@ export const TextBubbleEditor = ({
             }}
           />
           <Popover.Popup
-            className="p-0"
+            className="p-0 data-open:duration-0"
             offset={0}
             // Prevent the editor from closing when clicking on the variable search input
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <VariableSearchInput
+            <VariablesCombobox
               initialVariableId={undefined}
               onSelectVariable={handleVariableSelected}
-              placeholder={t(
-                "editor.blocks.bubbles.textEditor.searchVariable.placeholder",
-              )}
-              autoFocus
+              defaultOpen
+              className="w-72"
             />
           </Popover.Popup>
         </Popover.Root>

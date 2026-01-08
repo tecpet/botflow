@@ -1,5 +1,4 @@
-import { Flex, Heading, Text, VStack } from "@chakra-ui/react";
-import { ChevronLeftIcon } from "@/components/icons";
+import { ArrowLeft01Icon } from "@typebot.io/ui/icons/ArrowLeft01Icon";
 import { ButtonLink } from "./ButtonLink";
 
 type Props = {
@@ -7,17 +6,17 @@ type Props = {
 };
 export const NotFoundPage = ({ resourceName }: Props) => {
   return (
-    <Flex justify="center" align="center" w="full" h="100vh">
-      <VStack spacing={6}>
-        <VStack>
-          <Heading>404</Heading>
-          <Text fontSize="xl">{resourceName} not found.</Text>
-        </VStack>
+    <div className="flex justify-center items-center w-full h-screen">
+      <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center gap-2">
+          <h2>404</h2>
+          <p className="text-xl">{resourceName} not found.</p>
+        </div>
         <ButtonLink href="/typebots">
-          <ChevronLeftIcon />
+          <ArrowLeft01Icon />
           Dashboard
         </ButtonLink>
-      </VStack>
-    </Flex>
+      </div>
+    </div>
   );
 };

@@ -1,12 +1,13 @@
-import { Heading, HStack, Stack } from "@chakra-ui/react";
 import { useTolgee, useTranslate } from "@tolgee/react";
 import { GraphNavigation } from "@typebot.io/prisma/enum";
+import { Field } from "@typebot.io/ui/components/Field";
 import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import type { GroupTitlesAutoGeneration } from "@typebot.io/user/schemas";
 import { useRouter } from "next/router";
+import { useTheme } from "next-themes";
 import { useEffect } from "react";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
 import { VideoOnboardingPopover } from "@/features/onboarding/components/VideoOnboardingPopover";
 import { setLocaleInCookies } from "../helpers/setLocaleInCookies";
 import { useUser } from "../hooks/useUser";
@@ -30,6 +31,7 @@ export const UserPreferencesForm = () => {
   const router = useRouter();
   const { t } = useTranslate();
   const { user, updateUser } = useUser();
+  const { setTheme } = useTheme();
 
   useEffect(() => {
     if (!user?.graphNavigation)
@@ -55,6 +57,7 @@ export const UserPreferencesForm = () => {
   };
 
   const changeGraphNavigation = async (value: string) => {
+    setTheme(value);
     updateUser({ graphNavigation: value as GraphNavigation });
   };
 
@@ -73,37 +76,34 @@ export const UserPreferencesForm = () => {
   };
 
   return (
-    <Stack spacing={12}>
-      <HStack spacing={4}>
-        <Heading size="md">{t("account.preferences.language.heading")}</Heading>
-        <BasicSelect
-          items={Object.entries(localeHumanReadable).map(([key, value]) => ({
-            label: value,
-            value: key as keyof typeof localeHumanReadable,
-          }))}
-          value={currentLanguage as keyof typeof localeHumanReadable}
-          onChange={updateLocale}
-        />
-        {currentLanguage !== "en" && (
-          <MoreInfoTooltip>
-            {t("account.preferences.language.tooltip")}
-          </MoreInfoTooltip>
-        )}
-      </HStack>
-      <Stack spacing={6}>
-        <Heading size="md">
-          {t("account.preferences.graphNavigation.heading")}
-        </Heading>
+    <div className="flex flex-col gap-12">
+      <div className="flex items-center gap-4">
+        <h3>{t("account.preferences.language.heading")}</h3>
+        <div className="flex items-center">
+          <BasicSelect
+            items={Object.entries(localeHumanReadable).map(([key, value]) => ({
+              label: value,
+              value: key as keyof typeof localeHumanReadable,
+            }))}
+            value={currentLanguage as keyof typeof localeHumanReadable}
+            onChange={updateLocale}
+          />
+          {currentLanguage !== "en" && (
+            <MoreInfoTooltip>
+              {t("account.preferences.language.tooltip")}
+            </MoreInfoTooltip>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-col gap-6">
+        <h3>{t("account.preferences.graphNavigation.heading")}</h3>
         <GraphNavigationRadioGroup
           defaultValue={user?.graphNavigation ?? GraphNavigation.MOUSE}
           onChange={changeGraphNavigation}
         />
-      </Stack>
-
-      <Stack spacing={6}>
-        <Heading size="md">
-          {t("account.preferences.appearance.heading")}
-        </Heading>
+      </div>
+      <div className="flex flex-col gap-6">
+        <h3>{t("account.preferences.appearance.heading")}</h3>
         <AppearanceRadioGroup
           defaultValue={
             user?.preferredAppAppearance
@@ -112,20 +112,24 @@ export const UserPreferencesForm = () => {
           }
           onChange={changeAppearance}
         />
-      </Stack>
-
+      </div>
       <VideoOnboardingPopover
         type="groupTitlesAutoGeneration"
         isEnabled={user?.groupTitlesAutoGeneration?.isEnabled ?? false}
         side="top"
       >
-        <SwitchWithRelatedSettings
-          label={t("account.preferences.groupTitlesAutoGeneration.label")}
-          initialValue={user?.groupTitlesAutoGeneration?.isEnabled}
-          onCheckChange={(isEnabled) => {
-            updateGroupTitlesGenParams({ isEnabled });
-          }}
-        >
+        <Field.Container>
+          <Field.Root className="flex-row items-center">
+            <Switch
+              checked={user?.groupTitlesAutoGeneration?.isEnabled}
+              onCheckedChange={(isEnabled) => {
+                updateGroupTitlesGenParams({ isEnabled });
+              }}
+            />
+            <Field.Label>
+              {t("account.preferences.groupTitlesAutoGeneration.label")}
+            </Field.Label>
+          </Field.Root>
           {user?.groupTitlesAutoGeneration && (
             <GroupTitlesAutoGenForm
               userId={user.id}
@@ -133,8 +137,8 @@ export const UserPreferencesForm = () => {
               onChange={updateGroupTitlesGenParams}
             />
           )}
-        </SwitchWithRelatedSettings>
+        </Field.Container>
       </VideoOnboardingPopover>
-    </Stack>
+    </div>
   );
 };

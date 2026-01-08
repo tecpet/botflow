@@ -1,4 +1,3 @@
-import { Stack, Text } from "@chakra-ui/react";
 import {
   defaultPixelOptions,
   pixelEventTypes,
@@ -6,11 +5,15 @@ import {
 } from "@typebot.io/blocks-integrations/pixel/constants";
 import type { PixelBlock } from "@typebot.io/blocks-integrations/pixel/schema";
 import { isDefined, isEmpty } from "@typebot.io/lib/utils";
-import { TextInput } from "@/components/inputs";
+import { Field } from "@typebot.io/ui/components/Field";
+import { MoreInfoTooltip } from "@typebot.io/ui/components/MoreInfoTooltip";
+import { Switch } from "@typebot.io/ui/components/Switch";
 import { BasicSelect } from "@/components/inputs/BasicSelect";
 import { CodeEditor } from "@/components/inputs/CodeEditor";
-import { SwitchWithLabel } from "@/components/inputs/SwitchWithLabel";
-import { SwitchWithRelatedSettings } from "@/components/SwitchWithRelatedSettings";
+import {
+  DebouncedTextInput,
+  DebouncedTextInputWithVariablesButton,
+} from "@/components/inputs/DebouncedTextInput";
 import { TableList } from "@/components/TableList";
 import { TextLink } from "@/components/TextLink";
 
@@ -67,61 +70,74 @@ export const PixelSettings = ({ options, onOptionsChange }: Props) => {
   };
 
   return (
-    <Stack spacing={4}>
-      <TextInput
+    <div className="flex flex-col gap-4">
+      <DebouncedTextInput
         defaultValue={options?.pixelId ?? ""}
-        onChange={updatePixelId}
-        withVariableButton={false}
+        onValueChange={updatePixelId}
         placeholder='Pixel ID (e.g. "123456789")'
       />
-      <SwitchWithLabel
-        label={"Skip initialization"}
-        moreInfoContent="Check this if the bot is embedded in your website and the pixel is already initialized."
-        initialValue={options?.isInitSkip ?? defaultPixelOptions.isInitSkip}
-        onCheckChange={updateIsInitSkipped}
-      />
-      <SwitchWithRelatedSettings
-        label={"Track event"}
-        initialValue={isDefined(options?.params)}
-        onCheckChange={updateIsTrackingEventEnabled}
-      >
-        <Text fontSize="sm" color="gray.500">
-          Read the{" "}
-          <TextLink href={pixelReferenceUrl} isExternal>
-            reference
-          </TextLink>{" "}
-          to better understand the available options.
-        </Text>
-        <BasicSelect
-          items={["Custom", ...pixelEventTypes]}
-          value={options?.eventType}
-          placeholder="Select event type"
-          onChange={updateEventType}
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={options?.isInitSkip ?? defaultPixelOptions.isInitSkip}
+          onCheckedChange={updateIsInitSkipped}
         />
-        {options?.eventType === "Custom" && (
-          <TextInput
-            defaultValue={options.name ?? ""}
-            onChange={updateEventName}
-            placeholder="Event name"
+        <Field.Label>
+          Skip initialization{" "}
+          <MoreInfoTooltip>
+            Check this if the bot is embedded in your website and the pixel is
+            already initialized.
+          </MoreInfoTooltip>
+        </Field.Label>
+      </Field.Root>
+      <Field.Container>
+        <Field.Root className="flex-row items-center">
+          <Switch
+            checked={isDefined(options?.params)}
+            onCheckedChange={updateIsTrackingEventEnabled}
           />
-        )}
-        {options?.eventType &&
-          (options.eventType === "Custom" ||
-            pixelObjectProperties.filter((prop) =>
-              prop.associatedEvents.includes(options.eventType),
-            ).length > 0) && (
-            <TableList
-              initialItems={options?.params ?? []}
-              onItemsChange={updateParams}
-              addLabel="Add parameter"
-            >
-              {(props) => (
-                <ParamItem {...props} eventType={options?.eventType} />
+          <Field.Label>Track event</Field.Label>
+        </Field.Root>
+        {isDefined(options?.params) && (
+          <>
+            <p className="text-sm" color="gray.500">
+              Read the{" "}
+              <TextLink href={pixelReferenceUrl} isExternal>
+                reference
+              </TextLink>{" "}
+              to better understand the available options.
+            </p>
+            <BasicSelect
+              items={["Custom", ...pixelEventTypes]}
+              value={options?.eventType}
+              placeholder="Select event type"
+              onChange={updateEventType}
+            />
+            {options?.eventType === "Custom" && (
+              <DebouncedTextInputWithVariablesButton
+                defaultValue={options.name ?? ""}
+                onValueChange={updateEventName}
+                placeholder="Event name"
+              />
+            )}
+            {options?.eventType &&
+              (options.eventType === "Custom" ||
+                pixelObjectProperties.filter((prop) =>
+                  prop.associatedEvents.includes(options.eventType),
+                ).length > 0) && (
+                <TableList
+                  initialItems={options?.params ?? []}
+                  onItemsChange={updateParams}
+                  addLabel="Add parameter"
+                >
+                  {(props) => (
+                    <ParamItem {...props} eventType={options?.eventType} />
+                  )}
+                </TableList>
               )}
-            </TableList>
-          )}
-      </SwitchWithRelatedSettings>
-    </Stack>
+          </>
+        )}
+      </Field.Container>
+    </div>
   );
 };
 
@@ -158,11 +174,11 @@ const ParamItem = ({ item, eventType, onItemChange }: ParamItemProps) => {
   if (!eventType) return null;
 
   return (
-    <Stack p="4" rounded="md" flex="1" borderWidth="1px">
+    <div className="flex flex-col gap-2 p-4 rounded-md flex-1 border">
       {eventType === "Custom" ? (
-        <TextInput
+        <DebouncedTextInputWithVariablesButton
           defaultValue={item.key}
-          onChange={updateKey}
+          onValueChange={updateKey}
           placeholder="Key"
         />
       ) : (
@@ -180,12 +196,12 @@ const ParamItem = ({ item, eventType, onItemChange }: ParamItemProps) => {
           onChange={updateValue}
         />
       ) : (
-        <TextInput
+        <DebouncedTextInputWithVariablesButton
           defaultValue={item.value}
-          onChange={updateValue}
+          onValueChange={updateValue}
           placeholder="Value"
         />
       )}
-    </Stack>
+    </div>
   );
 };

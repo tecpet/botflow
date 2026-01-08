@@ -162,7 +162,7 @@ export const VoiceRecorder = (props: Props) => {
       class={cx(
         "w-full gap-2 items-center transition-opacity px-2 typebot-recorder",
         props.recordingStatus === "started"
-          ? "opacity-1 flex"
+          ? "opacity-100 flex"
           : "opacity-0 hidden",
       )}
     >
@@ -174,9 +174,9 @@ export const VoiceRecorder = (props: Props) => {
         <CloseIcon class="w-4" />
       </button>
       <div class="relative flex w-full">
-        <canvas ref={canvasElement} class="w-full h-[56px]" />
-        <div class="absolute left-gradient w-2 left-0 h-[56px]" />
-        <div class="absolute right-gradient w-3 right-0 h-[56px]" />
+        <canvas ref={canvasElement} class="w-full h-14" />
+        <div class="absolute left-gradient w-2 left-0 h-14" />
+        <div class="absolute right-gradient w-3 right-0 h-14" />
       </div>
       <span class="time-container flex-none w-[35px] font-bold text-sm">
         {formatTimeLabel(recordingTime())}

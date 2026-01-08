@@ -1,4 +1,3 @@
-import { Flex, Image, Text } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { isNotEmpty } from "@typebot.io/lib/utils";
 import {
@@ -9,10 +8,10 @@ import {
 import type { Background } from "@typebot.io/theme/schemas";
 import { Button } from "@typebot.io/ui/components/Button";
 import { Popover } from "@typebot.io/ui/components/Popover";
+import { useOpenControls } from "@typebot.io/ui/hooks/useOpenControls";
 import React from "react";
 import { ImageUploadContent } from "@/components/ImageUploadContent";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
-import { useOpenControls } from "@/hooks/useOpenControls";
 import { ColorPicker } from "../../../../components/ColorPicker";
 
 type BackgroundContentProps = {
@@ -34,20 +33,14 @@ export const BackgroundContent = ({
   if ((background?.type ?? defaultBackgroundType) === BackgroundType.IMAGE) {
     if (!typebot) return null;
     return (
-      <Flex ref={popoverContainerRef}>
+      <div className="flex" ref={popoverContainerRef}>
         <Popover.Root {...controls}>
           <Popover.Trigger>
             {isNotEmpty(background?.content) ? (
-              <Image
+              <img
+                className="cursor-pointer transition-filter duration-200 rounded-md hover:brightness-90 w-full max-h-[200px] object-cover"
                 src={background?.content}
                 alt={t("theme.sideMenu.global.background.image.alt")}
-                cursor="pointer"
-                _hover={{ filter: "brightness(.9)" }}
-                transition="filter 200ms"
-                rounded="md"
-                w="full"
-                maxH="200px"
-                objectFit="cover"
               />
             ) : (
               <Button variant="secondary" className="w-full">
@@ -70,7 +63,7 @@ export const BackgroundContent = ({
             />
           </Popover.Popup>
         </Popover.Root>
-      </Flex>
+      </div>
     );
   }
   if (
@@ -78,13 +71,13 @@ export const BackgroundContent = ({
     (background?.type ?? defaultBackgroundType) === BackgroundType.COLOR
   ) {
     return (
-      <Flex justify="space-between" align="center">
-        <Text>{t("theme.sideMenu.global.background.color")}</Text>
+      <div className="flex justify-between items-center">
+        <p>{t("theme.sideMenu.global.background.color")}</p>
         <ColorPicker
           value={background?.content ?? defaultBackgroundColor[typebot.version]}
           onColorChange={handleContentChange}
         />
-      </Flex>
+      </div>
     );
   }
   return null;

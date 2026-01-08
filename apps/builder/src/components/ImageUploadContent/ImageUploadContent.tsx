@@ -1,9 +1,11 @@
-import { Flex, HStack, Stack } from "@chakra-ui/react";
 import { useTranslate } from "@tolgee/react";
 import { Button } from "@typebot.io/ui/components/Button";
 import { useState } from "react";
 import type { FilePathUploadProps } from "@/features/upload/api/generateUploadUrl";
-import { TextInput } from "../inputs/TextInput";
+import {
+  DebouncedTextInput,
+  DebouncedTextInputWithVariablesButton,
+} from "../inputs/DebouncedTextInput";
 import { EmojiSearchableList } from "./emoji/EmojiSearchableList";
 import { GiphyPicker } from "./GiphyPicker";
 import { IconPicker } from "./IconPicker";
@@ -55,8 +57,8 @@ export const ImageUploadContent = ({
   };
 
   return (
-    <Stack>
-      <HStack>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
         {displayedTabs.includes("link") && (
           <Button
             variant={currentTab === "link" ? "outline" : "ghost"}
@@ -111,8 +113,7 @@ export const ImageUploadContent = ({
             Icon
           </Button>
         )}
-      </HStack>
-
+      </div>
       <BodyContent
         uploadFileProps={uploadFileProps}
         tab={currentTab}
@@ -122,7 +123,7 @@ export const ImageUploadContent = ({
         linkWithVariableButton={linkWithVariableButton}
         onDelete={onDelete}
       />
-    </Stack>
+    </div>
   );
 };
 
@@ -182,7 +183,7 @@ const UploadFileContent = ({
   const { t } = useTranslate();
 
   return (
-    <Flex justify="center" py="2">
+    <div className="flex justify-center py-2">
       <UploadButton
         fileType="image"
         filePathProps={uploadFileProps}
@@ -190,7 +191,7 @@ const UploadFileContent = ({
       >
         {t("editor.header.uploadTab.uploadButton.label")}
       </UploadButton>
-    </Flex>
+    </div>
   );
 };
 
@@ -206,20 +207,26 @@ const EmbedLinkContent = ({
 }) => {
   const { t } = useTranslate();
 
-  return (
-    <Stack py="2">
-      <TextInput
+  if (withVariableButton) {
+    return (
+      <DebouncedTextInputWithVariablesButton
         placeholder={t("editor.header.linkTab.searchInputPlaceholder.label")}
-        onChange={onNewUrl}
+        onValueChange={onNewUrl}
         defaultValue={defaultUrl ?? ""}
-        withVariableButton={withVariableButton}
-        onKeyDown={(e) => {
-          if (e.key === "Backspace" && e.currentTarget.value === "") {
-            onDelete?.();
-          }
-        }}
       />
-    </Stack>
+    );
+  }
+  return (
+    <DebouncedTextInput
+      placeholder={t("editor.header.linkTab.searchInputPlaceholder.label")}
+      onValueChange={onNewUrl}
+      defaultValue={defaultUrl ?? ""}
+      onKeyDown={(e) => {
+        if (e.key === "Backspace" && e.currentTarget.value === "") {
+          onDelete?.();
+        }
+      }}
+    />
   );
 };
 
