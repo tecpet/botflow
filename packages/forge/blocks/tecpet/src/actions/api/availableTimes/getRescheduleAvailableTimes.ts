@@ -92,7 +92,7 @@ export const GetRescheduleAvailableTimesHandler = async ({
 
         let additionalDays = rawAdditionalDays ? Number(rawAdditionalDays) : 0;
 
-        const showOtherDates = JSON.parse(options.showOtherDates ?? "false");
+        const showOtherDates = JSON.parse((options.showOtherDates as string) ?? "false");
 
         if (showOtherDates) {
           additionalDays += 2;
