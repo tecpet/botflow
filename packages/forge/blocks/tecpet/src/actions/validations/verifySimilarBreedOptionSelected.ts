@@ -31,35 +31,38 @@ export const verifySimilarBreedOptionSelected = createAction({
   },
 });
 export const VerifySimilarBreedOptionSelectedHandler = async ({
-  options, variables
+  options,
+  variables,
 }: {
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const rawSimilarBreeds = JSON.parse(options.similarBreeds as string);
+  try {
+    const rawSimilarBreeds = JSON.parse(options.similarBreeds as string);
 
-        const petSRD = JSON.parse(options.petSRD as string);
+    const petSRD = JSON.parse(options.petSRD as string);
 
-        const similarBreeds: PaBreedResponse[] = rawSimilarBreeds.map(
-          (breed: PaBreedResponse) =>
-            typeof breed === "string" ? JSON.parse(breed) : breed,
-        );
+    const similarBreeds: PaBreedResponse[] = rawSimilarBreeds.map(
+      (breed: PaBreedResponse) =>
+        typeof breed === "string" ? JSON.parse(breed) : breed,
+    );
 
-        const petSRDIndex = similarBreeds.findIndex((breed) => {
-          breed.id === petSRD.id;
-        });
+    const petSRDIndex = similarBreeds.findIndex((breed) => {
+      breed.id === petSRD.id;
+    });
 
-        similarBreeds.splice(petSRDIndex, 1);
+    similarBreeds.splice(petSRDIndex, 1);
 
-        if (similarBreeds.length === 1) {
-          variables.set([
-            { id: options.petBreed as string, value: similarBreeds[0] },
-          ]);
-        } else {
-          variables.set([{ id: options.petBreed as string, value: petSRD }]);
-        }
-      } catch (error) {
-        console.error(error);
-      }
+    if (similarBreeds.length === 1) {
+      variables.set([
+        { id: options.petBreed as string, value: similarBreeds[0] },
+      ]);
+    } else if (similarBreeds.length > 1) {
+      variables.set([{ id: options.petBreed as string, value: "" }]);
+    } else {
+      variables.set([{ id: options.petBreed as string, value: petSRD }]);
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };
