@@ -39,10 +39,29 @@ export const TypebotLinkNode = ({ block }: Props) => {
     return linkedTypebot?.groups.find(byId(block.options.groupId))?.title;
   }, [block.options?.groupId, linkedTypebot?.groups]);
 
+  const dynamicVariableName = typebot?.variables.find(
+    (variable) => variable.id === block.options?.variableId
+  )?.name;
+
+  if (!block.options?.variableId && block.options?.fluxByVariable) return <Badge>Configure...</Badge>;
+
+  if (block.options?.variableId)
+    return (
+      <p>
+        Pular para fluxo da variável{" "}
+        {dynamicVariableName ? (
+          <>
+            <Badge colorScheme="purple">{dynamicVariableName}</Badge>
+          </>
+        ) : null}{" "}
+      </p>
+    );
+
   if (!block.options?.typebotId) return <Badge>Configure...</Badge>;
+
   return (
     <p>
-      Jump{" "}
+      Ir para{" "}
       {groupTitle ? (
         <>
           to <Badge colorScheme="purple">{groupTitle}</Badge>

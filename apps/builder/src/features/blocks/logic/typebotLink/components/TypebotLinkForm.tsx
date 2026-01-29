@@ -9,6 +9,8 @@ import { useTypebot } from "@/features/editor/providers/TypebotProvider";
 import { trpc } from "@/lib/queryClient";
 import { GroupsDropdown } from "./GroupsDropdown";
 import { TypebotsDropdown } from "./TypebotsDropdown";
+import { VariablesCombobox } from "@/components/inputs/VariablesCombobox";
+import type React from "react";
 
 type Props = {
   options: TypebotLinkBlock["options"];
@@ -40,13 +42,50 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
   const updateMergeResults = (mergeResults: boolean) =>
     onOptionsChange({ ...options, mergeResults });
 
+  const updateVariableId = (id?: string) => {
+    if (id) {
+      onOptionsChange({ ...options, variableId: id });
+    }
+  };
+
+  const updateFluxByVariable = (fluxByVariable: boolean) =>
+    onOptionsChange({
+      ...options,
+      fluxByVariable,
+      groupId: undefined,
+      typebotId: undefined,
+      variableId: undefined,
+    });
+
   const isCurrentTypebotSelected =
     (typebot && options?.typebotId === typebot.id) ||
     options?.typebotId === "current";
 
   return (
     <div className="flex flex-col gap-2">
-      {typebot && (
+      <Field.Root className="flex-row items-center">
+        <Switch
+          checked={
+            options?.fluxByVariable ?? defaultTypebotLinkOptions.fluxByVariable
+          }
+          onCheckedChange={updateFluxByVariable}
+        />
+        <Field.Label>
+          Definir fluxo por variável{" "}
+        </Field.Label>
+      </Field.Root>
+      {options?.fluxByVariable && (
+        <Field.Root>
+          <Field.Label>
+           Selecione
+          </Field.Label>
+          <VariablesCombobox
+            initialVariableId={options?.variableId}
+            onSelectVariable={(v) => updateVariableId(v?.id)}
+          />
+        </Field.Root>
+      )}
+      {!options?.fluxByVariable && typebot && (
         <TypebotsDropdown
           idsToExclude={[typebot.id]}
           typebotId={options?.typebotId}
@@ -54,13 +93,13 @@ export const TypebotLinkForm = ({ options, onOptionsChange }: Props) => {
           currentWorkspaceId={typebot.workspaceId as string}
         />
       )}
-      {options?.typebotId && (
+      {!options?.fluxByVariable && options?.typebotId && (
         <GroupsDropdown
           key={options.typebotId}
           groups={
             typebot && isCurrentTypebotSelected
               ? typebot.groups
-              : (linkedTypebotData?.typebot?.groups ?? [])
+              : linkedTypebotData?.typebot?.groups ?? []
           }
           groupId={options.groupId}
           onChange={handleGroupIdChange}
