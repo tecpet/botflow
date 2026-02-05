@@ -30,6 +30,7 @@ import { showGuidanceOptions } from "./actions/internal/showGuidanceOptions";
 import { showSendingInfoItems } from "./actions/internal/showSendingInfoItems";
 import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedFlux.chatbotAction";
 import { parseSelectedFluxSettings } from "./actions/parser/selectedFlux.settings";
+import { validateTakeAndBringMinAdvanceHours } from "./actions/validations/validateTakeAndBringMinAdvanceHours";
 import { verifyAvailableTimesOptionSelected } from "./actions/validations/veirifyAvailableTimesOptionSelected";
 import { verifyBookingGuard } from "./actions/validations/verifyBookingGuard";
 import { verifyInitialMessageToTrigger } from "./actions/validations/verifyInitialMessageToTrigger";
@@ -58,6 +59,7 @@ const validations = [
   verifyInputedCpfText,
   verifyBookingGuard,
   verifyInitialMessageToTrigger,
+  validateTakeAndBringMinAdvanceHours,
   verifySimilarBreedOptionSelected,
 ];
 

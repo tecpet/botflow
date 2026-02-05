@@ -62,45 +62,46 @@ export const buildAvailableTimesOptions = createAction({
   },
 });
 export const BuildAvailableTimesOptionsHandler = async ({
-  options, variables
+  options,
+  variables,
 }: {
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const availableTimesRaw: string[] =
-          JSON.parse(options.availableTimes as string) ?? [];
+  try {
+    const availableTimesRaw: string[] =
+      JSON.parse(options.availableTimes as string) ?? [];
 
-        const availableTimes: Array<
-          PaGetAvailableTimesResponse & AvailableTimeType
-        > = availableTimesRaw.map((item) =>
-          typeof item === "string" ? JSON.parse(item) : item,
-        );
+    const availableTimes: Array<
+      PaGetAvailableTimesResponse & AvailableTimeType
+    > = availableTimesRaw.map((item) =>
+      typeof item === "string" ? JSON.parse(item) : item,
+    );
 
-        availableTimes.push({
-          id: "OTHER",
-          scheduleStartTime: "PREFIRO OUTRA DATA",
-          dateBR: "",
-          start: "",
-          dateISO: "",
-          stop: "",
-        });
+    availableTimes.push({
+      id: "OTHER",
+      scheduleStartTime: "PREFIRO OUTRA DATA",
+      dateBR: "",
+      start: "",
+      dateISO: "",
+      stop: "",
+    });
 
-        variables.set([
-          {
-            id: options.availableTimesValues as string,
-            value: availableTimes.map((t) => t),
-          },
-          {
-            id: options.availableTimesStartAndStop as string,
-            value: availableTimes.map((t) => t.scheduleStartTime),
-          },
-          {
-            id: options.availableTimesDates as string,
-            value: availableTimes.map((t) => t.dateBR),
-          },
-        ]);
-      } catch (error) {
-        console.error(error);
-      }
+    variables.set([
+      {
+        id: options.availableTimesValues as string,
+        value: availableTimes.map((t) => t),
+      },
+      {
+        id: options.availableTimesStartAndStop as string,
+        value: availableTimes.map((t) => t.scheduleStartTime),
+      },
+      {
+        id: options.availableTimesDates as string,
+        value: availableTimes.map((t) => t.dateBR),
+      },
+    ]);
+  } catch (error) {
+    console.error(error);
+  }
 };
