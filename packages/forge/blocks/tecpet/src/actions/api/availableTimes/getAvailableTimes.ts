@@ -7,7 +7,7 @@ import {
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { format, getHours, getMinutes } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
+import { utcToZonedTime } from "date-fns-tz";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { formatBRDate, formatISODate, parseIds } from "../../../helpers/utils";
@@ -273,7 +273,7 @@ function filterAvailableTimesByMinAdvance(
   if (minAdvanceHours <= 0 || times.length === 0) {
     return times;
   }
-  const nowInShopTimezone = toZonedTime(new Date(), shopTimezone);
+  const nowInShopTimezone = utcToZonedTime(new Date(), shopTimezone);
   const nowMinutes =
     getHours(nowInShopTimezone) * 60 + getMinutes(nowInShopTimezone);
   const cutOffMinutes = nowMinutes + minAdvanceHours * 60;

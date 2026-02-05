@@ -1,7 +1,7 @@
 import type { PaGetAvailableTimesResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { getHours, getMinutes } from "date-fns";
-import { format, toZonedTime } from "date-fns-tz";
+import { format, utcToZonedTime } from "date-fns-tz";
 import { baseOptions } from "../../constants";
 import type { AvailableTimeType } from "../api/availableTimes/getAvailableTimes";
 
@@ -95,7 +95,7 @@ export function isTimeAllowedByMinAdvance(
   if (!time) return false;
   if (minAdvanceHours <= 0) return true;
 
-  const nowInShopTimezone = toZonedTime(new Date(), shopTimezone);
+  const nowInShopTimezone = utcToZonedTime(new Date(), shopTimezone);
 
   const nowMinutes =
     getHours(nowInShopTimezone) * 60 + getMinutes(nowInShopTimezone);
