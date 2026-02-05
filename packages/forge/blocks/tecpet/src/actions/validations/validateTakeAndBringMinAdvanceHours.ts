@@ -14,7 +14,7 @@ export const validateTakeAndBringMinAdvanceHours = createAction({
       isRequired: true,
       helperText: "Horário selecionado",
     }),
-    takeAndBringMinAdvanceHours: option.number.layout({
+    takeAndBringMinAdvanceHours: option.string.layout({
       label: "Horas de antecedência mínima para leva e traz",
       isRequired: true,
       helperText: "Horas de antecedência mínima para leva e traz",
@@ -61,11 +61,13 @@ export const ValidateTakeAndBringMinAdvanceHoursHandler = async ({
     const selectedTime: PaGetAvailableTimesResponse & AvailableTimeType =
       JSON.parse(rawSelectedTime);
 
+    const minAdvanceHours = Number(options.takeAndBringMinAdvanceHours ?? 0);
+
     const shopSettings = JSON.parse(options.shopSettings as string);
 
     const takeAndBringAllowed = isTimeAllowedByMinAdvance(
       selectedTime,
-      options.takeAndBringMinAdvanceHours as number,
+      minAdvanceHours,
       selectedTime.dateISO,
       shopSettings.timezone,
     );
