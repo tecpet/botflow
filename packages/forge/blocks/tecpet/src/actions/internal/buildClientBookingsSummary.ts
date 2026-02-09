@@ -1,6 +1,7 @@
 import type { PaGetBookingResponse, PaPetResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { formatBRDateStringDayMonth } from "../../helpers/utils";
 
 export const buildClientBookingsSummary = createAction({
   baseOptions,
@@ -41,84 +42,87 @@ export const buildClientBookingsSummary = createAction({
   },
 });
 export const BuildClientBookingsSummaryHandler = async ({
-  options, variables
+  options,
+  variables,
 }: {
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const rawPet = options.pet as string;
-        const rawClientBookings = options.clientBookings;
+  try {
+    const rawPet = options.pet as string;
+    const rawClientBookings = options.clientBookings;
 
-        const pet: PaPetResponse = JSON.parse(rawPet);
+    const pet: PaPetResponse = JSON.parse(rawPet);
 
-        const clientBookingsParsed: string[] = rawClientBookings
-          ? JSON.parse(rawClientBookings as string)
-          : null;
+    const clientBookingsParsed: string[] = rawClientBookings
+      ? JSON.parse(rawClientBookings as string)
+      : null;
 
-        const bookings: Array<
-          PaGetBookingResponse & {
-            bookingDescription?: string;
-            backToMenu?: boolean;
-          }
-        > = clientBookingsParsed.map((item) =>
-          typeof item === "string" ? JSON.parse(item) : item,
-        );
-
-        const filteredBookings: Array<
-          Partial<
-            PaGetBookingResponse & {
-              bookingDescription?: string;
-              backToMenu?: boolean;
-            }
-          >
-        > = bookings.filter(
-          (booking) => booking.petId === pet.id && booking.status !== "REMOVED",
-        );
-
-        filteredBookings.forEach((booking) => {
-          let bookingDescription = "";
-          booking.services?.forEach((service, index) => {
-            if (index > 0) {
-              bookingDescription += " + ";
-            }
-            bookingDescription += service.name;
-          });
-
-          booking["bookingDescription"] = bookingDescription;
-        });
-
-        filteredBookings.push({
-          backToMenu: true,
-          start: "",
-          stop: "",
-        });
-
-        variables.set([
-          {
-            id: options.bookingsValue as string,
-            value: filteredBookings.map((b) => b),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.bookingsDescription as string,
-            value: filteredBookings.map((b) => b.bookingDescription ?? ""),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.bookingsName as string,
-            value: filteredBookings.map((b) => {
-              if (!b.backToMenu) {
-                return `${b.start}-${b.stop}`;
-              } else {
-                return "VOLTAR AO MENU INICIAL";
-              }
-            }),
-          },
-        ]);
-      } catch (error) {
-        console.error(error);
+    const bookings: Array<
+      PaGetBookingResponse & {
+        bookingDescription?: string;
+        backToMenu?: boolean;
       }
+    > = clientBookingsParsed.map((item) =>
+      typeof item === "string" ? JSON.parse(item) : item,
+    );
+
+    const filteredBookings: Array<
+      Partial<
+        PaGetBookingResponse & {
+          bookingDescription?: string;
+          backToMenu?: boolean;
+        }
+      >
+    > = bookings.filter(
+      (booking) => booking.petId === pet.id && booking.status !== "REMOVED",
+    );
+
+    filteredBookings.forEach((booking) => {
+      let bookingDescription = "";
+      booking.services?.forEach((service, index) => {
+        if (index > 0) {
+          bookingDescription += " + ";
+        }
+        bookingDescription += service.name;
+      });
+
+      booking["bookingDescription"] = bookingDescription;
+
+      booking.date = formatBRDateStringDayMonth(booking.date ?? "");
+    });
+
+    filteredBookings.push({
+      backToMenu: true,
+      start: "",
+      stop: "",
+    });
+
+    variables.set([
+      {
+        id: options.bookingsValue as string,
+        value: filteredBookings.map((b) => b),
+      },
+    ]);
+    variables.set([
+      {
+        id: options.bookingsDescription as string,
+        value: filteredBookings.map((b) => b.bookingDescription ?? ""),
+      },
+    ]);
+    variables.set([
+      {
+        id: options.bookingsName as string,
+        value: filteredBookings.map((b) => {
+          if (!b.backToMenu) {
+            return `${b.date} - ${b.start}`;
+          } else {
+            return "VOLTAR AO MENU INICIAL";
+          }
+        }),
+      },
+    ]);
+  } catch (error) {
+    console.error(error);
+  }
 };

@@ -80,6 +80,10 @@ export const formatBRDate = (iso: string): string => {
   return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
 };
 
+export function formatBRDateStringDayMonth(dateStr: string): string {
+  const [day, month] = dateStr.split("/");
+  return `${day.padStart(2, "0")}/${month.padStart(2, "0")}`;
+}
 export const parseIds = (raw: unknown): number[] => {
   if (Array.isArray(raw)) return raw.map(Number);
 

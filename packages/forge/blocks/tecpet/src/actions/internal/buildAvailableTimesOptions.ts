@@ -12,13 +12,6 @@ export const buildAvailableTimesOptions = createAction({
       isRequired: true,
       helperText: "Horários disponiveis para hoje e amanhã",
     }),
-    timeSelectionBehaviorMinAdvanceHours: option.string.layout({
-      label:
-        "Comportamento do seletor de horários - Tempo mínimo de antecedência",
-      isRequired: true,
-      helperText:
-        "Tempo mínimo de antecedência para selecionar horários disponiveis. Exemplo: 2 horas",
-    }),
     timeSelectionBehaviorBehavior: option.string.layout({
       label: "Comportamento do seletor de horários - Comportamento",
       isRequired: true,

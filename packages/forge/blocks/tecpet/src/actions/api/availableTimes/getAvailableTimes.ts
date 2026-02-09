@@ -1,5 +1,6 @@
 import {
   ChatbotTimeDisplayModeEnum,
+  type PaEmployeeIndication,
   type PaGetAvailableTimesResponse,
   type PaGetAvailableTimesTimesBody,
   type ShopSegment,
@@ -43,6 +44,10 @@ export const getAvailableTimes = createAction({
       label: "Id dos serviços disponiveis",
       isRequired: true,
       helperText: "Id dos serviços disponiveis",
+    }),
+    employeeIndications: option.string.layout({
+      label: "Funcionários indicados para o serviço",
+      isRequired: true,
     }),
     petId: option.number.layout({
       label: "Id do Pet",
@@ -133,6 +138,17 @@ export const GetAvailableTimesHandler = async ({
       credentials.apiKey as string,
     );
 
+    const rawEmployeeIndications = options.employeeIndications;
+
+    const parsedEmployeeIndications: string[] = rawEmployeeIndications
+      ? JSON.parse(options.employeeIndications as string)
+      : [];
+
+    const employeesIndication: PaEmployeeIndication[] =
+      parsedEmployeeIndications.map((item) =>
+        typeof item === "string" ? JSON.parse(item) : item,
+      );
+
     const rawAdditionalDays = options.getAdditionalDays;
 
     const timeSelectionBehaviorTimeDisplayMode: ChatbotTimeDisplayModeEnum =
@@ -202,6 +218,7 @@ export const GetAvailableTimesHandler = async ({
         services,
         petId: Number(options.petId),
         segment: options.segmentType as ShopSegment,
+        employeesIndication,
       };
 
       let times: PaGetAvailableTimesResponse[] = [];
