@@ -117,7 +117,7 @@ export const BuildClientBookingsSummaryHandler = async ({
           if (!b.backToMenu) {
             return `${b.date} - ${b.start}`;
           } else {
-            return "VOLTAR AO MENU INICIAL";
+            return "VOLTAR AO MENU";
           }
         }),
       },
