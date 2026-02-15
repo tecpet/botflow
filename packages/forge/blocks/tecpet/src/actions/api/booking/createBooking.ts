@@ -81,79 +81,80 @@ export const createBooking = createAction({
   },
 });
 export const CreateBookingHandler = async ({
-  credentials, options, variables, logs
+  credentials,
+  options,
+  variables,
+  logs,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
   logs: any;
 }) => {
-      try {
-        const rawEmployeeIndications = options.employeeIndications;
+  try {
+    const rawEmployeeIndications = options.employeeIndications;
 
-        const rawSelectedTimeOption = options.selectedTimeOption;
+    const rawSelectedTimeOption = options.selectedTimeOption;
 
-        const selectedTimeOption: AvailableTimeType = JSON.parse(
-          rawSelectedTimeOption as string,
-        );
+    const selectedTimeOption: AvailableTimeType = JSON.parse(
+      rawSelectedTimeOption as string,
+    );
 
-        const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-        );
+    const tecpetSdk = new TecpetSDK(
+      (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+      credentials.apiKey as string,
+    );
 
-        const parsedSelectedService: ServiceOptionType = JSON.parse(
-          options.selectedServices as string,
-        );
+    const parsedSelectedService: ServiceOptionType = options.selectedServices
+      ? JSON.parse(options.selectedServices as string)
+      : undefined;
 
-        const parsedEmployeeIndications: string[] = rawEmployeeIndications
-          ? JSON.parse(options.employeeIndications as string)
-          : [];
+    const parsedEmployeeIndications: string[] = rawEmployeeIndications
+      ? JSON.parse(options.employeeIndications as string)
+      : [];
 
-        const employeesIndications: PaEmployeeIndication[] =
-          parsedEmployeeIndications.map((item) =>
-            typeof item === "string" ? JSON.parse(item) : item,
-          );
+    const employeesIndications: PaEmployeeIndication[] =
+      parsedEmployeeIndications.map((item) =>
+        typeof item === "string" ? JSON.parse(item) : item,
+      );
 
-        const serviceIds = parseIds(options.servicesIds);
+    const serviceIds = parseIds(options.servicesIds);
 
-        const comboIds = parseIds(options.combosIds);
+    const comboIds = parseIds(options.combosIds);
 
-        const selectedId = Number(parsedSelectedService.id);
+    const selectedId = Number(parsedSelectedService.id);
 
-        const services = serviceIds.includes(selectedId) ? [selectedId] : [];
+    const services = serviceIds.includes(selectedId) ? [selectedId] : [];
 
-        const combos = comboIds.includes(selectedId) ? [selectedId] : [];
+    const combos = comboIds.includes(selectedId) ? [selectedId] : [];
 
-        const additionalsRaw = options.selectedAdditionals ?? "[]";
-        (typeof additionalsRaw === "string"
-          ? JSON.parse(additionalsRaw)
-          : additionalsRaw
-        ).forEach((id: string | number) => services.push(Number(id)));
+    const additionalsRaw = options.selectedAdditionals ?? "[]";
+    (typeof additionalsRaw === "string"
+      ? JSON.parse(additionalsRaw)
+      : additionalsRaw
+    ).forEach((id: string | number) => services.push(Number(id)));
 
-        const body: PaCreateBookingInput = {
-          timeId: selectedTimeOption.id ?? "",
-          petId: Number(options.petId),
-          servicesId: services,
-          employeeIndication: employeesIndications,
-          combosId: combos,
-          segment: options.segmentType as ShopSegment,
-        };
+    const body: PaCreateBookingInput = {
+      timeId: selectedTimeOption.id ?? "",
+      petId: Number(options.petId),
+      servicesId: services,
+      employeeIndication: employeesIndications,
+      combosId: combos,
+      segment: options.segmentType as ShopSegment,
+    };
 
-        const createdBooking = await tecpetSdk.booking.create(
-          body,
-          Number(options.shopId),
-        );
+    const createdBooking = await tecpetSdk.booking.create(
+      body,
+      Number(options.shopId),
+    );
 
-        if (createdBooking) {
-          variables.set([
-            { id: options.booking as string, value: createdBooking },
-          ]);
-          variables.set([
-            { id: options.bookingId as string, value: createdBooking.id },
-          ]);
-        }
-      } catch (error) {
-        console.error(error);
-      }
+    if (createdBooking) {
+      variables.set([{ id: options.booking as string, value: createdBooking }]);
+      variables.set([
+        { id: options.bookingId as string, value: createdBooking.id },
+      ]);
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };

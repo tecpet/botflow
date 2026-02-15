@@ -63,7 +63,9 @@ export const ValidateTakeAndBringMinAdvanceHoursHandler = async ({
 
     const minAdvanceHours = Number(options.takeAndBringMinAdvanceHours ?? 0);
 
-    const shopSettings = JSON.parse(options.shopSettings as string);
+    const shopSettings = options.shopSettings
+      ? JSON.parse(options.shopSettings as string)
+      : undefined;
 
     const takeAndBringAllowed = isTimeAllowedByMinAdvance(
       selectedTime,

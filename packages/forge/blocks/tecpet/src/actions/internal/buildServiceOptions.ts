@@ -102,125 +102,126 @@ export const buildServiceOptions = createAction({
   },
 });
 export const BuildServiceOptionsHandler = async ({
-  options, variables
+  options,
+  variables,
 }: {
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const buildDescription = (entity: any) => {
-          let finalDescription = "";
-          const price: string = entity.price
-            ? `${formatAsCurrency(entity.price)}\n`
-            : "";
+  try {
+    const buildDescription = (entity: any) => {
+      let finalDescription = "";
+      const price: string = entity.price
+        ? `${formatAsCurrency(entity.price)}\n`
+        : "";
 
-          const description = entity.description ? entity.description : "";
-          const priceDescription = price ? `A partir de: R$${price}` : "";
+      const description = entity.description ? entity.description : "";
+      const priceDescription = price ? `A partir de: R$${price}` : "";
 
-          switch (serviceSelectionValueMode) {
-            case "SHOW_FROM":
-              finalDescription = `${priceDescription}${description} `;
-              break;
-            case "SHOW":
-              finalDescription = `${priceDescription}${description} `;
-              break;
-            default:
-              break;
-          }
-          return finalDescription;
-        };
-
-        const combosRaw: string[] =
-          typeof options.combos === "string"
-            ? JSON.parse(options.combos)
-            : (options.combos as any);
-
-        const categoriesAndServicesRaw: string[] =
-          typeof options.categoriesAndServices === "string"
-            ? JSON.parse(options.categoriesAndServices)
-            : (options.categoriesAndServices as any);
-
-        const combos = combosRaw.map((combo) => JSON.parse(combo));
-
-        const categoriesAndServices = categoriesAndServicesRaw.map((service) =>
-          JSON.parse(service),
-        );
-
-        const serviceSelectionValueMode = options.serviceSelectionValueMode;
-
-        const serviceOptions: ServiceOptionType[] = [];
-        const additionalOptions = [];
-
-        for (const combo of combos) {
-          combo.description = buildDescription(combo);
-          serviceOptions.push({
-            ...combo,
-            type: "COMBO",
-            services: combo.services,
-          });
-        }
-
-        for (const category of categoriesAndServices) {
-          for (const service of category.services) {
-            service.description = buildDescription(service);
-            category.type === "ADDITIONAL"
-              ? additionalOptions.push({
-                  ...service,
-                  type: "SERVICE",
-                  category: service.serviceCategory,
-                })
-              : serviceOptions.push({
-                  ...service,
-                  type: "SERVICE",
-                  category: service.serviceCategory,
-                });
-          }
-        }
-
-        variables.set([
-          { id: options.serviceOptions as string, value: serviceOptions },
-        ]);
-        variables.set([
-          {
-            id: options.serviceOptionsIds as string,
-            value: serviceOptions.map((s) => s),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.serviceOptionsNames as string,
-            value: serviceOptions.map((s) => s.name),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.serviceOptionsDescriptions as string,
-            value: serviceOptions.map((s) => s.description),
-          },
-        ]);
-
-        variables.set([
-          { id: options.additionalOptions as string, value: additionalOptions },
-        ]);
-        variables.set([
-          {
-            id: options.additionalOptionsIds as string,
-            value: additionalOptions.map((s) => s.id),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.additionalOptionsNames as string,
-            value: additionalOptions.map((s) => s.name),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.additionalOptionsDescriptions as string,
-            value: additionalOptions.map((s) => s.description),
-          },
-        ]);
-      } catch (error) {
-        console.error(error);
+      switch (serviceSelectionValueMode) {
+        case "SHOW_FROM":
+          finalDescription = `${priceDescription}${description} `;
+          break;
+        case "SHOW":
+          finalDescription = `${priceDescription}${description} `;
+          break;
+        default:
+          break;
       }
+      return finalDescription;
+    };
+
+    const combosRaw: string[] =
+      typeof options.combos === "string"
+        ? JSON.parse(options.combos)
+        : ((options.combos as any) ?? []);
+
+    const categoriesAndServicesRaw: string[] =
+      typeof options.categoriesAndServices === "string"
+        ? JSON.parse(options.categoriesAndServices)
+        : ((options.categoriesAndServices as any) ?? []);
+
+    const combos = combosRaw.map((combo) => JSON.parse(combo));
+
+    const categoriesAndServices = categoriesAndServicesRaw.map((service) =>
+      JSON.parse(service),
+    );
+
+    const serviceSelectionValueMode = options.serviceSelectionValueMode;
+
+    const serviceOptions: ServiceOptionType[] = [];
+    const additionalOptions = [];
+
+    for (const combo of combos) {
+      combo.description = buildDescription(combo);
+      serviceOptions.push({
+        ...combo,
+        type: "COMBO",
+        services: combo.services,
+      });
+    }
+
+    for (const category of categoriesAndServices) {
+      for (const service of category.services) {
+        service.description = buildDescription(service);
+        category.type === "ADDITIONAL"
+          ? additionalOptions.push({
+              ...service,
+              type: "SERVICE",
+              category: service.serviceCategory,
+            })
+          : serviceOptions.push({
+              ...service,
+              type: "SERVICE",
+              category: service.serviceCategory,
+            });
+      }
+    }
+
+    variables.set([
+      { id: options.serviceOptions as string, value: serviceOptions },
+    ]);
+    variables.set([
+      {
+        id: options.serviceOptionsIds as string,
+        value: serviceOptions.map((s) => s),
+      },
+    ]);
+    variables.set([
+      {
+        id: options.serviceOptionsNames as string,
+        value: serviceOptions.map((s) => s.name),
+      },
+    ]);
+    variables.set([
+      {
+        id: options.serviceOptionsDescriptions as string,
+        value: serviceOptions.map((s) => s.description),
+      },
+    ]);
+
+    variables.set([
+      { id: options.additionalOptions as string, value: additionalOptions },
+    ]);
+    variables.set([
+      {
+        id: options.additionalOptionsIds as string,
+        value: additionalOptions.map((s) => s.id),
+      },
+    ]);
+    variables.set([
+      {
+        id: options.additionalOptionsNames as string,
+        value: additionalOptions.map((s) => s.name),
+      },
+    ]);
+    variables.set([
+      {
+        id: options.additionalOptionsDescriptions as string,
+        value: additionalOptions.map((s) => s.description),
+      },
+    ]);
+  } catch (error) {
+    console.error(error);
+  }
 };

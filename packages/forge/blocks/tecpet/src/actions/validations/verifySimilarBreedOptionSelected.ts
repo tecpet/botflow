@@ -38,9 +38,13 @@ export const VerifySimilarBreedOptionSelectedHandler = async ({
   variables: any;
 }) => {
   try {
-    const rawSimilarBreeds = JSON.parse(options.similarBreeds as string);
+    const rawSimilarBreeds = options.similarBreeds
+      ? JSON.parse(options.similarBreeds as string)
+      : [];
 
-    const petSRD = JSON.parse(options.petSRD as string);
+    const petSRD = options.petSRD
+      ? JSON.parse(options.petSRD as string)
+      : undefined;
 
     const similarBreeds: PaBreedResponse[] = rawSimilarBreeds.map(
       (breed: PaBreedResponse) =>

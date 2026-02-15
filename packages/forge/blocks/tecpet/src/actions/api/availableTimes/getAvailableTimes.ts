@@ -155,14 +155,20 @@ export const GetAvailableTimesHandler = async ({
       (options.timeSelectionBehaviorTimeDisplayMode as ChatbotTimeDisplayModeEnum) ??
       null;
 
-    const shopSettings = JSON.parse(options.shopSettings as string);
+    const shopSettings = options.shopSettings
+      ? JSON.parse(options.shopSettings as string)
+      : undefined;
 
     const selectedTimeMinAdvanceHours = Number(
       options.selectedTimeMinAdvanceHours ?? 0,
     );
 
-    const rawServices = JSON.parse(options.servicesIds as string);
-    const rawCombos = JSON.parse(options.combosIds as string);
+    const rawServices = options.servicesIds
+      ? JSON.parse(options.servicesIds as string)
+      : [];
+    const rawCombos = options.combosIds
+      ? JSON.parse(options.combosIds as string)
+      : [];
 
     const bookingId = options.bookingId
       ? JSON.parse(options.bookingId as string)

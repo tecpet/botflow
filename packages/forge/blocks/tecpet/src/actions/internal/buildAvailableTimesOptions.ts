@@ -62,8 +62,9 @@ export const BuildAvailableTimesOptionsHandler = async ({
   variables: any;
 }) => {
   try {
-    const availableTimesRaw: string[] =
-      JSON.parse(options.availableTimes as string) ?? [];
+    const availableTimesRaw: string[] = options.availableTimes
+      ? (JSON.parse(options.availableTimes as string) ?? [])
+      : [];
 
     const availableTimes: Array<
       PaGetAvailableTimesResponse & AvailableTimeType
