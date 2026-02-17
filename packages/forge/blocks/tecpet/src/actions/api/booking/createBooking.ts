@@ -70,12 +70,18 @@ export const createBooking = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    invoiceId: option.string.layout({
+      label: "ID da fatura",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
-  getSetVariableIds: ({ booking, bookingId }) => {
+  getSetVariableIds: ({ booking, bookingId, invoiceId }) => {
     const variables = [];
 
     if (booking) variables.push(booking);
     if (bookingId) variables.push(bookingId);
+    if (invoiceId) variables.push(invoiceId);
 
     return variables;
   },
@@ -152,6 +158,9 @@ export const CreateBookingHandler = async ({
       variables.set([{ id: options.booking as string, value: createdBooking }]);
       variables.set([
         { id: options.bookingId as string, value: createdBooking.id },
+      ]);
+      variables.set([
+        { id: options.invoiceId as string, value: createdBooking?.invoice?.id },
       ]);
     }
   } catch (error) {
