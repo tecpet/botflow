@@ -29,7 +29,7 @@ export const getFormattedMessages = createAction({
       isRequired: false,
       helperText: "Id do pet",
     }),
-    invoiceId: option.number.layout({
+    invoiceId: option.string.layout({
       label: "ID da fatura",
       isRequired: false,
       helperText: "Id da fatura",
@@ -57,37 +57,39 @@ export const getFormattedMessages = createAction({
   },
 });
 export const GetFormattedMessagesHandler = async ({
-  credentials, options, variables
+  credentials,
+  options,
+  variables,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-        );
-        const body: GetChatbotFormattedMessagesInput = {
-          ids: {
-            clientId: options.clientId as number,
-            petId: options.petId as number,
-            invoiceId: options.invoiceId as number,
-            serviceId: options.serviceId as number,
-            bookingId: options.bookingId as number,
-          },
-          messages: [{ text: (options.message as string) ?? "" }],
-        };
-        const result = await tecpetSdk.chatbot.getFormattedMessage(
-          body,
-          options.shopId as number,
-        );
-        if (result && result.length > 0) {
-          variables.set([
-            { id: options.updatedMessage as string, value: result[0].message },
-          ]);
-        }
-      } catch (error) {
-        console.error(error);
-      }
+  try {
+    const tecpetSdk = new TecpetSDK(
+      (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+      credentials.apiKey as string,
+    );
+    const body: GetChatbotFormattedMessagesInput = {
+      ids: {
+        clientId: options.clientId as number,
+        petId: options.petId as number,
+        invoiceId: options.invoiceId as string,
+        serviceId: options.serviceId as number,
+        bookingId: options.bookingId as number,
+      },
+      messages: [{ text: (options.message as string) ?? "" }],
+    };
+    const result = await tecpetSdk.chatbot.getFormattedMessage(
+      body,
+      options.shopId as number,
+    );
+    if (result && result.length > 0) {
+      variables.set([
+        { id: options.updatedMessage as string, value: result[0].message },
+      ]);
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };
