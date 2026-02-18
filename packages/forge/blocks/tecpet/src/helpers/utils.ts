@@ -21,50 +21,52 @@ export const levenshtein = (a: any, b: any) => {
   return matrix[b.length][a.length];
 };
 
+const normalize = (s: string) =>
+  s
+    ?.normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+const similarityScore = (a: string, b: string) => {
+  const distance = levenshtein(a, b);
+  const maxLen = Math.max(a.length, b.length);
+
+  return 1 - distance / maxLen; // score entre 0 e 1
+};
+
 export const getSimilarBreeds = (
   input: string,
   breeds: Array<{ name: string; [k: string]: any }>,
 ) => {
-  // --- normalização (minúsculas, sem acentos, sem espaços extras) ---
-  console.log("[SIMILAR BREEDS] - 1");
-  const normalize = (s: string) => s?.toLowerCase().trim();
-
-  console.log("[SIMILAR BREEDS] - 2");
-  console.log(input);
-
   const inputNorm = normalize(input);
-  console.log("[SIMILAR BREEDS] - 3");
 
-  // --- calcula distância de Levenshtein para cada raça ---
-  const scored = breeds.map((breed) => ({
-    breed, // objeto completo
-    distance: levenshtein(inputNorm, normalize(breed.name)),
-  }));
-  console.log("[SIMILAR BREEDS] - 4");
+  const scored = breeds.map((breed) => {
+    const breedNorm = normalize(breed.name);
 
-  // 1) Alguma com distância 0 ou 1? → devolve só a melhor (menor distância)
-  const veryClose = scored.filter((b) => b.distance <= 1);
-  console.log("[SIMILAR BREEDS] - 5");
-  if (veryClose.length) {
-    console.log("[SIMILAR BREEDS] - 51");
-    const [best] = veryClose.sort((a, b) => a.distance - b.distance);
-    console.log("[SIMILAR BREEDS] - 52");
-    return [best.breed]; // array com 1 item
-  }
-  console.log("[SIMILAR BREEDS] - 6");
+    // 🔥 quebra em palavras
+    const words = breedNorm.split(" ");
 
-  // 2) Distância de 2 a 5? → devolve as 10 mais próximas
-  const close = scored.filter((b) => b.distance >= 2 && b.distance <= 5);
-  if (close.length) {
-    return close
-      .sort((a, b) => a.distance - b.distance) // ordena da mais parecida p/ menos
-      .slice(0, 10) // no máx. 10 resultados
-      .map((b) => b.breed);
-  }
-  console.log("[SIMILAR BREEDS] - 7");
+    // pega melhor score entre nome completo e palavras individuais
+    const scores = [
+      similarityScore(inputNorm, breedNorm),
+      ...words.map((w) => similarityScore(inputNorm, w)),
+    ];
 
-  // 3) Tudo > 5 → nenhum resultado
-  return [];
+    const bestScore = Math.max(...scores);
+
+    return {
+      breed,
+      score: bestScore,
+    };
+  });
+
+  // 🔥 threshold inteligente
+  const filtered = scored
+    .filter((b) => b.score >= 0.6) // 60% similaridade
+    .sort((a, b) => b.score - a.score);
+
+  return filtered.slice(0, 5).map((b) => b.breed);
 };
 
 export const formatAsCurrency = (valor: number) => {
