@@ -63,8 +63,6 @@ export const VerifySimilarBreedOptionSelectedHandler = async ({
       ]);
     } else if (similarBreeds.length > 1) {
       variables.set([{ id: options.petBreed as string, value: "" }]);
-    } else {
-      variables.set([{ id: options.petBreed as string, value: petSRD }]);
     }
   } catch (error) {
     console.error(error);
