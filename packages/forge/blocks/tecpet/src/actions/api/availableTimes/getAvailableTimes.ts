@@ -258,6 +258,7 @@ export const GetAvailableTimesHandler = async ({
         );
       } catch (error) {
         console.log(error);
+        break;
       }
     }
 

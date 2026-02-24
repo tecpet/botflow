@@ -4,10 +4,6 @@ import {
   getAvailableTimes,
 } from "./actions/api/availableTimes/getAvailableTimes";
 import {
-  GetRescheduleAvailableTimesHandler,
-  getRescheduleAvailableTimes,
-} from "./actions/api/availableTimes/getRescheduleAvailableTimes";
-import {
   GetBillingMethodsHandler,
   getBillingMethods,
 } from "./actions/api/billingMethod/getBillingMethods";
@@ -130,9 +126,6 @@ import {
 
 export default [
   createActionHandler(getAvailableTimes, { server: GetAvailableTimesHandler }),
-  createActionHandler(getRescheduleAvailableTimes, {
-    server: GetRescheduleAvailableTimesHandler,
-  }),
   createActionHandler(getBillingMethods, { server: GetBillingMethodsHandler }),
   createActionHandler(cancelBooking, { server: CancelBookingHandler }),
   createActionHandler(createBooking, { server: CreateBookingHandler }),

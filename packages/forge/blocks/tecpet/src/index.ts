@@ -1,6 +1,5 @@
 import { createBlock } from "@typebot.io/forge";
 import { getAvailableTimes } from "./actions/api/availableTimes/getAvailableTimes";
-import { getRescheduleAvailableTimes } from "./actions/api/availableTimes/getRescheduleAvailableTimes";
 import { getBillingMethods } from "./actions/api/billingMethod/getBillingMethods";
 import { cancelBooking } from "./actions/api/booking/cancelBooking";
 import { createBooking } from "./actions/api/booking/createBooking";
@@ -67,12 +66,7 @@ const clientActions = [getClient, editClient, getClientSummary];
 
 const petActions = [getPets, createPet, editPet];
 
-const bookingActions = [
-  createBooking,
-  cancelBooking,
-  rescheduleBooking,
-  getRescheduleAvailableTimes,
-];
+const bookingActions = [createBooking, cancelBooking, rescheduleBooking];
 
 const apiActions = [
   extractToken,
