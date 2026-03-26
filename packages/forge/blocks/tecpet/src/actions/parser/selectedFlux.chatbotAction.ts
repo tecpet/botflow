@@ -76,6 +76,11 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    serviceSelectionValueEnabled: option.string.layout({
+      label: "Serviços do agendamento - Modo exibição habilitado",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
     additionalSelectionEnabled: option.string.layout({
       label: "Adicionais do agendamento - Habilitado",
       placeholder: "Selecione",
@@ -278,6 +283,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     selectedMenuConfigurations,
     serviceSelectionMessage,
     serviceSelectionValueMode,
+    serviceSelectionValueEnabled,
     takeAndBringEnabled,
     takeAndBringMessage,
     takeAndBringMinAdvanceHours,
@@ -324,6 +330,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     if (selectedMenuConfigurations) variables.push(selectedMenuConfigurations);
     if (serviceSelectionMessage) variables.push(serviceSelectionMessage);
     if (serviceSelectionValueMode) variables.push(serviceSelectionValueMode);
+    if (serviceSelectionValueEnabled)
+      variables.push(serviceSelectionValueEnabled);
     if (takeAndBringEnabled) variables.push(takeAndBringEnabled);
     if (takeAndBringMessage) variables.push(takeAndBringMessage);
     if (takeAndBringMinAdvanceHours)
@@ -469,6 +477,10 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       [
         options.serviceSelectionValueMode,
         serviceSelection?.showServiceValues?.priceDisplayMode ?? "",
+      ],
+      [
+        options.serviceSelectionValueEnabled,
+        serviceSelection?.showServiceValues?.enabled ?? false,
       ],
       [
         options.additionalSelectionEnabled,

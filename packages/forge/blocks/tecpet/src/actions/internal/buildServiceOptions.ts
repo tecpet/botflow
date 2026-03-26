@@ -35,6 +35,11 @@ export const buildServiceOptions = createAction({
       isRequired: true,
       helperText: "Modo de exibição de valores",
     }),
+    serviceSelectionValueEnabled: option.string.layout({
+      label: "Modo de exibição habilitado",
+      isRequired: true,
+      helperText: "Modo de exibição habilitado",
+    }),
     serviceOptions: option.string.layout({
       label: "Opções de Serviço",
       placeholder: "Selecione",
@@ -109,6 +114,10 @@ export const BuildServiceOptionsHandler = async ({
   variables: any;
 }) => {
   try {
+    const serviceSelectionValueEnabled = options.serviceSelectionValueEnabled;
+
+    const serviceSelectionValueMode = options.serviceSelectionValueMode;
+
     const buildDescription = (entity: any) => {
       let finalDescription = "";
       const price: string = entity.price
@@ -116,18 +125,25 @@ export const BuildServiceOptionsHandler = async ({
         : "";
 
       const description = entity.description ? entity.description : "";
-      const priceDescription = price ? `A partir de: R$${price}` : "";
 
-      switch (serviceSelectionValueMode) {
-        case "SHOW_FROM":
-          finalDescription = `${priceDescription}${description} `;
-          break;
-        case "SHOW":
-          finalDescription = `${priceDescription}${description} `;
-          break;
-        default:
-          break;
+      if (serviceSelectionValueEnabled) {
+        switch (serviceSelectionValueMode) {
+          case "SHOW_FROM":
+            finalDescription = `A partir de: R$${price} ${description}`;
+            break;
+          case "SHOW":
+            finalDescription = `${price} ${description}`;
+            break;
+          case "HIDE":
+            finalDescription = description;
+            break;
+          default:
+            break;
+        }
+      } else {
+        finalDescription = description;
       }
+
       return finalDescription;
     };
 
@@ -146,8 +162,6 @@ export const BuildServiceOptionsHandler = async ({
     const categoriesAndServices = categoriesAndServicesRaw.map((service) =>
       JSON.parse(service),
     );
-
-    const serviceSelectionValueMode = options.serviceSelectionValueMode;
 
     const serviceOptions: ServiceOptionType[] = [];
     const additionalOptions = [];
