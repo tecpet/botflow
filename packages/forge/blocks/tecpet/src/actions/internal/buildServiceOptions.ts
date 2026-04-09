@@ -14,7 +14,7 @@ export interface ServiceOptionType {
   description: string;
   type: "COMBO" | "SERVICE";
   category: PaServiceCategoryResponse;
-  services?: PaServicePricingResponse[];
+  services: PaServicePricingResponse[];
 }
 
 export const buildServiceOptions = createAction({
@@ -182,12 +182,14 @@ export const BuildServiceOptionsHandler = async ({
           serviceOptions.push({
             ...service,
             type: "SERVICE",
+            services: [],
             category: service.serviceCategory,
           });
         } else if (category.type !== "TAKE_AND_BRING") {
           additionalOptions.push({
             ...service,
             type: "SERVICE",
+            services: [],
             category: service.serviceCategory,
           });
         }
