@@ -54,6 +54,13 @@ export const buildAvailableTimesOptions = createAction({
     return variables;
   },
 });
+
+const formatDateBR = (dateBR: string): string => {
+  const parts = dateBR.split("/");
+  if (parts.length >= 2) return `${parts[0]}/${parts[1]}`;
+  return dateBR;
+};
+
 export const BuildAvailableTimesOptionsHandler = async ({
   options,
   variables,
@@ -88,11 +95,15 @@ export const BuildAvailableTimesOptionsHandler = async ({
       },
       {
         id: options.availableTimesStartAndStop as string,
-        value: availableTimes.map((t) => t.scheduleStartTime),
+        value: availableTimes.map((t) =>
+          t.id !== "OTHER"
+            ? "Dia " + formatDateBR(t.dateBR) + " ás " + t.scheduleStartTime
+            : t.scheduleStartTime,
+        ),
       },
       {
         id: options.availableTimesDates as string,
-        value: availableTimes.map((t) => t.dateBR),
+        value: availableTimes.map((t) => formatDateBR(t.dateBR)),
       },
     ]);
   } catch (error) {

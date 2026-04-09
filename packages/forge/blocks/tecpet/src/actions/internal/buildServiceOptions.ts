@@ -1,4 +1,5 @@
 import type {
+  PaGetServicePricingResponse,
   PaServiceCategoryResponse,
   PaServicePricingResponse,
 } from "@tec.pet/tecpet-sdk";
@@ -13,7 +14,7 @@ export interface ServiceOptionType {
   description: string;
   type: "COMBO" | "SERVICE";
   category: PaServiceCategoryResponse;
-  services: PaServicePricingResponse[];
+  services?: PaServicePricingResponse[];
 }
 
 export const buildServiceOptions = createAction({
@@ -159,12 +160,11 @@ export const BuildServiceOptionsHandler = async ({
 
     const combos = combosRaw.map((combo) => JSON.parse(combo));
 
-    const categoriesAndServices = categoriesAndServicesRaw.map((service) =>
-      JSON.parse(service),
-    );
+    const categoriesAndServices: PaGetServicePricingResponse[] =
+      categoriesAndServicesRaw.map((service) => JSON.parse(service));
 
     const serviceOptions: ServiceOptionType[] = [];
-    const additionalOptions = [];
+    const additionalOptions: ServiceOptionType[] = [];
 
     for (const combo of combos) {
       combo.description = buildDescription(combo);
@@ -178,17 +178,19 @@ export const BuildServiceOptionsHandler = async ({
     for (const category of categoriesAndServices) {
       for (const service of category.services) {
         service.description = buildDescription(service);
-        category.type === "ADDITIONAL"
-          ? additionalOptions.push({
-              ...service,
-              type: "SERVICE",
-              category: service.serviceCategory,
-            })
-          : serviceOptions.push({
-              ...service,
-              type: "SERVICE",
-              category: service.serviceCategory,
-            });
+        if (category.type === "BATH" || category.type === "CLINIC") {
+          serviceOptions.push({
+            ...service,
+            type: "SERVICE",
+            category: service.serviceCategory,
+          });
+        } else if (category.type !== "TAKE_AND_BRING") {
+          additionalOptions.push({
+            ...service,
+            type: "SERVICE",
+            category: service.serviceCategory,
+          });
+        }
       }
     }
 
