@@ -115,7 +115,9 @@ export const BuildServiceOptionsHandler = async ({
   variables: any;
 }) => {
   try {
-    const serviceSelectionValueEnabled = options.serviceSelectionValueEnabled;
+    const serviceSelectionValueEnabled = JSON.parse(
+      (options.serviceSelectionValueEnabled as string) ?? "false",
+    );
 
     const serviceSelectionValueMode = options.serviceSelectionValueMode;
 
