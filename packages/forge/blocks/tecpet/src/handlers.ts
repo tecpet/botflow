@@ -47,6 +47,10 @@ import {
   getCategoriesAndServices,
 } from "./actions/api/service/getCategoriesAndServices";
 import {
+  GetServiceRecommendationsHandler,
+  getServiceRecommendations,
+} from "./actions/api/serviceRecommendation/getServiceRecommendations";
+import {
   GetShopConfigurationsHandler,
   getShopConfigurations,
 } from "./actions/api/shop/getShopConfigurations";
@@ -201,5 +205,8 @@ export default [
   }),
   createActionHandler(validateTakeAndBringMinAdvanceHours, {
     server: ValidateTakeAndBringMinAdvanceHoursHandler,
+  }),
+  createActionHandler(getServiceRecommendations, {
+    server: GetServiceRecommendationsHandler,
   }),
 ];

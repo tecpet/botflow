@@ -16,6 +16,7 @@ import { createPet } from "./actions/api/pet/createPet";
 import { editPet } from "./actions/api/pet/editPet";
 import { getPets } from "./actions/api/pet/getPets";
 import { getCategoriesAndServices } from "./actions/api/service/getCategoriesAndServices";
+import { getServiceRecommendations } from "./actions/api/serviceRecommendation/getServiceRecommendations";
 import { getShopConfigurations } from "./actions/api/shop/getShopConfigurations";
 import { getSpecies } from "./actions/api/specie/getSpecies";
 import { extractToken } from "./actions/api/token/extractToken";
@@ -76,6 +77,7 @@ const apiActions = [
   getBillingMethods,
   getShopConfigurations,
   getCombos,
+  getServiceRecommendations,
   getEmployess,
   getCategoriesAndServices,
   getAvailableTimes,

@@ -2,6 +2,7 @@ import type {
   PaGetServicePricingResponse,
   PaServiceCategoryResponse,
   PaServicePricingResponse,
+  PaSimpleServiceResponse,
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
@@ -10,11 +11,11 @@ import { formatAsCurrency } from "../../helpers/utils";
 export interface ServiceOptionType {
   id: number;
   name: string;
-  price: number;
-  description: string;
-  type: "COMBO" | "SERVICE";
-  category: PaServiceCategoryResponse;
-  services: PaServicePricingResponse[];
+  price?: number;
+  description?: string;
+  type?: "COMBO" | "SERVICE";
+  category?: PaServiceCategoryResponse;
+  services?: PaServicePricingResponse[];
 }
 
 export const buildServiceOptions = createAction({
@@ -30,6 +31,11 @@ export const buildServiceOptions = createAction({
       label: "Categorias com serviços",
       isRequired: true,
       helperText: "Categorias com Serviços",
+    }),
+    recommendedServices: option.string.layout({
+      label: "Serviços recomendados",
+      isRequired: true,
+      helperText: "Serviços recomendados",
     }),
     serviceSelectionValueMode: option.string.layout({
       label: "Modo de exibição de valores",
@@ -81,12 +87,36 @@ export const buildServiceOptions = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    recommendedServiceOptions: option.string.layout({
+      label: "Opções de serviços recomendados",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    recommendedServiceOptionsIds: option.string.layout({
+      label: "Opções de serviços recomendados ids",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    recommendedServiceOptionsNames: option.string.layout({
+      label: "Opções de serviços recomendados nomes",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    recommendedServiceOptionsDescriptions: option.string.layout({
+      label: "Opções de serviços recomendados descrições",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     serviceOptions,
     serviceOptionsDescriptions,
     serviceOptionsIds,
     serviceOptionsNames,
+    recommendedServiceOptions,
+    recommendedServiceOptionsDescriptions,
+    recommendedServiceOptionsIds,
+    recommendedServiceOptionsNames,
     additionalOptions,
     additionalOptionsDescriptions,
     additionalOptionsIds,
@@ -103,6 +133,13 @@ export const buildServiceOptions = createAction({
       variables.push(additionalOptionsDescriptions);
     if (additionalOptionsIds) variables.push(additionalOptionsIds);
     if (additionalOptionsNames) variables.push(additionalOptionsNames);
+    if (recommendedServiceOptions) variables.push(recommendedServiceOptions);
+    if (recommendedServiceOptionsDescriptions)
+      variables.push(recommendedServiceOptionsDescriptions);
+    if (recommendedServiceOptionsIds)
+      variables.push(recommendedServiceOptionsIds);
+    if (recommendedServiceOptionsNames)
+      variables.push(recommendedServiceOptionsNames);
 
     return variables;
   },
@@ -115,6 +152,8 @@ export const BuildServiceOptionsHandler = async ({
   variables: any;
 }) => {
   try {
+    const setVar = (id: string, value: any) => variables.set([{ id, value }]);
+
     const serviceSelectionValueEnabled = JSON.parse(
       (options.serviceSelectionValueEnabled as string) ?? "false",
     );
@@ -162,16 +201,28 @@ export const BuildServiceOptionsHandler = async ({
 
     const combos = combosRaw.map((combo) => JSON.parse(combo));
 
+    const recommendedServicesRaw: string[] =
+      typeof options.recommendedServices === "string"
+        ? JSON.parse(options.recommendedServices)
+        : ((options.recommendedServices as any) ?? []);
+
+    const simpleRecommendedServices: PaSimpleServiceResponse[] =
+      recommendedServicesRaw.map((service) => JSON.parse(service));
+
     const categoriesAndServices: PaGetServicePricingResponse[] =
       categoriesAndServicesRaw.map((service) => JSON.parse(service));
 
     const serviceOptions: ServiceOptionType[] = [];
     const additionalOptions: ServiceOptionType[] = [];
+    const recommendedServiceOptions: ServiceOptionType[] = [];
 
     for (const combo of combos) {
       combo.description = buildDescription(combo);
       serviceOptions.push({
-        ...combo,
+        id: combo.id,
+        name: combo.name,
+        price: combo.price,
+        description: combo.description,
         type: "COMBO",
         services: combo.services,
       });
@@ -180,16 +231,35 @@ export const BuildServiceOptionsHandler = async ({
     for (const category of categoriesAndServices) {
       for (const service of category.services) {
         service.description = buildDescription(service);
+
+        if (simpleRecommendedServices.some((s) => s.id === service.id)) {
+          recommendedServiceOptions.push({
+            id: service.id,
+            name: service.name,
+            price: service.price,
+            description: service.description,
+            type: "SERVICE",
+            services: [],
+            category: service.serviceCategory,
+          });
+        }
+
         if (category.type === "BATH" || category.type === "CLINIC") {
           serviceOptions.push({
-            ...service,
+            id: service.id,
+            name: service.name,
+            price: service.price,
+            description: service.description,
             type: "SERVICE",
             services: [],
             category: service.serviceCategory,
           });
         } else if (category.type !== "TAKE_AND_BRING") {
           additionalOptions.push({
-            ...service,
+            id: service.id,
+            name: service.name,
+            price: service.price,
+            description: service.description,
             type: "SERVICE",
             services: [],
             category: service.serviceCategory,
@@ -198,49 +268,56 @@ export const BuildServiceOptionsHandler = async ({
       }
     }
 
-    variables.set([
-      { id: options.serviceOptions as string, value: serviceOptions },
-    ]);
-    variables.set([
-      {
-        id: options.serviceOptionsIds as string,
-        value: serviceOptions.map((s) => s),
-      },
-    ]);
-    variables.set([
-      {
-        id: options.serviceOptionsNames as string,
-        value: serviceOptions.map((s) => s.name),
-      },
-    ]);
-    variables.set([
-      {
-        id: options.serviceOptionsDescriptions as string,
-        value: serviceOptions.map((s) => s.description),
-      },
-    ]);
+    if (recommendedServiceOptions.length > 0) {
+      recommendedServiceOptions.push({ id: -1, name: "VER OUTROS SERVIÇOS" });
+    }
 
-    variables.set([
-      { id: options.additionalOptions as string, value: additionalOptions },
-    ]);
-    variables.set([
-      {
-        id: options.additionalOptionsIds as string,
-        value: additionalOptions.map((s) => s.id),
-      },
-    ]);
-    variables.set([
-      {
-        id: options.additionalOptionsNames as string,
-        value: additionalOptions.map((s) => s.name),
-      },
-    ]);
-    variables.set([
-      {
-        id: options.additionalOptionsDescriptions as string,
-        value: additionalOptions.map((s) => s.description),
-      },
-    ]);
+    console.log(recommendedServiceOptions);
+
+    const serviceVariables = [
+      [options.serviceOptions, serviceOptions],
+      [options.serviceOptionsIds, serviceOptions.map((s) => s)],
+      [options.serviceOptionsNames, serviceOptions.map((s) => s.name)],
+      [
+        options.serviceOptionsDescriptions,
+        serviceOptions.map((s) => s.description),
+      ],
+    ];
+
+    serviceVariables.forEach(([id, value]) => setVar(id as string, value));
+
+    const additionalOptionVariables = [
+      [options.additionalOptions, additionalOptions],
+      [options.additionalOptionsIds, additionalOptions.map((s) => s)],
+      [options.additionalOptionsNames, additionalOptions.map((s) => s.name)],
+      [
+        options.additionalOptionsDescriptions,
+        additionalOptions.map((s) => s.description),
+      ],
+    ];
+    additionalOptionVariables.forEach(([id, value]) =>
+      setVar(id as string, value),
+    );
+
+    const recommendedServiceOptionVariables = [
+      [options.recommendedServiceOptions, recommendedServiceOptions],
+      [
+        options.recommendedServiceOptionsIds,
+        recommendedServiceOptions.map((s) => s),
+      ],
+      [
+        options.recommendedServiceOptionsNames,
+        recommendedServiceOptions.map((s) => s.name),
+      ],
+      [
+        options.recommendedServiceOptionsDescriptions,
+        recommendedServiceOptions.map((s) => s.description),
+      ],
+    ];
+
+    recommendedServiceOptionVariables.forEach(([id, value]) =>
+      setVar(id as string, value),
+    );
   } catch (error) {
     console.error(error);
   }

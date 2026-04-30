@@ -130,9 +130,11 @@ export const CreateBookingHandler = async ({
 
     const selectedId = Number(parsedSelectedService.id);
 
-    const services = serviceIds.includes(selectedId) ? [selectedId] : [];
+    const services: number[] = serviceIds.includes(selectedId)
+      ? [selectedId]
+      : [];
 
-    const combos = comboIds.includes(selectedId) ? [selectedId] : [];
+    const combos: number[] = comboIds.includes(selectedId) ? [selectedId] : [];
 
     const additionalsRaw = options.selectedAdditionals ?? "[]";
     (typeof additionalsRaw === "string"
