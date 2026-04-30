@@ -1,4 +1,5 @@
 import type {
+  PaComboPricingResponse,
   PaGetServicePricingResponse,
   PaServiceCategoryResponse,
   PaServicePricingResponse,
@@ -11,11 +12,11 @@ import { formatAsCurrency } from "../../helpers/utils";
 export interface ServiceOptionType {
   id: number;
   name: string;
-  price?: number;
-  description?: string;
-  type?: "COMBO" | "SERVICE";
-  category?: PaServiceCategoryResponse;
-  services?: PaServicePricingResponse[];
+  price: number;
+  description: string;
+  type: "COMBO" | "SERVICE";
+  category: PaServiceCategoryResponse;
+  services: PaServicePricingResponse[];
 }
 
 export const buildServiceOptions = createAction({
@@ -199,7 +200,9 @@ export const BuildServiceOptionsHandler = async ({
         ? JSON.parse(options.categoriesAndServices)
         : ((options.categoriesAndServices as any) ?? []);
 
-    const combos = combosRaw.map((combo) => JSON.parse(combo));
+    const combos: PaComboPricingResponse[] = combosRaw.map((combo) =>
+      JSON.parse(combo),
+    );
 
     const recommendedServicesRaw: string[] =
       typeof options.recommendedServices === "string"
@@ -222,6 +225,7 @@ export const BuildServiceOptionsHandler = async ({
         id: combo.id,
         name: combo.name,
         price: combo.price,
+        category: null as any,
         description: combo.description,
         type: "COMBO",
         services: combo.services,
@@ -269,7 +273,15 @@ export const BuildServiceOptionsHandler = async ({
     }
 
     if (recommendedServiceOptions.length > 0) {
-      recommendedServiceOptions.push({ id: -1, name: "VER OUTROS SERVIÇOS" });
+      recommendedServiceOptions.push({
+        id: -1,
+        name: "VER OUTROS SERVIÇOS",
+        price: 0,
+        description: "",
+        type: "SERVICE",
+        services: [],
+        category: null as any,
+      });
     }
 
     console.log(recommendedServiceOptions);
