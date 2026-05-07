@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   PaComboPricingResponse,
   PaGetServicePricingResponse,
   PaServiceCategoryResponse,
@@ -236,7 +236,10 @@ export const BuildServiceOptionsHandler = async ({
       for (const service of category.services) {
         service.description = buildDescription(service);
 
-        if (simpleRecommendedServices.some((s) => s.id === service.id)) {
+        if (
+          simpleRecommendedServices &&
+          simpleRecommendedServices.some((s) => s.id === service.id)
+        ) {
           recommendedServiceOptions.push({
             id: service.id,
             name: service.name,
