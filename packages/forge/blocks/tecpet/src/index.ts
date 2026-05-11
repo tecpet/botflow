@@ -1,6 +1,5 @@
 import { createBlock } from "@typebot.io/forge";
 import { getAvailableTimes } from "./actions/api/availableTimes/getAvailableTimes";
-import { getRescheduleAvailableTimes } from "./actions/api/availableTimes/getRescheduleAvailableTimes";
 import { getBillingMethods } from "./actions/api/billingMethod/getBillingMethods";
 import { cancelBooking } from "./actions/api/booking/cancelBooking";
 import { createBooking } from "./actions/api/booking/createBooking";
@@ -17,6 +16,7 @@ import { createPet } from "./actions/api/pet/createPet";
 import { editPet } from "./actions/api/pet/editPet";
 import { getPets } from "./actions/api/pet/getPets";
 import { getCategoriesAndServices } from "./actions/api/service/getCategoriesAndServices";
+import { getServiceRecommendations } from "./actions/api/serviceRecommendation/getServiceRecommendations";
 import { getShopConfigurations } from "./actions/api/shop/getShopConfigurations";
 import { getSpecies } from "./actions/api/specie/getSpecies";
 import { extractToken } from "./actions/api/token/extractToken";
@@ -30,6 +30,7 @@ import { showGuidanceOptions } from "./actions/internal/showGuidanceOptions";
 import { showSendingInfoItems } from "./actions/internal/showSendingInfoItems";
 import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedFlux.chatbotAction";
 import { parseSelectedFluxSettings } from "./actions/parser/selectedFlux.settings";
+import { validateTakeAndBringMinAdvanceHours } from "./actions/validations/validateTakeAndBringMinAdvanceHours";
 import { verifyAvailableTimesOptionSelected } from "./actions/validations/veirifyAvailableTimesOptionSelected";
 import { verifyBookingGuard } from "./actions/validations/verifyBookingGuard";
 import { verifyInitialMessageToTrigger } from "./actions/validations/verifyInitialMessageToTrigger";
@@ -58,6 +59,7 @@ const validations = [
   verifyInputedCpfText,
   verifyBookingGuard,
   verifyInitialMessageToTrigger,
+  validateTakeAndBringMinAdvanceHours,
   verifySimilarBreedOptionSelected,
 ];
 
@@ -65,12 +67,7 @@ const clientActions = [getClient, editClient, getClientSummary];
 
 const petActions = [getPets, createPet, editPet];
 
-const bookingActions = [
-  createBooking,
-  cancelBooking,
-  rescheduleBooking,
-  getRescheduleAvailableTimes,
-];
+const bookingActions = [createBooking, cancelBooking, rescheduleBooking];
 
 const apiActions = [
   extractToken,
@@ -80,6 +77,7 @@ const apiActions = [
   getBillingMethods,
   getShopConfigurations,
   getCombos,
+  getServiceRecommendations,
   getEmployess,
   getCategoriesAndServices,
   getAvailableTimes,

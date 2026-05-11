@@ -178,13 +178,20 @@ export const executeForgedBlock = async (
     removeEmptyStrings: true,
   });
 
-  await handler?.server?.({
-    credentials: credentialsData,
-    options: parsedOptions,
-    variables,
-    logs: logsStore,
-    sessionStore,
-  });
+  try {
+    await handler?.server?.({
+      credentials: credentialsData,
+      options: parsedOptions,
+      variables,
+      logs: logsStore,
+      sessionStore,
+    });
+  } catch (err) {
+    logs.push({
+      status: "error",
+      description: `${block.type} action failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+    });
+  }
 
   const clientSideActions: ExecuteIntegrationResponse["clientSideActions"] = [];
 

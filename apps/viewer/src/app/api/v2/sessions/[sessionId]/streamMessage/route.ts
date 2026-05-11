@@ -27,7 +27,15 @@ export async function POST(
 ) {
   const { sessionId } = await params;
   const body = await req.text();
-  const messages = body ? JSON.parse(body).messages : undefined;
+  let messages: any;
+  try {
+    messages = body ? JSON.parse(body).messages : undefined;
+  } catch {
+    return NextResponse.json(
+      { message: "Invalid request body" },
+      { status: 400, headers: responseHeaders },
+    );
+  }
   const { stream, status, message, details, context } = await getMessageStream({
     sessionId,
     messages,

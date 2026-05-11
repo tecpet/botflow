@@ -95,61 +95,64 @@ export const editPet = createAction({
   },
 });
 export const EditPetHandler = async ({
-  credentials, options, variables, logs
+  credentials,
+  options,
+  variables,
+  logs,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
   logs: any;
 }) => {
-      try {
-        const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-        );
+  try {
+    const tecpetSdk = new TecpetSDK(
+      (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+      credentials.apiKey as string,
+    );
 
-        const body: PaEditPetInput = {
-          weigth: Number(options.petWeight),
-          genre: options.petGender as GenderType,
-          hair: options.petHair as BillingItemType,
-          size: options.petSize as BillingItemType,
-        };
+    const body: PaEditPetInput = {
+      weight: Number(options.petWeight),
+      genre: options.petGender as GenderType,
+      hair: options.petHair as BillingItemType,
+      size: options.petSize as BillingItemType,
+    };
 
-        if (options.petBirthDate) {
-          const parsedBirthDate = parse(
-            options.petBirthDate as string,
-            "dd/MM/yyyy",
-            new Date(),
-          );
-          body.birthDate = format(parsedBirthDate, "yyyy-MM-dd");
-        }
+    if (options.petBirthDate) {
+      const parsedBirthDate = parse(
+        options.petBirthDate as string,
+        "dd/MM/yyyy",
+        new Date(),
+      );
+      body.birthDate = format(parsedBirthDate, "yyyy-MM-dd");
+    }
 
-        const editedPet: PaPetResponse = (await tecpetSdk.pet.edit(
-          Number(options.petId),
-          body,
-        )) as PaPetResponse;
+    const editedPet: PaPetResponse = (await tecpetSdk.pet.edit(
+      Number(options.petId),
+      body,
+    )) as PaPetResponse;
 
-        if (editedPet) {
-          variables.set([
-            { id: options.editedPetWeight as string, value: editedPet.weigth },
-          ]);
-          variables.set([
-            { id: options.editedPetGender as string, value: editedPet.genre },
-          ]);
-          variables.set([
-            {
-              id: options.editedPetBirthDate as string,
-              value: editedPet.birthDate,
-            },
-          ]);
-          variables.set([
-            { id: options.editedPetSize as string, value: editedPet.size },
-          ]);
-          variables.set([
-            { id: options.editedPetHair as string, value: editedPet.hair },
-          ]);
-        }
-      } catch (error) {
-        console.error(error);
-      }
+    if (editedPet) {
+      variables.set([
+        { id: options.editedPetWeight as string, value: editedPet.weight },
+      ]);
+      variables.set([
+        { id: options.editedPetGender as string, value: editedPet.genre },
+      ]);
+      variables.set([
+        {
+          id: options.editedPetBirthDate as string,
+          value: editedPet.birthDate,
+        },
+      ]);
+      variables.set([
+        { id: options.editedPetSize as string, value: editedPet.size },
+      ]);
+      variables.set([
+        { id: options.editedPetHair as string, value: editedPet.hair },
+      ]);
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };

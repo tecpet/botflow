@@ -46,70 +46,70 @@ export const getPets = createAction({
   },
 });
 export const GetPetsHandler = async ({
-  credentials, options, variables
+  credentials,
+  options,
+  variables,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const scheduleToAnotherPet = JSON.parse(
-          options.scheduleToAnotherPet as string,
-        );
+  try {
+    const scheduleToAnotherPet = JSON.parse(
+      options.scheduleToAnotherPet as string,
+    );
 
-        const rawPetsWithBooking = options.petsWithBooking;
+    const rawPetsWithBooking = options.petsWithBooking;
 
-        const petsWithBooking: string[] | null = rawPetsWithBooking
-          ? JSON.parse(rawPetsWithBooking as string)
-          : null;
+    const petsWithBooking: string[] | null = rawPetsWithBooking
+      ? JSON.parse(rawPetsWithBooking as string)
+      : null;
 
-        const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-        );
+    const tecpetSdk = new TecpetSDK(
+      (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+      credentials.apiKey as string,
+    );
 
-        let petsResponse: Partial<PaPetResponse>[] =
-          await tecpetSdk.pet.getByClient(Number(options?.clientId));
+    let petsResponse: Partial<PaPetResponse>[] =
+      await tecpetSdk.pet.getByClient(Number(options?.clientId));
 
-        if (petsResponse) {
-          if (petsResponse.length > 0) {
-            if (scheduleToAnotherPet && petsWithBooking) {
-              petsWithBooking.forEach((petId) => {
-                const petIndex = petsResponse.findIndex(
-                  (pet) => pet.id === Number(petId),
-                );
+    if (petsResponse) {
+      if (petsResponse.length > 0) {
+        if (scheduleToAnotherPet && petsWithBooking) {
+          petsWithBooking.forEach((petId) => {
+            const petIndex = petsResponse.findIndex(
+              (pet) => pet.id === Number(petId),
+            );
 
-                petsResponse.splice(petIndex, 1);
-              });
-            }
-
-            petsResponse.push({
-              id: "",
-              name: "Cadastrar novo pet",
-            });
-
-            variables.set([
-              { id: options.pets as string, value: petsResponse.map((p) => p) },
-            ]);
-            variables.set([
-              {
-                id: options.petsNames as string,
-                value: petsResponse.map((p) => p.name),
-              },
-            ]);
-            variables.set([
-              {
-                id: options.petsDescriptions as string,
-                value: petsResponse.map((p) =>
-                  p.breedName ? p.breedName : "",
-                ),
-              },
-            ]);
-          } else {
-            petsResponse = [];
-          }
+            petsResponse.splice(petIndex, 1);
+          });
         }
-      } catch (error) {
-        console.error(error);
+
+        petsResponse.push({
+          id: "",
+          name: "Informar novo pet",
+        });
+
+        variables.set([
+          { id: options.pets as string, value: petsResponse.map((p) => p) },
+        ]);
+        variables.set([
+          {
+            id: options.petsNames as string,
+            value: petsResponse.map((p) => p.name),
+          },
+        ]);
+        variables.set([
+          {
+            id: options.petsDescriptions as string,
+            value: petsResponse.map((p) => (p.breedName ? p.breedName : "")),
+          },
+        ]);
+      } else {
+        petsResponse = [];
       }
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };

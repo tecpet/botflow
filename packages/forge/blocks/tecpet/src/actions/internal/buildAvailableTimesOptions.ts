@@ -12,13 +12,6 @@ export const buildAvailableTimesOptions = createAction({
       isRequired: true,
       helperText: "Horários disponiveis para hoje e amanhã",
     }),
-    timeSelectionBehaviorMinAdvanceHours: option.string.layout({
-      label:
-        "Comportamento do seletor de horários - Tempo mínimo de antecedência",
-      isRequired: true,
-      helperText:
-        "Tempo mínimo de antecedência para selecionar horários disponiveis. Exemplo: 2 horas",
-    }),
     timeSelectionBehaviorBehavior: option.string.layout({
       label: "Comportamento do seletor de horários - Comportamento",
       isRequired: true,
@@ -61,46 +54,59 @@ export const buildAvailableTimesOptions = createAction({
     return variables;
   },
 });
+
+const formatDateBR = (dateBR: string): string => {
+  const parts = dateBR.split("/");
+  if (parts.length >= 2) return `${parts[0]}/${parts[1]}`;
+  return dateBR;
+};
+
 export const BuildAvailableTimesOptionsHandler = async ({
-  options, variables
+  options,
+  variables,
 }: {
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const availableTimesRaw: string[] =
-          JSON.parse(options.availableTimes as string) ?? [];
+  try {
+    const availableTimesRaw: string[] = options.availableTimes
+      ? (JSON.parse(options.availableTimes as string) ?? [])
+      : [];
 
-        const availableTimes: Array<
-          PaGetAvailableTimesResponse & AvailableTimeType
-        > = availableTimesRaw.map((item) =>
-          typeof item === "string" ? JSON.parse(item) : item,
-        );
+    const availableTimes: Array<
+      PaGetAvailableTimesResponse & AvailableTimeType
+    > = availableTimesRaw.map((item) =>
+      typeof item === "string" ? JSON.parse(item) : item,
+    );
 
-        availableTimes.push({
-          id: "OTHER",
-          scheduleStartTime: "PREFIRO OUTRA DATA",
-          dateBR: "",
-          start: "",
-          dateISO: "",
-          stop: "",
-        });
+    availableTimes.push({
+      id: "OTHER",
+      scheduleStartTime: "PREFIRO OUTRA DATA",
+      dateBR: "",
+      start: "",
+      dateISO: "",
+      stop: "",
+    });
 
-        variables.set([
-          {
-            id: options.availableTimesValues as string,
-            value: availableTimes.map((t) => t),
-          },
-          {
-            id: options.availableTimesStartAndStop as string,
-            value: availableTimes.map((t) => t.scheduleStartTime),
-          },
-          {
-            id: options.availableTimesDates as string,
-            value: availableTimes.map((t) => t.dateBR),
-          },
-        ]);
-      } catch (error) {
-        console.error(error);
-      }
+    variables.set([
+      {
+        id: options.availableTimesValues as string,
+        value: availableTimes.map((t) => t),
+      },
+      {
+        id: options.availableTimesStartAndStop as string,
+        value: availableTimes.map((t) =>
+          t.id !== "OTHER"
+            ? "Dia " + formatDateBR(t.dateBR) + " ás " + t.scheduleStartTime
+            : t.scheduleStartTime,
+        ),
+      },
+      {
+        id: options.availableTimesDates as string,
+        value: availableTimes.map((t) => formatDateBR(t.dateBR)),
+      },
+    ]);
+  } catch (error) {
+    console.error(error);
+  }
 };

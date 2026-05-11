@@ -58,63 +58,69 @@ export const getBreeds = createAction({
   },
 });
 export const GetBreedsHandler = async ({
-  credentials, options, variables
+  credentials,
+  options,
+  variables,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-        );
-        const specieId = (options?.specie as string) ?? "";
-        const shopId = Number(options.shopId);
-        const breedName = (options.name as string) ?? "";
-        const breeds: PaBreedResponse[] = await tecpetSdk.breed.list(
-          specieId,
-          "",
-          shopId,
-        );
+  try {
+    const tecpetSdk = new TecpetSDK(
+      (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+      credentials.apiKey as string,
+    );
+    const specieId = (options?.specie as string) ?? "";
+    const shopId = Number(options.shopId);
+    const breedName = (options.name as string) ?? "";
+    const breeds: PaBreedResponse[] = await tecpetSdk.breed.list(
+      specieId,
+      "",
+      shopId,
+    );
 
-        const petSRD: PaBreedResponse = breeds.find((breed) => {
-          if (breed.name.includes("SRD")) return breed;
-        }) as PaBreedResponse;
+    const petSRD: PaBreedResponse = breeds.find((breed) => {
+      if (breed.name.includes("SRD")) return breed;
+    }) as PaBreedResponse;
 
-        if (breeds && breeds.length > 0) {
-          const similarBreeds: {
-            [k: string]: string;
-            name: string;
-          }[] = getSimilarBreeds(breedName, breeds);
+    if (breeds && breeds.length > 0) {
+      const similarBreeds: Partial<PaBreedResponse>[] = getSimilarBreeds(
+        breedName,
+        breeds,
+      );
 
-          similarBreeds.push({
-            id: petSRD.id.toString(),
-            name: "SRD - Sem Raça Definida",
-          });
+      similarBreeds.push({
+        id: petSRD.id,
+        name: "SRD - Sem Raça Definida",
+        hair: petSRD.hair,
+        size: petSRD.size,
+        specie: petSRD.specie,
+        specieId: petSRD.specieId,
+      });
 
-          variables.set([{ id: options.petSRD as string, value: petSRD }]);
+      variables.set([{ id: options.petSRD as string, value: petSRD }]);
 
-          if (options.breeds) {
-            variables.set([{ id: options.breeds, value: similarBreeds }]);
-          }
-
-          if (options.breedValues) {
-            variables.set([
-              { id: options.breedValues, value: similarBreeds.map((b) => b) },
-            ]);
-          }
-
-          if (options.breedsNames) {
-            variables.set([
-              {
-                id: options.breedsNames,
-                value: similarBreeds.map((b) => b.name),
-              },
-            ]);
-          }
-        }
-      } catch (error) {
-        console.error(error);
+      if (options.breeds) {
+        variables.set([{ id: options.breeds, value: similarBreeds }]);
       }
+
+      if (options.breedValues) {
+        variables.set([
+          { id: options.breedValues, value: similarBreeds.map((b) => b) },
+        ]);
+      }
+
+      if (options.breedsNames) {
+        variables.set([
+          {
+            id: options.breedsNames,
+            value: similarBreeds.map((b) => b.name),
+          },
+        ]);
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };

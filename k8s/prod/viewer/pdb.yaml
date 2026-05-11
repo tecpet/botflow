@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: botflow-viewer-pdb
+  namespace: tecpet-prod-app
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: botflow-viewer-app

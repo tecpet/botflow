@@ -22,6 +22,7 @@ export const serviceCategoryLabel = {
   ["HOTEL"]: "Hotel",
   ["ADDITIONAL"]: "Adicional",
   ["CUSTOM"]: "Customizado",
+  ["TAKE_AND_BRING"]: "Leva e Tráz",
 };
 
 export const getEmployess = createAction({
@@ -61,81 +62,79 @@ export const getEmployess = createAction({
   },
 });
 export const GetEmployessHandler = async ({
-  credentials, options, variables, logs
+  credentials,
+  options,
+  variables,
+  logs,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
   logs: any;
 }) => {
-      try {
-        const selectedService: ServiceOptionType = JSON.parse(
-          (options.selectedService as string) ?? "",
+  try {
+    const selectedService: ServiceOptionType = JSON.parse(
+      (options.selectedService as string) ?? "",
+    );
+
+    const shopId = Number(options.shopId);
+
+    const filters: PaEmployeeFilter = { serviceCategoryIds: [] };
+
+    let servicesCategoriesIds: number[] = [];
+
+    const employeeServiceCategoriesIndication: EmployeeServiceIndicationOption[] =
+      [];
+
+    if (selectedService.type === "COMBO") {
+      selectedService.services.forEach((service) => {
+        const foundCategory = employeeServiceCategoriesIndication.find(
+          (serviceCategory) =>
+            service.serviceCategory.type === serviceCategory.category,
         );
-
-        const shopId = Number(options.shopId);
-
-        const filters: PaEmployeeFilter = { serviceCategoryIds: [] };
-
-        let servicesCategoriesIds: number[] = [];
-
-        const employeeServiceCategoriesIndication: EmployeeServiceIndicationOption[] =
-          [];
-
-        if (selectedService.type === "COMBO") {
-          selectedService.services.forEach((service) => {
-            const foundCategory = employeeServiceCategoriesIndication.find(
-              (serviceCategory) =>
-                service.serviceCategory.type === serviceCategory.category,
-            );
-            if (!foundCategory) {
-              employeeServiceCategoriesIndication.push({
-                name: serviceCategoryLabel[service.serviceCategory.type],
-                category: service.serviceCategory.type,
-              });
-            }
-          });
-
-          servicesCategoriesIds = [
-            ...new Set(
-              selectedService.services.map(
-                (service) => service.serviceCategory.id,
-              ),
-            ),
-          ];
-        }
-
-        if (selectedService.type === "SERVICE") {
+        if (!foundCategory) {
           employeeServiceCategoriesIndication.push({
-            name: serviceCategoryLabel[selectedService.category.type],
-            category: selectedService.category.type,
+            name: serviceCategoryLabel[service.serviceCategory.type],
+            category: service.serviceCategory.type,
           });
-
-          servicesCategoriesIds = [selectedService.category.id];
         }
+      });
 
-        filters["serviceCategoryIds"] = servicesCategoriesIds;
+      servicesCategoriesIds = [
+        ...new Set(
+          selectedService.services.map((service) => service.serviceCategory.id),
+        ),
+      ];
+    }
 
-        const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-        );
+    if (selectedService.type === "SERVICE") {
+      employeeServiceCategoriesIndication.push({
+        name: serviceCategoryLabel[selectedService.category.type],
+        category: selectedService.category.type,
+      });
 
-        const employees: PaEmployeeResponse[] =
-          await tecpetSdk.employee.getEmployeesByServiceCategory(
-            filters,
-            shopId,
-          );
+      servicesCategoriesIds = [selectedService.category.id];
+    }
 
-        variables.set([
-          {
-            id: options.employeeServiceCategories as string,
-            value: employeeServiceCategoriesIndication,
-          },
-        ]);
+    filters["serviceCategoryIds"] = servicesCategoriesIds;
 
-        variables.set([{ id: options.employees as string, value: employees }]);
-      } catch (error) {
-        console.error(error);
-      }
+    const tecpetSdk = new TecpetSDK(
+      (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+      credentials.apiKey as string,
+    );
+
+    const employees: PaEmployeeResponse[] =
+      await tecpetSdk.employee.getEmployeesByServiceCategory(filters, shopId);
+
+    variables.set([
+      {
+        id: options.employeeServiceCategories as string,
+        value: employeeServiceCategoriesIndication,
+      },
+    ]);
+
+    variables.set([{ id: options.employees as string, value: employees }]);
+  } catch (error) {
+    console.error(error);
+  }
 };

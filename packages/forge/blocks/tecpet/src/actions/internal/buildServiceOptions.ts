@@ -1,6 +1,9 @@
-import type {
+﻿import type {
+  PaComboPricingResponse,
+  PaGetServicePricingResponse,
   PaServiceCategoryResponse,
   PaServicePricingResponse,
+  PaSimpleServiceResponse,
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
@@ -30,10 +33,20 @@ export const buildServiceOptions = createAction({
       isRequired: true,
       helperText: "Categorias com Serviços",
     }),
+    recommendedServices: option.string.layout({
+      label: "Serviços recomendados",
+      isRequired: true,
+      helperText: "Serviços recomendados",
+    }),
     serviceSelectionValueMode: option.string.layout({
       label: "Modo de exibição de valores",
       isRequired: true,
       helperText: "Modo de exibição de valores",
+    }),
+    serviceSelectionValueEnabled: option.string.layout({
+      label: "Modo de exibição habilitado",
+      isRequired: true,
+      helperText: "Modo de exibição habilitado",
     }),
     serviceOptions: option.string.layout({
       label: "Opções de Serviço",
@@ -75,12 +88,36 @@ export const buildServiceOptions = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    recommendedServiceOptions: option.string.layout({
+      label: "Opções de serviços recomendados",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    recommendedServiceOptionsIds: option.string.layout({
+      label: "Opções de serviços recomendados ids",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    recommendedServiceOptionsNames: option.string.layout({
+      label: "Opções de serviços recomendados nomes",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    recommendedServiceOptionsDescriptions: option.string.layout({
+      label: "Opções de serviços recomendados descrições",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     serviceOptions,
     serviceOptionsDescriptions,
     serviceOptionsIds,
     serviceOptionsNames,
+    recommendedServiceOptions,
+    recommendedServiceOptionsDescriptions,
+    recommendedServiceOptionsIds,
+    recommendedServiceOptionsNames,
     additionalOptions,
     additionalOptionsDescriptions,
     additionalOptionsIds,
@@ -97,130 +134,206 @@ export const buildServiceOptions = createAction({
       variables.push(additionalOptionsDescriptions);
     if (additionalOptionsIds) variables.push(additionalOptionsIds);
     if (additionalOptionsNames) variables.push(additionalOptionsNames);
+    if (recommendedServiceOptions) variables.push(recommendedServiceOptions);
+    if (recommendedServiceOptionsDescriptions)
+      variables.push(recommendedServiceOptionsDescriptions);
+    if (recommendedServiceOptionsIds)
+      variables.push(recommendedServiceOptionsIds);
+    if (recommendedServiceOptionsNames)
+      variables.push(recommendedServiceOptionsNames);
 
     return variables;
   },
 });
 export const BuildServiceOptionsHandler = async ({
-  options, variables
+  options,
+  variables,
 }: {
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const buildDescription = (entity: any) => {
-          let finalDescription = "";
-          const price: string = entity.price
-            ? `${formatAsCurrency(entity.price)}\n`
-            : "";
+  try {
+    const setVar = (id: string, value: any) => variables.set([{ id, value }]);
 
-          const description = entity.description ? entity.description : "";
-          const priceDescription = price ? `A partir de: R$${price}` : "";
+    const serviceSelectionValueEnabled = JSON.parse(
+      (options.serviceSelectionValueEnabled as string) ?? "false",
+    );
 
-          switch (serviceSelectionValueMode) {
-            case "SHOW_FROM":
-              finalDescription = `${priceDescription}${description} `;
-              break;
-            case "SHOW":
-              finalDescription = `${priceDescription}${description} `;
-              break;
-            default:
-              break;
-          }
-          return finalDescription;
-        };
+    const serviceSelectionValueMode = options.serviceSelectionValueMode;
 
-        const combosRaw: string[] =
-          typeof options.combos === "string"
-            ? JSON.parse(options.combos)
-            : (options.combos as any);
+    const buildDescription = (entity: any) => {
+      let finalDescription = "";
+      const price: string = entity.price
+        ? `${formatAsCurrency(entity.price)}\n`
+        : "";
 
-        const categoriesAndServicesRaw: string[] =
-          typeof options.categoriesAndServices === "string"
-            ? JSON.parse(options.categoriesAndServices)
-            : (options.categoriesAndServices as any);
+      const description = entity.description ? entity.description : "";
 
-        const combos = combosRaw.map((combo) => JSON.parse(combo));
+      if (serviceSelectionValueEnabled) {
+        switch (serviceSelectionValueMode) {
+          case "SHOW_FROM":
+            finalDescription = `A partir de: R$${price} ${description}`;
+            break;
+          case "SHOW":
+            finalDescription = `${price} ${description}`;
+            break;
+          case "HIDE":
+            finalDescription = description;
+            break;
+          default:
+            break;
+        }
+      } else {
+        finalDescription = description;
+      }
 
-        const categoriesAndServices = categoriesAndServicesRaw.map((service) =>
-          JSON.parse(service),
-        );
+      return finalDescription;
+    };
 
-        const serviceSelectionValueMode = options.serviceSelectionValueMode;
+    const combosRaw: string[] =
+      typeof options.combos === "string"
+        ? JSON.parse(options.combos)
+        : ((options.combos as any) ?? []);
 
-        const serviceOptions: ServiceOptionType[] = [];
-        const additionalOptions = [];
+    const categoriesAndServicesRaw: string[] =
+      typeof options.categoriesAndServices === "string"
+        ? JSON.parse(options.categoriesAndServices)
+        : ((options.categoriesAndServices as any) ?? []);
 
-        for (const combo of combos) {
-          combo.description = buildDescription(combo);
-          serviceOptions.push({
-            ...combo,
-            type: "COMBO",
-            services: combo.services,
+    const combos: PaComboPricingResponse[] = combosRaw.map((combo) =>
+      JSON.parse(combo),
+    );
+
+    const recommendedServicesRaw: string[] =
+      typeof options.recommendedServices === "string"
+        ? JSON.parse(options.recommendedServices)
+        : ((options.recommendedServices as any) ?? []);
+
+    const simpleRecommendedServices: PaSimpleServiceResponse[] =
+      recommendedServicesRaw.map((service) => JSON.parse(service));
+
+    const categoriesAndServices: PaGetServicePricingResponse[] =
+      categoriesAndServicesRaw.map((service) => JSON.parse(service));
+
+    const serviceOptions: ServiceOptionType[] = [];
+    const additionalOptions: ServiceOptionType[] = [];
+    const recommendedServiceOptions: ServiceOptionType[] = [];
+
+    for (const combo of combos) {
+      combo.description = buildDescription(combo);
+      serviceOptions.push({
+        id: combo.id,
+        name: combo.name,
+        price: combo.price,
+        category: null as any,
+        description: combo.description,
+        type: "COMBO",
+        services: combo.services,
+      });
+    }
+
+    for (const category of categoriesAndServices) {
+      for (const service of category.services) {
+        service.description = buildDescription(service);
+
+        if (
+          simpleRecommendedServices &&
+          simpleRecommendedServices.some((s) => s.id === service.id)
+        ) {
+          recommendedServiceOptions.push({
+            id: service.id,
+            name: service.name,
+            price: service.price,
+            description: service.description,
+            type: "SERVICE",
+            services: [],
+            category: service.serviceCategory,
           });
         }
 
-        for (const category of categoriesAndServices) {
-          for (const service of category.services) {
-            service.description = buildDescription(service);
-            category.type === "ADDITIONAL"
-              ? additionalOptions.push({
-                  ...service,
-                  type: "SERVICE",
-                  category: service.serviceCategory,
-                })
-              : serviceOptions.push({
-                  ...service,
-                  type: "SERVICE",
-                  category: service.serviceCategory,
-                });
-          }
+        if (category.type === "BATH" || category.type === "CLINIC") {
+          serviceOptions.push({
+            id: service.id,
+            name: service.name,
+            price: service.price,
+            description: service.description,
+            type: "SERVICE",
+            services: [],
+            category: service.serviceCategory,
+          });
+        } else if (category.type !== "TAKE_AND_BRING") {
+          additionalOptions.push({
+            id: service.id,
+            name: service.name,
+            price: service.price,
+            description: service.description,
+            type: "SERVICE",
+            services: [],
+            category: service.serviceCategory,
+          });
         }
-
-        variables.set([
-          { id: options.serviceOptions as string, value: serviceOptions },
-        ]);
-        variables.set([
-          {
-            id: options.serviceOptionsIds as string,
-            value: serviceOptions.map((s) => s),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.serviceOptionsNames as string,
-            value: serviceOptions.map((s) => s.name),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.serviceOptionsDescriptions as string,
-            value: serviceOptions.map((s) => s.description),
-          },
-        ]);
-
-        variables.set([
-          { id: options.additionalOptions as string, value: additionalOptions },
-        ]);
-        variables.set([
-          {
-            id: options.additionalOptionsIds as string,
-            value: additionalOptions.map((s) => s.id),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.additionalOptionsNames as string,
-            value: additionalOptions.map((s) => s.name),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.additionalOptionsDescriptions as string,
-            value: additionalOptions.map((s) => s.description),
-          },
-        ]);
-      } catch (error) {
-        console.error(error);
       }
+    }
+
+    if (recommendedServiceOptions.length > 0) {
+      recommendedServiceOptions.push({
+        id: -1,
+        name: "VER OUTROS SERVIÇOS",
+        price: 0,
+        description: "",
+        type: "SERVICE",
+        services: [],
+        category: null as any,
+      });
+    }
+
+    console.log(recommendedServiceOptions);
+
+    const serviceVariables = [
+      [options.serviceOptions, serviceOptions],
+      [options.serviceOptionsIds, serviceOptions.map((s) => s)],
+      [options.serviceOptionsNames, serviceOptions.map((s) => s.name)],
+      [
+        options.serviceOptionsDescriptions,
+        serviceOptions.map((s) => s.description),
+      ],
+    ];
+
+    serviceVariables.forEach(([id, value]) => setVar(id as string, value));
+
+    const additionalOptionVariables = [
+      [options.additionalOptions, additionalOptions],
+      [options.additionalOptionsIds, additionalOptions.map((s) => s)],
+      [options.additionalOptionsNames, additionalOptions.map((s) => s.name)],
+      [
+        options.additionalOptionsDescriptions,
+        additionalOptions.map((s) => s.description),
+      ],
+    ];
+    additionalOptionVariables.forEach(([id, value]) =>
+      setVar(id as string, value),
+    );
+
+    const recommendedServiceOptionVariables = [
+      [options.recommendedServiceOptions, recommendedServiceOptions],
+      [
+        options.recommendedServiceOptionsIds,
+        recommendedServiceOptions.map((s) => s),
+      ],
+      [
+        options.recommendedServiceOptionsNames,
+        recommendedServiceOptions.map((s) => s.name),
+      ],
+      [
+        options.recommendedServiceOptionsDescriptions,
+        recommendedServiceOptions.map((s) => s.description),
+      ],
+    ];
+
+    recommendedServiceOptionVariables.forEach(([id, value]) =>
+      setVar(id as string, value),
+    );
+  } catch (error) {
+    console.error(error);
+  }
 };
