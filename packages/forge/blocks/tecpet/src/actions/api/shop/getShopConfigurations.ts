@@ -36,12 +36,17 @@ export const getShopConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    shopSegments: option.string.layout({
+      label: "Funcionamento dos Segmentos da loja",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     chargeMode,
     variableIdToSaveAll,
     chargeModeBySizeAndHair,
     chargeModeByBreed,
+    shopSegments,
   }) => {
     const variables: string[] = [];
 
@@ -55,54 +60,60 @@ export const getShopConfigurations = createAction({
 
     if (variableIdToSaveAll) variables.push(variableIdToSaveAll);
 
+    if (shopSegments) variables.push(shopSegments);
+
     return variables;
   },
 });
 export const GetShopConfigurationsHandler = async ({
-  credentials, options, variables, logs
+  credentials,
+  options,
+  variables,
+  logs,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
   logs: any;
 }) => {
-      try {
-        if (options.shopId) {
-          const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-          );
+  try {
+    if (options.shopId) {
+      const tecpetSdk = new TecpetSDK(
+        (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+        credentials.apiKey as string,
+      );
 
-          const result: PaShopConfigurationsResponse =
-            (await tecpetSdk.shop.getConfigurations(
-              options.shopId as number,
-            )) as PaShopConfigurationsResponse;
+      const result: PaShopConfigurationsResponse =
+        (await tecpetSdk.shop.getConfigurations(
+          options.shopId as number,
+        )) as PaShopConfigurationsResponse;
 
-          if (result) {
-            const chargeMode = result.advancedConfig?.global?.serviceByBreed
-              ? "BREED"
-              : "SIZE_AND_HAIR";
-            if (options.chargeModeBySizeAndHair) {
-              variables.set([
-                { id: options.chargeModeBySizeAndHair, value: "SIZE_AND_HAIR" },
-              ]);
-            }
-            if (options.chargeModeByBreed) {
-              variables.set([
-                { id: options.chargeModeByBreed, value: "BREED" },
-              ]);
-            }
-            if (options.chargeMode) {
-              variables.set([{ id: options.chargeMode, value: chargeMode }]);
-            }
-            if (options.variableIdToSaveAll) {
-              variables.set([
-                { id: options.variableIdToSaveAll, value: result },
-              ]);
-            }
-          }
+      if (result) {
+        const chargeMode = result.advancedConfig?.global?.serviceByBreed
+          ? "BREED"
+          : "SIZE_AND_HAIR";
+        if (options.chargeModeBySizeAndHair) {
+          variables.set([
+            { id: options.chargeModeBySizeAndHair, value: "SIZE_AND_HAIR" },
+          ]);
         }
-      } catch (error) {
-        console.error(error);
+        if(options.shopSegments) {
+          variables.set([
+            { id: options.shopSegments, value: result.segments },
+          ]);
+        }
+        if (options.chargeModeByBreed) {
+          variables.set([{ id: options.chargeModeByBreed, value: "BREED" }]);
+        }
+        if (options.chargeMode) {
+          variables.set([{ id: options.chargeMode, value: chargeMode }]);
+        }
+        if (options.variableIdToSaveAll) {
+          variables.set([{ id: options.variableIdToSaveAll, value: result }]);
+        }
       }
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };

@@ -18,6 +18,7 @@ import { getPets } from "./actions/api/pet/getPets";
 import { getCategoriesAndServices } from "./actions/api/service/getCategoriesAndServices";
 import { getServiceRecommendations } from "./actions/api/serviceRecommendation/getServiceRecommendations";
 import { getShopConfigurations } from "./actions/api/shop/getShopConfigurations";
+import { verifyShopTimeTable } from "./actions/api/shopTimeTable/verifyShopTimeTable";
 import { getSpecies } from "./actions/api/specie/getSpecies";
 import { extractToken } from "./actions/api/token/extractToken";
 import { buildAvailableTimesOptions } from "./actions/internal/buildAvailableTimesOptions";
@@ -58,6 +59,7 @@ const validations = [
   verifyAvailableTimesOptionSelected,
   verifyInputedCpfText,
   verifyBookingGuard,
+  verifyShopTimeTable,
   verifyInitialMessageToTrigger,
   validateTakeAndBringMinAdvanceHours,
   verifySimilarBreedOptionSelected,

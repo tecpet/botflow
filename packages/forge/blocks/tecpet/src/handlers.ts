@@ -54,6 +54,7 @@ import {
   GetShopConfigurationsHandler,
   getShopConfigurations,
 } from "./actions/api/shop/getShopConfigurations";
+import { VerifyShopTimeTableHandler, verifyShopTimeTable } from "./actions/api/shopTimeTable/verifyShopTimeTable";
 import { GetSpeciesHandler, getSpecies } from "./actions/api/specie/getSpecies";
 import {
   ExtractTokenHandler,
@@ -190,6 +191,9 @@ export default [
   }),
   createActionHandler(verifyBookingGuard, {
     server: VerifyBookingGuardHandler,
+  }),
+  createActionHandler(verifyShopTimeTable, {
+    server: VerifyShopTimeTableHandler,
   }),
   createActionHandler(verifyInitialMessageToTrigger, {
     server: VerifyInitialMessageToTriggerHandler,

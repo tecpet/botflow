@@ -227,6 +227,18 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       inputType: "variableDropdown",
     }),
 
+    onComercialTimeResponseMessage: option.string.layout({
+      label: "Mensagem para resposta de horário comercial",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
+    outOfComercialTimeResponseMessage: option.string.layout({
+      label: "Mensagem para resposta de fora do horário comercial",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
     allowCancel: option.string.layout({
       label: "Cancelar agendamento",
       placeholder: "Selecione",
@@ -291,6 +303,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     timeSelectionBehaviorMessage,
     timeSelectionBehaviorMinAdvanceHours,
     timeSelectionBehaviorTimeDisplayMode,
+    onComercialTimeResponseMessage,
+    outOfComercialTimeResponseMessage,
     allowCancel,
     allowChangeDateAndTime,
     allowCancelMessage,
@@ -355,6 +369,10 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     if (allowCancelMessage) variables.push(allowCancelMessage);
     if (allowChangeDateAndTimeMessage)
       variables.push(allowChangeDateAndTimeMessage);
+    if (onComercialTimeResponseMessage)
+      variables.push(onComercialTimeResponseMessage);
+    if (outOfComercialTimeResponseMessage)
+      variables.push(outOfComercialTimeResponseMessage);
 
     return variables;
   },
@@ -387,6 +405,7 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       takeAndBring,
       guidance,
       editBooking,
+      responseMessage,
       extraInfo,
     } = chatbotActionConfig.infoCollectionMenus;
 
@@ -466,6 +485,23 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
     ];
 
     petInfoVariables.forEach(([id, value]) => setVar(id as string, value));
+
+    /* ---- Response Message ---- */
+
+    const responseMessageVariables = [
+      [
+        options.onComercialTimeResponseMessage as string,
+        responseMessage?.onCommercialTime.message ?? "",
+      ],
+      [
+        options.outOfComercialTimeResponseMessage as string,
+        responseMessage?.outOfCommercialTime.message ?? "",
+      ],
+    ];
+
+    responseMessageVariables.forEach(([id, value]) =>
+      setVar(id as string, value),
+    );
 
     /* ---- Service Selection ---- */
 
