@@ -67,6 +67,17 @@ export const BuildClientBookingsSummaryHandler = async ({
       typeof item === "string" ? JSON.parse(item) : item,
     );
 
+    const threshold = new Date(Date.now() + 30 * 60 * 1000);
+
+    const parseBookingDate = (date: string, start: string): Date => {
+      const [day, month, year] = date.split("/").map(Number);
+      const [hour, minute] = start.split(":").map(Number);
+      return new Date(year, month - 1, day, hour, minute);
+    };
+
+    const isEligibleBooking = (date: string, start: string): boolean =>
+      parseBookingDate(date, start) >= threshold;
+
     const filteredBookings: Array<
       Partial<
         PaGetBookingResponse & {
@@ -75,7 +86,14 @@ export const BuildClientBookingsSummaryHandler = async ({
         }
       >
     > = bookings.filter(
-      (booking) => booking.petId === pet.id && booking.status !== "REMOVED",
+      (booking) =>
+        booking.petId === pet.id &&
+        (booking.status === "SCHEDULED" || booking.status === "CONFIRMED") &&
+        isEligibleBooking(booking.date ?? "", booking.start ?? ""),
+    ).sort(
+      (a, b) =>
+        parseBookingDate(a.date ?? "", a.start ?? "").getTime() -
+        parseBookingDate(b.date ?? "", b.start ?? "").getTime(),
     );
 
     filteredBookings.forEach((booking) => {
