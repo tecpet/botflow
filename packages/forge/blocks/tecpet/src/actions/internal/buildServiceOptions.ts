@@ -287,8 +287,6 @@ export const BuildServiceOptionsHandler = async ({
       });
     }
 
-    console.log(recommendedServiceOptions);
-
     const serviceVariables = [
       [options.serviceOptions, serviceOptions],
       [options.serviceOptionsIds, serviceOptions.map((s) => s)],

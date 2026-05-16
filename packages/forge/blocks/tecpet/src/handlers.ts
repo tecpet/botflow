@@ -54,7 +54,10 @@ import {
   GetShopConfigurationsHandler,
   getShopConfigurations,
 } from "./actions/api/shop/getShopConfigurations";
-import { VerifyShopTimeTableHandler, verifyShopTimeTable } from "./actions/api/shopTimeTable/verifyShopTimeTable";
+import {
+  VerifyShopTimeTableHandler,
+  verifyShopTimeTable,
+} from "./actions/api/shopTimeTable/verifyShopTimeTable";
 import { GetSpeciesHandler, getSpecies } from "./actions/api/specie/getSpecies";
 import {
   ExtractTokenHandler,
@@ -76,6 +79,10 @@ import {
   BuildEmployeeOptionsHandler,
   buildEmployeeOptions,
 } from "./actions/internal/buildEmployeeOptions";
+import {
+  BuildSecondaryServiceOfferOptionsHandler,
+  buildSecondaryServiceOfferOptions,
+} from "./actions/internal/buildSecondaryServiceOfferOptions";
 import {
   BuildSelectedAdditionalsHandler,
   buildSelectedAdditionals,
@@ -139,6 +146,9 @@ export default [
   createActionHandler(getConfigurations, { server: GetConfigurationsHandler }),
   createActionHandler(getFormattedMessages, {
     server: GetFormattedMessagesHandler,
+  }),
+  createActionHandler(buildSecondaryServiceOfferOptions, {
+    server: BuildSecondaryServiceOfferOptionsHandler,
   }),
   createActionHandler(editClient, { server: EditClientHandler }),
   createActionHandler(getClient, { server: GetClientHandler }),
