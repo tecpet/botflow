@@ -138,7 +138,7 @@ export const BuildSecondaryServiceOfferOptionsHandler = async ({
       },
       {
         id: options.recommendedAdditionalOptionsIds as string,
-        value: recommendedAdditionalOptions.map((s) => s.id),
+        value: recommendedAdditionalOptions.map((s) => s),
       },
       {
         id: options.recommendedAdditionalOptionsNames as string,
