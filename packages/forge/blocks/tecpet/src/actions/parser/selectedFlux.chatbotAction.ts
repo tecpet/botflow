@@ -71,6 +71,11 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    serviceRecommendation: option.string.layout({
+      label: "Recomendação de serviços - Habilitado",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
     serviceSelectionValueMode: option.string.layout({
       label: "Serviços do agendamento - Modo exibição do valor",
       placeholder: "Selecione",
@@ -294,6 +299,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     promotionSelectionEnabled,
     selectedMenuConfigurations,
     serviceSelectionMessage,
+    serviceRecommendation,
     serviceSelectionValueMode,
     serviceSelectionValueEnabled,
     takeAndBringEnabled,
@@ -373,6 +379,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       variables.push(onComercialTimeResponseMessage);
     if (outOfComercialTimeResponseMessage)
       variables.push(outOfComercialTimeResponseMessage);
+    if (serviceRecommendation) variables.push(serviceRecommendation);
 
     return variables;
   },
@@ -505,6 +512,7 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
 
     /* ---- Service Selection ---- */
 
+
     const serviceSelectionVariables = [
       [
         options.serviceSelectionMessage,
@@ -513,6 +521,10 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       [
         options.serviceSelectionValueMode,
         serviceSelection?.showServiceValues?.priceDisplayMode ?? "",
+      ],
+      [
+        options.serviceRecommendation,
+        serviceSelection?.serviceRecommendation?.enabled ?? false,
       ],
       [
         options.serviceSelectionValueEnabled,
