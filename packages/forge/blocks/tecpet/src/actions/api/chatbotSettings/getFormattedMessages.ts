@@ -39,6 +39,11 @@ export const getFormattedMessages = createAction({
       isRequired: false,
       helperText: "Id do serviço",
     }),
+    comboId: option.number.layout({
+      label: "ID do combo",
+      isRequired: false,
+      helperText: "Id do combo",
+    }),
     bookingId: option.number.layout({
       label: "ID do agendamento",
       isRequired: false,
@@ -70,16 +75,32 @@ export const GetFormattedMessagesHandler = async ({
       (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
       credentials.apiKey as string,
     );
-    const body: GetChatbotFormattedMessagesInput = {
-      ids: {
-        clientId: options.clientId as number,
-        petId: options.petId as number,
-        invoiceId: options.invoiceId as string,
-        serviceId: options.serviceId as number,
-        bookingId: options.bookingId as number,
-      },
-      messages: [{ text: (options.message as string) ?? "" }],
-    };
+
+    let body: GetChatbotFormattedMessagesInput = { ids: {}, messages: [] };
+
+    if (options.comboId) {
+      body = {
+        ids: {
+          clientId: options.clientId as number,
+          petId: options.petId as number,
+          comboId: options.comboId as number,
+          invoiceId: options.invoiceId as string,
+          bookingId: options.bookingId as number,
+        },
+        messages: [{ text: (options.message as string) ?? "" }],
+      };
+    } else {
+      body = {
+        ids: {
+          clientId: options.clientId as number,
+          petId: options.petId as number,
+          invoiceId: options.invoiceId as string,
+          serviceId: options.serviceId as number,
+          bookingId: options.bookingId as number,
+        },
+        messages: [{ text: (options.message as string) ?? "" }],
+      };
+    }
     const result = await tecpetSdk.chatbot.getFormattedMessage(
       body,
       options.shopId as number,

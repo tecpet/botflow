@@ -1,8 +1,14 @@
 import type {
   PaGetServiceRecommendationGroupResponse,
+  PaServiceRecommendationGroup,
+  PaSimpleServiceResponse,
   ShopSegment,
 } from "@tec.pet/tecpet-sdk";
-import { ServiceRecommendationScopeEnum, TecpetSDK } from "@tec.pet/tecpet-sdk";
+import {
+  ServiceRecommendationGroupTypeEnum,
+  ServiceRecommendationScopeEnum,
+  TecpetSDK,
+} from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
@@ -27,16 +33,28 @@ export const getServiceRecommendations = createAction({
       isRequired: true,
       helperText: "Segmento",
     }),
-    recommendedServices: option.string.layout({
-      label: "Serviços recomendados",
+    primaryServices: option.string.layout({
+      label: "Serviços primários (PRIMARY_SERVICE_OFFER)",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
+    secondaryGroups: option.string.layout({
+      label: "Grupos secundários (SECONDARY_SERVICE_OFFER)",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
   }),
-  getSetVariableIds: ({ recommendedServices }) => {
+  getSetVariableIds: ({
+    primaryServices,
+
+    secondaryGroups,
+  }) => {
     const variables = [];
 
-    if (recommendedServices) variables.push(recommendedServices);
+    if (primaryServices) variables.push(primaryServices);
+
+    if (secondaryGroups) variables.push(secondaryGroups);
 
     return variables;
   },
@@ -72,15 +90,30 @@ export const GetServiceRecommendationsHandler = async ({
       recommendedServicesResponse &&
       recommendedServicesResponse.data.length > 0
     ) {
-      const recommendedServices = recommendedServicesResponse.data.flatMap(
-        (group) => group.recommendedServices.map((service) => service),
-      );
+      const { PRIMARY_SERVICE_OFFER, SECONDARY_SERVICE_OFFER } =
+        ServiceRecommendationGroupTypeEnum;
+
+      const seenIds = new Set<number>();
+      const primaryServices: PaSimpleServiceResponse[] = [];
+
+      recommendedServicesResponse.data
+        .filter((group) => group.type === PRIMARY_SERVICE_OFFER)
+        .flatMap((group) => group.recommendedServices)
+        .forEach((service) => {
+          if (!seenIds.has(service.id)) {
+            seenIds.add(service.id);
+            primaryServices.push(service);
+          }
+        });
+
+      const secondaryGroups: PaServiceRecommendationGroup[] =
+        recommendedServicesResponse.data.filter(
+          (group) => group.type === SECONDARY_SERVICE_OFFER,
+        );
 
       variables.set([
-        {
-          id: options.recommendedServices as string,
-          value: recommendedServices,
-        },
+        { id: options.primaryServices as string, value: primaryServices },
+        { id: options.secondaryGroups as string, value: secondaryGroups },
       ]);
     }
   } catch (error) {

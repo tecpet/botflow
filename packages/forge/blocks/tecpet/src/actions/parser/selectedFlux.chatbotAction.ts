@@ -71,6 +71,11 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    serviceRecommendation: option.string.layout({
+      label: "Recomendação de serviços - Habilitado",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
     serviceSelectionValueMode: option.string.layout({
       label: "Serviços do agendamento - Modo exibição do valor",
       placeholder: "Selecione",
@@ -259,6 +264,11 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    allowPetRegistration: option.string.layout({
+      label: "Permitir cadastro de pet",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     additionalSelectionEnabled,
@@ -294,6 +304,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     promotionSelectionEnabled,
     selectedMenuConfigurations,
     serviceSelectionMessage,
+    serviceRecommendation,
     serviceSelectionValueMode,
     serviceSelectionValueEnabled,
     takeAndBringEnabled,
@@ -309,6 +320,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     allowChangeDateAndTime,
     allowCancelMessage,
     allowChangeDateAndTimeMessage,
+    allowPetRegistration,
   }) => {
     const variables = [];
 
@@ -373,6 +385,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       variables.push(onComercialTimeResponseMessage);
     if (outOfComercialTimeResponseMessage)
       variables.push(outOfComercialTimeResponseMessage);
+    if (serviceRecommendation) variables.push(serviceRecommendation);
+    if (allowPetRegistration) variables.push(allowPetRegistration);
 
     return variables;
   },
@@ -424,6 +438,15 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       {
         id: options.sendingInfoItems as string,
         value: sendingInfoVariable,
+      },
+    ]);
+
+    const allowPetRegistration = chatbotActionConfig.allowPetRegistration;
+
+    variables.set([
+      {
+        id: options.allowPetRegistration as string,
+        value: allowPetRegistration,
       },
     ]);
 
@@ -513,6 +536,10 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       [
         options.serviceSelectionValueMode,
         serviceSelection?.showServiceValues?.priceDisplayMode ?? "",
+      ],
+      [
+        options.serviceRecommendation,
+        serviceSelection?.serviceRecommendation?.enabled ?? false,
       ],
       [
         options.serviceSelectionValueEnabled,

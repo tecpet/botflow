@@ -25,6 +25,7 @@ import { buildAvailableTimesOptions } from "./actions/internal/buildAvailableTim
 import { buildClientBookingsSummary } from "./actions/internal/buildClientBookingsSummary";
 import { buildClientPetsSummary } from "./actions/internal/buildClientPetsSummary";
 import { buildEmployeeOptions } from "./actions/internal/buildEmployeeOptions";
+import { buildSecondaryServiceOfferOptions } from "./actions/internal/buildSecondaryServiceOfferOptions";
 import { buildSelectedAdditionals } from "./actions/internal/buildSelectedAdditionals";
 import { buildServiceOptions } from "./actions/internal/buildServiceOptions";
 import { showGuidanceOptions } from "./actions/internal/showGuidanceOptions";
@@ -52,6 +53,7 @@ const buildActions = [
   showGuidanceOptions,
   buildClientBookingsSummary,
   buildClientPetsSummary,
+  buildSecondaryServiceOfferOptions,
 ];
 
 const validations = [
