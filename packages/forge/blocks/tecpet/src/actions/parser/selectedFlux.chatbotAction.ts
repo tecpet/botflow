@@ -141,6 +141,11 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    takeAndBringBehavior: option.string.layout({
+      label: "Leva e Traz - Comportamento",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
     takeAndBringMinAdvanceHours: option.string.layout({
       label: "Leva e Traz - Antecedencia",
       placeholder: "Selecione",
@@ -309,6 +314,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     serviceSelectionValueEnabled,
     takeAndBringEnabled,
     takeAndBringMessage,
+    takeAndBringBehavior,
     takeAndBringMinAdvanceHours,
     timeSelectionBehaviorBehavior,
     timeSelectionBehaviorMessage,
@@ -360,6 +366,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       variables.push(serviceSelectionValueEnabled);
     if (takeAndBringEnabled) variables.push(takeAndBringEnabled);
     if (takeAndBringMessage) variables.push(takeAndBringMessage);
+    if (takeAndBringBehavior) variables.push(takeAndBringBehavior);
     if (takeAndBringMinAdvanceHours)
       variables.push(takeAndBringMinAdvanceHours);
     if (timeSelectionBehaviorBehavior)
@@ -394,11 +401,9 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
 export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
   options,
   variables,
-  logs,
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
   try {
     const setVar = (id: string, value: any) => variables.set([{ id, value }]);
@@ -595,6 +600,10 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       [
         options.takeAndBringEnabled,
         Boolean(takeAndBring?.allowTakeAndBring?.enabled ?? false),
+      ],
+      [
+        options.takeAndBringBehavior,
+        takeAndBring?.allowTakeAndBring?.behavior ?? "",
       ],
       [
         options.takeAndBringMessage,

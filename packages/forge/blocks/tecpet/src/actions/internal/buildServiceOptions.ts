@@ -7,7 +7,7 @@
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
-import { formatAsCurrency } from "../../helpers/utils";
+import { formatAsCurrency, parseJsonArray } from "../../helpers/utils";
 
 export interface ServiceOptionType {
   id: number;
@@ -108,6 +108,22 @@ export const buildServiceOptions = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    takeAndBringOptions: option.string.layout({
+      label: "Opções de leva e traz",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
+    takeAndBringOptionsNames: option.string.layout({
+      label: "Opções de leva e traz nomes",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    takeAndBringOptionsDescriptions: option.string.layout({
+      label: "Opções de leva e traz descrições",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     serviceOptions,
@@ -122,6 +138,9 @@ export const buildServiceOptions = createAction({
     additionalOptionsDescriptions,
     additionalOptionsIds,
     additionalOptionsNames,
+    takeAndBringOptions,
+    takeAndBringOptionsDescriptions,
+    takeAndBringOptionsNames,
   }) => {
     const variables = [];
 
@@ -141,6 +160,10 @@ export const buildServiceOptions = createAction({
       variables.push(recommendedServiceOptionsIds);
     if (recommendedServiceOptionsNames)
       variables.push(recommendedServiceOptionsNames);
+    if (takeAndBringOptions) variables.push(takeAndBringOptions);
+    if (takeAndBringOptionsDescriptions)
+      variables.push(takeAndBringOptionsDescriptions);
+    if (takeAndBringOptionsNames) variables.push(takeAndBringOptionsNames);
 
     return variables;
   },
@@ -162,62 +185,36 @@ export const BuildServiceOptionsHandler = async ({
     const serviceSelectionValueMode = options.serviceSelectionValueMode;
 
     const buildDescription = (entity: any) => {
-      let finalDescription = "";
-      const price: string = entity.price
-        ? `${formatAsCurrency(entity.price)}\n`
-        : "";
+      const price: string = entity.price ? formatAsCurrency(entity.price) : "";
 
       const description = entity.description ? entity.description : "";
 
-      if (serviceSelectionValueEnabled) {
-        switch (serviceSelectionValueMode) {
-          case "SHOW_FROM":
-            finalDescription = `A partir de: R$${price} ${description}`;
-            break;
-          case "SHOW":
-            finalDescription = `${price} ${description}`;
-            break;
-          case "HIDE":
-            finalDescription = description;
-            break;
-          default:
-            break;
-        }
-      } else {
-        finalDescription = description;
-      }
+      if (!serviceSelectionValueEnabled) return description;
 
-      return finalDescription;
+      switch (serviceSelectionValueMode) {
+        case "SHOW_FROM":
+          return `A partir de: R$${price}\n${description}`;
+        case "SHOW":
+          return `${price}\n${description}`;
+        case "HIDE":
+          return description;
+        default:
+          return description;
+      }
     };
 
-    const combosRaw: string[] =
-      typeof options.combos === "string"
-        ? JSON.parse(options.combos)
-        : ((options.combos as any) ?? []);
-
-    const categoriesAndServicesRaw: string[] =
-      typeof options.categoriesAndServices === "string"
-        ? JSON.parse(options.categoriesAndServices)
-        : ((options.categoriesAndServices as any) ?? []);
-
-    const combos: PaComboPricingResponse[] = combosRaw.map((combo) =>
-      JSON.parse(combo),
+    const combos = parseJsonArray<PaComboPricingResponse>(options.combos);
+    const simpleRecommendedServices = parseJsonArray<PaSimpleServiceResponse>(
+      options.recommendedServices,
     );
-
-    const recommendedServicesRaw: string[] =
-      typeof options.recommendedServices === "string"
-        ? JSON.parse(options.recommendedServices)
-        : ((options.recommendedServices as any) ?? []);
-
-    const simpleRecommendedServices: PaSimpleServiceResponse[] =
-      recommendedServicesRaw.map((service) => JSON.parse(service));
-
-    const categoriesAndServices: PaGetServicePricingResponse[] =
-      categoriesAndServicesRaw.map((service) => JSON.parse(service));
+    const categoriesAndServices = parseJsonArray<PaGetServicePricingResponse>(
+      options.categoriesAndServices,
+    );
 
     const serviceOptions: ServiceOptionType[] = [];
     const additionalOptions: ServiceOptionType[] = [];
     const recommendedServiceOptions: ServiceOptionType[] = [];
+    const takeAndBringOptions: ServiceOptionType[] = [];
 
     for (const combo of combos) {
       combo.description = buildDescription(combo);
@@ -261,7 +258,17 @@ export const BuildServiceOptionsHandler = async ({
             services: [],
             category: service.serviceCategory,
           });
-        } else if (category.type !== "TAKE_AND_BRING") {
+        } else if (category.type === "TAKE_AND_BRING") {
+          takeAndBringOptions.push({
+            id: service.id,
+            name: service.name,
+            price: service.price,
+            description: service.description,
+            type: "SERVICE",
+            services: [],
+            category: service.serviceCategory,
+          });
+        } else {
           additionalOptions.push({
             id: service.id,
             name: service.name,
@@ -289,7 +296,7 @@ export const BuildServiceOptionsHandler = async ({
 
     const serviceVariables = [
       [options.serviceOptions, serviceOptions],
-      [options.serviceOptionsIds, serviceOptions.map((s) => s)],
+      [options.serviceOptionsIds, serviceOptions],
       [options.serviceOptionsNames, serviceOptions.map((s) => s.name)],
       [
         options.serviceOptionsDescriptions,
@@ -301,7 +308,7 @@ export const BuildServiceOptionsHandler = async ({
 
     const additionalOptionVariables = [
       [options.additionalOptions, additionalOptions],
-      [options.additionalOptionsIds, additionalOptions.map((s) => s)],
+      [options.additionalOptionsIds, additionalOptions],
       [options.additionalOptionsNames, additionalOptions.map((s) => s.name)],
       [
         options.additionalOptionsDescriptions,
@@ -314,10 +321,7 @@ export const BuildServiceOptionsHandler = async ({
 
     const recommendedServiceOptionVariables = [
       [options.recommendedServiceOptions, recommendedServiceOptions],
-      [
-        options.recommendedServiceOptionsIds,
-        recommendedServiceOptions.map((s) => s),
-      ],
+      [options.recommendedServiceOptionsIds, recommendedServiceOptions],
       [
         options.recommendedServiceOptionsNames,
         recommendedServiceOptions.map((s) => s.name),
@@ -329,6 +333,21 @@ export const BuildServiceOptionsHandler = async ({
     ];
 
     recommendedServiceOptionVariables.forEach(([id, value]) =>
+      setVar(id as string, value),
+    );
+
+    const takeAndBringOptionVariables = [
+      [options.takeAndBringOptions, takeAndBringOptions],
+      [
+        options.takeAndBringOptionsNames,
+        takeAndBringOptions.map((s) => s.name),
+      ],
+      [
+        options.takeAndBringOptionsDescriptions,
+        takeAndBringOptions.map((s) => s.description),
+      ],
+    ];
+    takeAndBringOptionVariables.forEach(([id, value]) =>
       setVar(id as string, value),
     );
   } catch (error) {

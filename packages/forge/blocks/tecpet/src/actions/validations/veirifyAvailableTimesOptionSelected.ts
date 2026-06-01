@@ -27,11 +27,10 @@ export const verifyAvailableTimesOptionSelected = createAction({
   },
 });
 export const VerifyAvailableTimesOptionSelectedHandler = async ({
-  options, variables, logs
+  options, variables
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         let showOtherDates = false;

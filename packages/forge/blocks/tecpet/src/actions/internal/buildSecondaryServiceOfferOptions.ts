@@ -83,7 +83,7 @@ export const BuildSecondaryServiceOfferOptionsHandler = async ({
     );
 
     const rawSecondaryGroups: PaServiceRecommendationGroup[] = JSON.parse(
-      options.secondaryGroups as string,
+      (options.secondaryGroups as string) ?? "[]",
     );
     const secondaryGroups: PaServiceRecommendationGroup[] =
       rawSecondaryGroups.map((item) =>

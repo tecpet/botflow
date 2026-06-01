@@ -56,7 +56,7 @@ export const BuildClientBookingsSummaryHandler = async ({
 
     const clientBookingsParsed: string[] = rawClientBookings
       ? JSON.parse(rawClientBookings as string)
-      : null;
+      : [];
 
     const bookings: Array<
       PaGetBookingResponse & {
@@ -119,7 +119,7 @@ export const BuildClientBookingsSummaryHandler = async ({
     variables.set([
       {
         id: options.bookingsValue as string,
-        value: filteredBookings.map((b) => b),
+        value: filteredBookings,
       },
     ]);
     variables.set([

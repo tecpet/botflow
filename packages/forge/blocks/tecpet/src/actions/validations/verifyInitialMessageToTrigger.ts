@@ -51,11 +51,10 @@ export const verifyInitialMessageToTrigger = createAction({
   },
 });
 export const VerifyInitialMessageToTriggerHandler = async ({
-  options, variables, logs
+  options, variables
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         const initialMessage = options.initialClientMessage as string;

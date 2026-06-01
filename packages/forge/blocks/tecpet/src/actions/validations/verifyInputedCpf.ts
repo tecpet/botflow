@@ -26,11 +26,10 @@ export const verifyInputedCpfText = createAction({
   },
 });
 export const VerifyInputedCpfTextHandler = async ({
-  options, variables, logs
+  options, variables
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         const rawCpf = options.cpfInputText as string;

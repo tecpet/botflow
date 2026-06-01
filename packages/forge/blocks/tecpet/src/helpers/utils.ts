@@ -1,4 +1,4 @@
-export const levenshtein = (a: any, b: any) => {
+export const levenshtein = (a: string, b: string) => {
   const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
   for (let j = 0; j <= a.length; j++) {
     matrix[0][j] = j;
@@ -86,6 +86,14 @@ export function formatBRDateStringDayMonth(dateStr: string): string {
   const [day, month] = dateStr.split("/");
   return `${day.padStart(2, "0")}/${month.padStart(2, "0")}`;
 }
+export function parseJsonArray<T>(raw: unknown): T[] {
+  const arr: unknown[] =
+    typeof raw === "string" ? JSON.parse(raw) : ((raw as unknown[]) ?? []);
+  return arr.map((item) =>
+    typeof item === "string" ? JSON.parse(item) : item,
+  ) as T[];
+}
+
 export const parseIds = (raw: unknown): number[] => {
   if (Array.isArray(raw)) return raw.map(Number);
 

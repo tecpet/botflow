@@ -69,12 +69,10 @@ export const GetShopConfigurationsHandler = async ({
   credentials,
   options,
   variables,
-  logs,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
   try {
     if (options.shopId) {

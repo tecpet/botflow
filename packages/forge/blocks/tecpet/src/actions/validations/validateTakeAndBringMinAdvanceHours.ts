@@ -49,11 +49,9 @@ export const validateTakeAndBringMinAdvanceHours = createAction({
 export const ValidateTakeAndBringMinAdvanceHoursHandler = async ({
   options,
   variables,
-  logs,
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
   try {
     const rawSelectedTime = options.selectedTime as string;

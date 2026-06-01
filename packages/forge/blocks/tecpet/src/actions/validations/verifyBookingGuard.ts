@@ -70,12 +70,11 @@ export const verifyBookingGuard = createAction({
   },
 });
 export const VerifyBookingGuardHandler = async ({
-  credentials, options, variables, logs
+  credentials, options, variables
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         const tecpetSdk = new TecpetSDK(
