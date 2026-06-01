@@ -51,9 +51,9 @@ export const VerifySimilarBreedOptionSelectedHandler = async ({
         typeof breed === "string" ? JSON.parse(breed) : breed,
     );
 
-    const petSRDIndex = similarBreeds.findIndex((breed) => {
-      breed.id === petSRD.id;
-    });
+    const petSRDIndex = similarBreeds.findIndex(
+      (breed) => breed.id === petSRD.id,
+    );
 
     similarBreeds.splice(petSRDIndex, 1);
 

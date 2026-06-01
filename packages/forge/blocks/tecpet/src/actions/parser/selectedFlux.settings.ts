@@ -44,11 +44,10 @@ export const parseSelectedFluxSettings = createAction({
   }),
 });
 export const ParseSelectedFluxSettingsHandler = async ({
-  options, variables, logs
+  options, variables
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         const rawSelectedActionMenuConfig = JSON.parse(

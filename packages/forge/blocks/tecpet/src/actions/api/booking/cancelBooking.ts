@@ -32,31 +32,31 @@ export const cancelBooking = createAction({
   },
 });
 export const CancelBookingHandler = async ({
-  credentials, options, variables, logs
+  credentials,
+  options,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
-      try {
-        const rawBooking = options.booking;
+  try {
+    const rawBooking = options.booking;
 
-        const selectedBooking: PaGetBookingResponse = JSON.parse(
-          rawBooking as string,
-        );
+    const selectedBooking: PaGetBookingResponse = JSON.parse(
+      rawBooking as string,
+    );
 
-        const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-        );
+    const tecpetSdk = new TecpetSDK(
+      (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+      credentials.apiKey as string,
+    );
 
-        await tecpetSdk.booking.changeStatus(
-          selectedBooking.id,
-          { status: BookingStatus.REMOVED },
-          options.shopId as number,
-        );
-      } catch (error) {
-        console.error(error);
-      }
+    await tecpetSdk.booking.changeStatus(
+      selectedBooking.id,
+      { status: BookingStatus.REMOVED },
+      options.shopId as number,
+    );
+  } catch (error) {
+    console.error(error);
+  }
 };

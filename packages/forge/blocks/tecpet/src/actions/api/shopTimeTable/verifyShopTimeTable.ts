@@ -86,7 +86,6 @@ export const VerifyShopTimeTableHandler = async ({
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
   try {
     const rawShopSegments = options.shopSegments as string;

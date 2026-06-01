@@ -124,7 +124,7 @@ export const BuildSelectedAdditionalsHandler = async ({
     variables.set([
       {
         id: options.updatedAdditionalOptionsIds as string,
-        value: updatedAdditionalArray.map((s) => s),
+        value: updatedAdditionalArray,
       },
     ]);
     variables.set([

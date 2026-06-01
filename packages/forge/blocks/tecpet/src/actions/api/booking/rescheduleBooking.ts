@@ -29,48 +29,46 @@ export const rescheduleBooking = createAction({
     }),
   }),
   getSetVariableIds: () => {
-    const variables = [];
-
     return [];
   },
 });
 export const RescheduleBookingHandler = async ({
-  credentials, options, variables, logs
+  credentials,
+  options,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
-      try {
-        const rawBooking = options.booking;
+  try {
+    const rawBooking = options.booking;
 
-        const selectedBooking: PaGetBookingResponse = JSON.parse(
-          rawBooking as string,
-        );
+    const selectedBooking: PaGetBookingResponse = JSON.parse(
+      rawBooking as string,
+    );
 
-        const rawSelectedTimeOption = options.selectedTimeOption;
+    const rawSelectedTimeOption = options.selectedTimeOption;
 
-        const selectedTimeOption: AvailableTimeType = JSON.parse(
-          rawSelectedTimeOption as string,
-        );
+    const selectedTimeOption: AvailableTimeType = JSON.parse(
+      rawSelectedTimeOption as string,
+    );
 
-        const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-        );
+    const tecpetSdk = new TecpetSDK(
+      (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+      credentials.apiKey as string,
+    );
 
-        const body: PaRescheduleBookingInput = {
-          timeId: selectedTimeOption.id ?? "",
-          date: selectedTimeOption.dateISO,
-        };
+    const body: PaRescheduleBookingInput = {
+      timeId: selectedTimeOption.id ?? "",
+      date: selectedTimeOption.dateISO,
+    };
 
-        await tecpetSdk.booking.reschedule(
-          selectedBooking.id,
-          body,
-          Number(options.shopId),
-        );
-      } catch (error) {
-        console.error(error);
-      }
+    await tecpetSdk.booking.reschedule(
+      selectedBooking.id,
+      body,
+      Number(options.shopId),
+    );
+  } catch (error) {
+    console.error(error);
+  }
 };

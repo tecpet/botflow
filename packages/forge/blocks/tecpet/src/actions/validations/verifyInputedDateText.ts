@@ -25,11 +25,10 @@ export const verifyInputedDateText = createAction({
   },
 });
 export const VerifyInputedDateTextHandler = async ({
-  options, variables, logs
+  options, variables
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         const rawDate = options.dateInputText as string;

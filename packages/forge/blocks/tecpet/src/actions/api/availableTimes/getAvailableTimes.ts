@@ -125,12 +125,10 @@ export const GetAvailableTimesHandler = async ({
   credentials,
   options,
   variables,
-  logs,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
   try {
     const tecpetSdk = new TecpetSDK(

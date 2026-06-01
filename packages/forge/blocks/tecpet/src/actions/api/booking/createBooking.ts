@@ -55,6 +55,11 @@ export const createBooking = createAction({
       isRequired: true,
       helperText: "Adicionais selecionados",
     }),
+    selectedTakeAndBring: option.string.layout({
+      label: "Leva e traz selecionado",
+      isRequired: false,
+      helperText: "Leva e traz selecionado",
+    }),
     selectedTimeOption: option.string.layout({
       label: "Horário selecionado",
       isRequired: true,
@@ -90,20 +95,14 @@ export const CreateBookingHandler = async ({
   credentials,
   options,
   variables,
-  logs,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
   try {
-    const rawEmployeeIndications = options.employeeIndications;
-
-    const rawSelectedTimeOption = options.selectedTimeOption;
-
     const selectedTimeOption: AvailableTimeType = JSON.parse(
-      rawSelectedTimeOption as string,
+      options.selectedTimeOption as string,
     );
 
     const tecpetSdk = new TecpetSDK(
@@ -115,7 +114,7 @@ export const CreateBookingHandler = async ({
       ? JSON.parse(options.selectedServices as string)
       : undefined;
 
-    const parsedEmployeeIndications: string[] = rawEmployeeIndications
+    const parsedEmployeeIndications: string[] = options.employeeIndications
       ? JSON.parse(options.employeeIndications as string)
       : [];
 
@@ -125,9 +124,7 @@ export const CreateBookingHandler = async ({
       );
 
     const serviceIds = parseIds(options.servicesIds);
-
     const comboIds = parseIds(options.combosIds);
-
     const selectedId = Number(parsedSelectedService.id);
 
     const services: number[] = serviceIds.includes(selectedId)
@@ -136,11 +133,16 @@ export const CreateBookingHandler = async ({
 
     const combos: number[] = comboIds.includes(selectedId) ? [selectedId] : [];
 
-    const additionalsRaw = options.selectedAdditionals ?? "[]";
-    (typeof additionalsRaw === "string"
-      ? JSON.parse(additionalsRaw)
-      : additionalsRaw
-    ).forEach((id: string | number) => services.push(Number(id)));
+    if (options.selectedTakeAndBring) {
+      const takeAndBring: ServiceOptionType = JSON.parse(
+        options.selectedTakeAndBring as string,
+      );
+      services.push(takeAndBring.id);
+    }
+
+    JSON.parse((options.selectedAdditionals as string) ?? "[]").forEach(
+      (id: string | number) => services.push(Number(id)),
+    );
 
     const body: PaCreateBookingInput = {
       timeId: selectedTimeOption.id ?? "",
@@ -157,11 +159,9 @@ export const CreateBookingHandler = async ({
     );
 
     if (createdBooking) {
-      variables.set([{ id: options.booking as string, value: createdBooking }]);
       variables.set([
+        { id: options.booking as string, value: createdBooking },
         { id: options.bookingId as string, value: createdBooking.id },
-      ]);
-      variables.set([
         { id: options.invoiceId as string, value: createdBooking?.invoice?.id },
       ]);
     }
