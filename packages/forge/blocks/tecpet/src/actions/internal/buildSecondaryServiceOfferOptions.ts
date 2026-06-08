@@ -92,7 +92,10 @@ export const BuildSecondaryServiceOfferOptionsHandler = async ({
 
     const seenIds = new Set<number>();
     const secondaryServices: PaSimpleServiceResponse[] = secondaryGroups
-      .filter((group) => group.selectedService?.id === serviceId)
+      .filter(
+        (group) =>
+          group.anySelectedService || group.selectedService?.id === serviceId,
+      )
       .flatMap((group) => group.recommendedServices)
       .filter((service) => {
         if (seenIds.has(service.id)) return false;
