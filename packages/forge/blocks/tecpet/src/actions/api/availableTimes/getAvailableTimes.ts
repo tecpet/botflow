@@ -172,10 +172,25 @@ export const GetAvailableTimesHandler = async ({
       ? JSON.parse(options.bookingId as string)
       : null;
 
+    const isReschedule =
+      bookingId != null &&
+      !(Array.isArray(bookingId) && bookingId.length === 0) &&
+      !(
+        typeof bookingId === "object" &&
+        !Array.isArray(bookingId) &&
+        Object.keys(bookingId).length === 0
+      );
+
+    console.log(
+      `[getAvailableTimes] shop=${options.shopId} petId=${options.petId} isReschedule=${isReschedule} bookingId=${JSON.stringify(
+        bookingId,
+      )}`,
+    );
+
     let services: number[] = [];
     let combos: number[] = [];
 
-    if (bookingId) {
+    if (isReschedule) {
       services = parseIds(rawServices);
       combos = parseIds(rawCombos);
     } else {
@@ -183,13 +198,13 @@ export const GetAvailableTimesHandler = async ({
         options.selectedService as string,
       );
 
-      const serviceIds = parseIds(rawServices);
-      const comboIds = parseIds(rawCombos);
-
       const selectedId = Number(parsedSelectedService.id);
 
-      services = serviceIds.includes(selectedId) ? [selectedId] : [];
-      combos = comboIds.includes(selectedId) ? [selectedId] : [];
+      if (parsedSelectedService.type === "COMBO") {
+        combos = [selectedId];
+      } else {
+        services = [selectedId];
+      }
     }
 
     let additionalDays = rawAdditionalDays ? Number(rawAdditionalDays) : 0;
