@@ -22,6 +22,7 @@ import { verifyShopTimeTable } from "./actions/api/shopTimeTable/verifyShopTimeT
 import { getSpecies } from "./actions/api/specie/getSpecies";
 import { extractToken } from "./actions/api/token/extractToken";
 import { buildAvailableTimesOptions } from "./actions/internal/buildAvailableTimesOptions";
+import { buildChainShopOptions } from "./actions/internal/buildChainShopOptions";
 import { buildClientBookingsSummary } from "./actions/internal/buildClientBookingsSummary";
 import { buildClientPetsSummary } from "./actions/internal/buildClientPetsSummary";
 import { buildEmployeeOptions } from "./actions/internal/buildEmployeeOptions";
@@ -54,6 +55,7 @@ const buildActions = [
   buildClientBookingsSummary,
   buildClientPetsSummary,
   buildSecondaryServiceOfferOptions,
+  buildChainShopOptions,
 ];
 
 const validations = [
