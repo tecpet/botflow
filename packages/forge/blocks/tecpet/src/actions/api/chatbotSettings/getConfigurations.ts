@@ -2,6 +2,7 @@ import { type PaChatbotSettingsResponse, TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { parseJsonArray } from "../../../helpers/utils";
 
 export const getConfigurations = createAction({
   auth,
@@ -12,6 +13,10 @@ export const getConfigurations = createAction({
       label: "ID Loja",
       isRequired: true,
       helperText: "Id da loja",
+    }),
+    chainShops: option.string.layout({
+      label: "Lojas da rede",
+      helperText: "Lojas da rede",
     }),
     configurations: option.string.layout({
       label: "Configurações",
@@ -106,12 +111,11 @@ export const getConfigurations = createAction({
   },
 });
 export const GetConfigurationsHandler = async ({
-  credentials, options, variables, logs
+  credentials, options, variables
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         if (options.shopId) {
@@ -124,6 +128,18 @@ export const GetConfigurationsHandler = async ({
               options.shopId as number,
             )) as PaChatbotSettingsResponse;
           if (result) {
+            const chainShops = parseJsonArray(options.chainShops);
+
+
+            if (chainShops.length > 0) {
+              result.chatbotActions.push({
+                id: "CHAIN",
+                name: "CONSULTAR REDE",
+                description: "",
+                enabled: true,
+              } as PaChatbotSettingsResponse["chatbotActions"][number]);
+            }
+
             variables.set([
               { id: options.configurations as string, value: result },
               {
@@ -177,9 +193,6 @@ export const GetConfigurationsHandler = async ({
           }
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+  
       }
 };
