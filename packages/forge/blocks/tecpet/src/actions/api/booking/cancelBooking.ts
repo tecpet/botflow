@@ -6,6 +6,7 @@ import {
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler } from "../../../helpers/logger";
 
 export const cancelBooking = createAction({
   auth,
@@ -45,6 +46,8 @@ export const CancelBookingHandler = async ({
     const selectedBooking: PaGetBookingResponse = JSON.parse(
       rawBooking as string,
     );
+
+    logHandler("cancelBooking", { shopId: options.shopId as number, bookingId: selectedBooking?.id, newStatus: BookingStatus.REMOVED });
 
     const tecpetSdk = new TecpetSDK(
       (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,

@@ -6,6 +6,7 @@ import {
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 
 
 export interface ChainAddress {
@@ -114,6 +115,7 @@ export const GetShopConfigurationsHandler = async ({
   variables: any;
 }) => {
   try {
+    logHandler("getShopConfigurations", { shopId: options.shopId });
     if (options.shopId) {
       const tecpetSdk = new TecpetSDK(
         (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
@@ -144,6 +146,8 @@ export const GetShopConfigurationsHandler = async ({
                 ]),
             ).values(),
           );
+
+        logHandler("getShopConfigurations", { chargeMode, serviceByBreed: result.advancedConfig?.global?.serviceByBreed, chainShops: summarizeArray(chainShops.map((s) => s.id)), chainAddresses: summarizeArray(chainAddresses), segmentsCount: result.segments?.length });
 
         if (options.chainShops) {
           variables.set([{ id: options.chainShops, value: chainShops }]);

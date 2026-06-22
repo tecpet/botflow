@@ -1,6 +1,7 @@
 import { validateCpf } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler } from "../../helpers/logger";
 
 export const verifyInputedCpfText = createAction({
   baseOptions,
@@ -34,7 +35,11 @@ export const VerifyInputedCpfTextHandler = async ({
       try {
         const rawCpf = options.cpfInputText as string;
 
+        logHandler("verifyInputedCpf", { rawCpf });
+
         const isCpfValid = validateCpf(rawCpf);
+
+        logHandler("verifyInputedCpf", { isCpfValid, reason: isCpfValid ? "CPF válido" : "CPF inválido" });
 
         variables.set([
           { id: options.isCpfValid as string, value: isCpfValid },

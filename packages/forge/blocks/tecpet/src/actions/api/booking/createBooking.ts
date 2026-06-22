@@ -7,6 +7,7 @@ import {
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 import { parseIds } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 import type { AvailableTimeType } from "../availableTimes/getAvailableTimes";
@@ -123,6 +124,8 @@ export const CreateBookingHandler = async ({
         typeof item === "string" ? JSON.parse(item) : item,
       );
 
+    logHandler("createBooking", { shopId: Number(options.shopId), petId: Number(options.petId), segmentType: options.segmentType, selectedServiceId: parsedSelectedService?.id, selectedServiceType: parsedSelectedService?.type, selectedTimeId: selectedTimeOption?.id, employeeIndications: summarizeArray(employeesIndications) });
+
     const serviceIds = parseIds(options.servicesIds);
     const comboIds = parseIds(options.combosIds);
     const selectedId = Number(parsedSelectedService.id);
@@ -153,12 +156,15 @@ export const CreateBookingHandler = async ({
       segment: options.segmentType as ShopSegment,
     };
 
+    logHandler("createBooking", { timeId: body.timeId, petId: body.petId, servicesId: body.servicesId, combosId: body.combosId, segment: body.segment, employeeIndicationCount: body.employeeIndication?.length ?? 0 });
+
     const createdBooking = await tecpetSdk.booking.create(
       body,
       Number(options.shopId),
     );
 
     if (createdBooking) {
+      logHandler("createBooking", { createdBookingId: createdBooking.id, invoiceId: createdBooking?.invoice?.id });
       variables.set([
         { id: options.booking as string, value: createdBooking },
         { id: options.bookingId as string, value: createdBooking.id },

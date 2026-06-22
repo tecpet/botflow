@@ -7,6 +7,7 @@ import {
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
 export interface EmployeeServiceIndicationOption {
@@ -77,6 +78,8 @@ export const GetEmployessHandler = async ({
 
     const shopId = Number(options.shopId);
 
+    logHandler("getEmployess", { shopId, selectedServiceType: selectedService?.type, selectedServiceId: selectedService?.id });
+
     const filters: PaEmployeeFilter = { serviceCategoryIds: [] };
 
     let servicesCategoriesIds: number[] = [];
@@ -116,6 +119,8 @@ export const GetEmployessHandler = async ({
 
     filters["serviceCategoryIds"] = servicesCategoriesIds;
 
+    logHandler("getEmployess", { servicesCategoriesIds, employeeServiceCategoriesIndication });
+
     const tecpetSdk = new TecpetSDK(
       (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
       credentials.apiKey as string,
@@ -123,6 +128,8 @@ export const GetEmployessHandler = async ({
 
     const employees: PaEmployeeResponse[] =
       await tecpetSdk.employee.getEmployeesByServiceCategory(filters, shopId);
+
+    logHandler("getEmployess", { employees: summarizeArray(employees) });
 
     variables.set([
       {

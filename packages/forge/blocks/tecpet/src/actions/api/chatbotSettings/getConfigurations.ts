@@ -2,6 +2,7 @@ import { type PaChatbotSettingsResponse, TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 import { parseJsonArray } from "../../../helpers/utils";
 
 export const getConfigurations = createAction({
@@ -118,6 +119,7 @@ export const GetConfigurationsHandler = async ({
   variables: any;
 }) => {
       try {
+        logHandler("getConfigurations", { shopId: options.shopId });
         if (options.shopId) {
           const tecpetSdk = new TecpetSDK(
           (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
@@ -130,6 +132,8 @@ export const GetConfigurationsHandler = async ({
           if (result) {
             const chainShops = parseJsonArray(options.chainShops);
 
+            const enabledActions = result.chatbotActions.filter((a) => a.enabled);
+            logHandler("getConfigurations", { chainShopsCount: chainShops.length, aiEnabled: result.aiEnabled, voiceResponseEnabled: result.voiceResponseEnabled, enabledActions: summarizeArray(enabledActions.map((a) => a.name)), totalActions: result.chatbotActions.length });
 
             if (chainShops.length > 0) {
               result.chatbotActions.push({

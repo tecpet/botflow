@@ -7,6 +7,7 @@ import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 
 export const getCategoriesAndServices = createAction({
   auth,
@@ -65,6 +66,8 @@ export const GetCategoriesAndServicesHandler = async ({
 
     const segmentType = options.segmentType as ShopSegment;
 
+    logHandler("getCategoriesAndServices", { shopId: Number(options?.shopId), petId: Number(options.petId), segmentType });
+
     let serviceCategoryTypes: ServiceCategoryType[] = [];
 
     if (options.segmentType === "PET_SHOP") {
@@ -98,6 +101,8 @@ export const GetCategoriesAndServicesHandler = async ({
       const servicesIds = categories.flatMap((category) =>
         category.services.map((service) => service.id),
       );
+
+      logHandler("getCategoriesAndServices", { serviceCategoryTypes, categories: summarizeArray(categories), servicesIds: summarizeArray(servicesIds) });
 
       variables.set([
         { id: options.categoriesAndServices as string, value: categories },

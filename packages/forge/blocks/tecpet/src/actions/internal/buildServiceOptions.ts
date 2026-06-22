@@ -7,6 +7,7 @@
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 import { formatAsCurrency, parseJsonArray } from "../../helpers/utils";
 
 export interface ServiceOptionType {
@@ -211,6 +212,8 @@ export const BuildServiceOptionsHandler = async ({
       options.categoriesAndServices,
     );
 
+    logHandler("buildServiceOptions", { serviceSelectionValueEnabled, serviceSelectionValueMode, inputCombos: summarizeArray(combos.map((c) => ({ id: c.id, name: c.name }))), inputRecommendedServices: summarizeArray(simpleRecommendedServices.map((s) => ({ id: s.id, name: s.name }))), inputCategories: summarizeArray(categoriesAndServices.map((c) => ({ type: c.type, servicesCount: c.services?.length }))) });
+
     const serviceOptions: ServiceOptionType[] = [];
     const additionalOptions: ServiceOptionType[] = [];
     const recommendedServiceOptions: ServiceOptionType[] = [];
@@ -293,6 +296,8 @@ export const BuildServiceOptionsHandler = async ({
         category: null as any,
       });
     }
+
+    logHandler("buildServiceOptions", { outputServiceOptions: summarizeArray(serviceOptions.map((s) => ({ id: s.id, name: s.name, type: s.type }))), outputAdditionalOptions: summarizeArray(additionalOptions.map((s) => ({ id: s.id, name: s.name }))), outputRecommendedServiceOptions: summarizeArray(recommendedServiceOptions.map((s) => ({ id: s.id, name: s.name }))), outputTakeAndBringOptions: summarizeArray(takeAndBringOptions.map((s) => ({ id: s.id, name: s.name }))) });
 
     const serviceVariables = [
       [options.serviceOptions, serviceOptions],

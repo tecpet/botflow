@@ -12,6 +12,7 @@ import { utcToZonedTime } from "date-fns-tz";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { formatBRDate, formatISODate, parseIds } from "../../../helpers/utils";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
 export type AvailableTimeType = PaGetAvailableTimesResponse & {
@@ -181,11 +182,13 @@ export const GetAvailableTimesHandler = async ({
         Object.keys(bookingId).length === 0
       );
 
-    console.log(
-      `[getAvailableTimes] shop=${options.shopId} petId=${options.petId} isReschedule=${isReschedule} bookingId=${JSON.stringify(
-        bookingId,
-      )}`,
-    );
+    logHandler("getAvailableTimes", {
+      shopId: options.shopId,
+      petId: options.petId,
+      segmentType: options.segmentType,
+      isReschedule,
+      bookingId,
+    });
 
     let services: number[] = [];
     let combos: number[] = [];
@@ -206,6 +209,14 @@ export const GetAvailableTimesHandler = async ({
         services = [selectedId];
       }
     }
+
+    logHandler("getAvailableTimes", {
+      isReschedule,
+      services,
+      combos,
+      catalogServices: summarizeArray(parseIds(rawServices)),
+      catalogCombos: summarizeArray(parseIds(rawCombos)),
+    });
 
     let additionalDays = rawAdditionalDays ? Number(rawAdditionalDays) : 0;
 

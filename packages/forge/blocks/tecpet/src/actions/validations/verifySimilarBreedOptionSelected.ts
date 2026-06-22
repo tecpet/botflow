@@ -1,6 +1,7 @@
 import type { PaBreedResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 
 export const verifySimilarBreedOptionSelected = createAction({
   baseOptions,
@@ -51,6 +52,8 @@ export const VerifySimilarBreedOptionSelectedHandler = async ({
         typeof breed === "string" ? JSON.parse(breed) : breed,
     );
 
+    logHandler("verifySimilarBreedOptionSelected", { similarBreeds: summarizeArray(similarBreeds), petSRDId: petSRD?.id ?? null });
+
     const petSRDIndex = similarBreeds.findIndex(
       (breed) => breed.id === petSRD.id,
     );
@@ -58,11 +61,15 @@ export const VerifySimilarBreedOptionSelectedHandler = async ({
     similarBreeds.splice(petSRDIndex, 1);
 
     if (similarBreeds.length === 1) {
+      logHandler("verifySimilarBreedOptionSelected", { remaining: 1, reason: "exatamente uma raça similar (excluindo SRD) — selecionada automaticamente", selectedBreedId: similarBreeds[0]?.id ?? null });
       variables.set([
         { id: options.petBreed as string, value: similarBreeds[0] },
       ]);
     } else if (similarBreeds.length > 1) {
+      logHandler("verifySimilarBreedOptionSelected", { remaining: similarBreeds.length, reason: "múltiplas raças similares (excluindo SRD) — limpando seleção para o cliente escolher" });
       variables.set([{ id: options.petBreed as string, value: "" }]);
+    } else {
+      logHandler("verifySimilarBreedOptionSelected", { remaining: 0, reason: "nenhuma raça similar restante (excluindo SRD) — nada definido" });
     }
   } catch (error) {
     console.error(error);

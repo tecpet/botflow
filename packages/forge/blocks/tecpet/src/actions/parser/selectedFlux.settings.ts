@@ -1,6 +1,7 @@
 import type { ChatbotActionJson } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler } from "../../helpers/logger";
 
 export const parseSelectedFluxSettings = createAction({
   baseOptions,
@@ -58,6 +59,10 @@ export const ParseSelectedFluxSettingsHandler = async ({
           typeof rawSelectedActionMenuConfig === "string"
             ? JSON.parse(rawSelectedActionMenuConfig)
             : rawSelectedActionMenuConfig;
+
+        logHandler("parseSelectedFluxSettings", { hasConfig: Boolean(selectedMenuConfig), reparsedFromString: typeof rawSelectedActionMenuConfig === "string" });
+
+        logHandler("parseSelectedFluxSettings", { fluxId: selectedMenuConfig.chatbotFlux?.id ?? "", fluxName: selectedMenuConfig.name ?? "", fluxType: selectedMenuConfig.chatbotFlux?.fluxType ?? "", fluxMode: selectedMenuConfig.mode ?? "", schedulePermission: selectedMenuConfig.schedulePermission ?? "" });
 
         variables.set([
           {

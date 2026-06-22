@@ -5,6 +5,7 @@ import type {
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 
 type DayKey = keyof Omit<PaShopConfigurationsTimeTable, "fullTime">;
 
@@ -97,6 +98,8 @@ export const VerifyShopTimeTableHandler = async ({
       typeof s === "string" ? JSON.parse(s) : s,
     );
 
+    logHandler("verifyShopTimeTable", { segment, timeZone, shopSegments: summarizeArray(shopSegments.map((s) => ({ type: s.type, name: s.name }))) });
+
     const matchedSegment = shopSegments.find(
       (s) => s.type === segment || s.name === segment,
     );
@@ -107,6 +110,8 @@ export const VerifyShopTimeTableHandler = async ({
       const { timeTable } = matchedSegment;
       open = !timeTable || isShopOpenNow(timeTable, timeZone);
     }
+
+    logHandler("verifyShopTimeTable", { matchedSegment: matchedSegment ? { type: matchedSegment.type, name: matchedSegment.name } : null, hasTimeTable: Boolean(matchedSegment?.timeTable), open });
 
     variables.set([{ id: options.isOpen, value: open }]);
   } catch (error) {

@@ -6,6 +6,7 @@ import {
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler } from "../../../helpers/logger";
 import type { AvailableTimeType } from "../availableTimes/getAvailableTimes";
 
 export const rescheduleBooking = createAction({
@@ -53,6 +54,8 @@ export const RescheduleBookingHandler = async ({
       rawSelectedTimeOption as string,
     );
 
+    logHandler("rescheduleBooking", { shopId: Number(options.shopId), bookingId: selectedBooking?.id, selectedTimeId: selectedTimeOption?.id, date: selectedTimeOption?.dateISO });
+
     const tecpetSdk = new TecpetSDK(
       (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
       credentials.apiKey as string,
@@ -62,6 +65,8 @@ export const RescheduleBookingHandler = async ({
       timeId: selectedTimeOption.id ?? "",
       date: selectedTimeOption.dateISO,
     };
+
+    logHandler("rescheduleBooking", { bookingId: selectedBooking?.id, body });
 
     await tecpetSdk.booking.reschedule(
       selectedBooking.id,

@@ -2,6 +2,7 @@ import { type PaPetResponse, TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 
 export const getPets = createAction({
   auth,
@@ -65,6 +66,8 @@ export const GetPetsHandler = async ({
       ? JSON.parse(rawPetsWithBooking as string)
       : null;
 
+    logHandler("getPets", { clientId: Number(options?.clientId), scheduleToAnotherPet, petsWithBooking: summarizeArray(petsWithBooking) });
+
     const tecpetSdk = new TecpetSDK(
       (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
       credentials.apiKey as string,
@@ -89,6 +92,8 @@ export const GetPetsHandler = async ({
           id: "",
           name: "Informar novo pet",
         });
+
+        logHandler("getPets", { willFilterByBooking: Boolean(scheduleToAnotherPet && petsWithBooking), pets: summarizeArray(petsResponse), petsNames: petsResponse.map((p) => p.name) });
 
         variables.set([
           { id: options.pets as string, value: petsResponse.map((p) => p) },

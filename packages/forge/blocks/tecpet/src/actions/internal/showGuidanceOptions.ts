@@ -4,6 +4,7 @@ import type {
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 
 export const guindanceOptionsTypeEnum: {
   [key in ChatbotGuidanceOptionTypeEnum]: string;
@@ -68,6 +69,12 @@ export const ShowGuidanceOptionsHandler = async ({
           parsedGuidanceOptions.map((option) =>
             typeof option === "string" ? JSON.parse(option) : option,
           );
+
+        logHandler("showGuidanceOptions", { inputGuidanceOptions: summarizeArray(guidanceOptions.map((o) => ({ guidanceType: o.guidanceType, buttonTitle: o.buttonTitle, enabled: o.enabled }))) });
+
+        const enabledGuidanceOptions = guidanceOptions.filter((option) => option.enabled);
+
+        logHandler("showGuidanceOptions", { outputEnabledOptions: summarizeArray(enabledGuidanceOptions.map((o) => ({ guidanceType: o.guidanceType, buttonTitle: o.buttonTitle }))) });
 
         variables.set([
           {

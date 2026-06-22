@@ -3,6 +3,7 @@ import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler } from "../../../helpers/logger";
 
 export const getFormattedMessages = createAction({
   auth,
@@ -76,6 +77,8 @@ export const GetFormattedMessagesHandler = async ({
       credentials.apiKey as string,
     );
 
+    logHandler("getFormattedMessages", { shopId: options.shopId as number, clientId: options.clientId, petId: options.petId, invoiceId: options.invoiceId, serviceId: options.serviceId, comboId: options.comboId, bookingId: options.bookingId });
+
     let body: GetChatbotFormattedMessagesInput = { ids: {}, messages: [] };
 
     if (options.comboId) {
@@ -101,6 +104,8 @@ export const GetFormattedMessagesHandler = async ({
         messages: [{ text: (options.message as string) ?? "" }],
       };
     }
+    logHandler("getFormattedMessages", { usedComboBranch: Boolean(options.comboId), bodyIds: body.ids });
+
     const result = await tecpetSdk.chatbot.getFormattedMessage(
       body,
       options.shopId as number,

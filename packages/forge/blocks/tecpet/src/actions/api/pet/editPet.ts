@@ -9,6 +9,7 @@ import { createAction, option } from "@typebot.io/forge";
 import { format, parse } from "date-fns";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler } from "../../../helpers/logger";
 
 export const editPet = createAction({
   auth,
@@ -116,6 +117,8 @@ export const EditPetHandler = async ({
       size: options.petSize as BillingItemType,
     };
 
+    logHandler("editPet", { shopId: Number(options.shopId), petId: Number(options.petId), weight: body.weight, genre: body.genre, hair: body.hair, size: body.size, hasBirthDate: Boolean(options.petBirthDate) });
+
     if (options.petBirthDate) {
       const parsedBirthDate = parse(
         options.petBirthDate as string,
@@ -124,6 +127,8 @@ export const EditPetHandler = async ({
       );
       body.birthDate = format(parsedBirthDate, "yyyy-MM-dd");
     }
+
+    logHandler("editPet", { parsedBirthDate: body.birthDate ?? null });
 
     const editedPet: PaPetResponse = (await tecpetSdk.pet.edit(
       Number(options.petId),

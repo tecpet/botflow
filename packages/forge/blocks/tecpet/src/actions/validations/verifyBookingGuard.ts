@@ -7,6 +7,7 @@ import {
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 import { parseIds } from "../../helpers/utils";
 import type { AvailableTimeType } from "../api/availableTimes/getAvailableTimes";
 import type { ServiceOptionType } from "../internal/buildServiceOptions";
@@ -98,6 +99,8 @@ export const VerifyBookingGuardHandler = async ({
 
         const services = serviceIds.includes(selectedId) ? [selectedId] : [];
 
+        logHandler("verifyBookingGuard", { petId: Number(options.petId), shopId: Number(options.shopId), segmentType: options.segmentType, selectedServiceId: selectedId, serviceIds: summarizeArray(serviceIds), services, dateISO: selectedTimeOption?.dateISO ?? null });
+
         const body: PaGetBookingGuardValidationBody = {
           petId: Number(options.petId),
           servicesId: services,
@@ -110,6 +113,8 @@ export const VerifyBookingGuardHandler = async ({
           body,
           Number(options.shopId),
         );
+
+        logHandler("verifyBookingGuard", { blocked: bookingGuardValidation?.blocked ?? null, reason: bookingGuardValidation?.blocked ? "agendamento bloqueado pela restrição de agenda" : "agendamento liberado", guardDescription: bookingGuardValidation?.guard?.description ?? "" });
 
         variables.set([
           {

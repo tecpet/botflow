@@ -1,6 +1,7 @@
 import type { PaShopResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 import { parseJsonArray } from "../../helpers/utils";
 import type { ChainAddress } from "../api/shop/getShopConfigurations";
 
@@ -75,6 +76,8 @@ export const BuildChainShopOptionsHandler = async ({
 
     const chainAddress = parseChainAddress(options.chainAddress);
 
+    logHandler("buildChainShopOptions", { inputChainShops: summarizeArray(chainShops.map((s) => ({ id: s.id, name: s.name, city: s.address?.city, uf: s.address?.uf }))), chainAddress: chainAddress ? { cityName: chainAddress.cityName, uf: chainAddress.uf } : null });
+
     if (!chainAddress) return;
 
     const filteredShops = chainShops.filter(
@@ -82,6 +85,8 @@ export const BuildChainShopOptionsHandler = async ({
         shop.address?.city === chainAddress.cityName &&
         shop.address?.uf === chainAddress.uf,
     );
+
+    logHandler("buildChainShopOptions", { outputFilteredShops: summarizeArray(filteredShops.map((s) => ({ id: s.id, name: s.name }))) });
 
     if (options.chainShopName) {
       variables.set([

@@ -12,6 +12,7 @@ import {
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 
 export const getServiceRecommendations = createAction({
   auth,
@@ -76,6 +77,8 @@ export const GetServiceRecommendationsHandler = async ({
 
     const segmentType = options.segmentType as ShopSegment;
 
+    logHandler("getServiceRecommendations", { shopId: Number(options?.shopId), petId: Number(options.petId), segmentType, scope: ServiceRecommendationScopeEnum.BOT });
+
     const recommendedServicesResponse: PaGetServiceRecommendationGroupResponse =
       (await tecpetSdk.serviceRecommendation.validation(
         {
@@ -110,6 +113,8 @@ export const GetServiceRecommendationsHandler = async ({
         recommendedServicesResponse.data.filter(
           (group) => group.type === SECONDARY_SERVICE_OFFER,
         );
+
+      logHandler("getServiceRecommendations", { groups: summarizeArray(recommendedServicesResponse.data), primaryServices: summarizeArray(primaryServices), secondaryGroups: summarizeArray(secondaryGroups) });
 
       variables.set([
         { id: options.primaryServices as string, value: primaryServices },

@@ -3,6 +3,7 @@ import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 
 export const getBillingMethods = createAction({
   auth,
@@ -87,11 +88,16 @@ export const GetBillingMethodsHandler = async ({
           (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
           credentials.apiKey as string,
         );
+        logHandler("getBillingMethods", { shopId: Number(options?.shopId), segmentType: options?.segmentType, displayMode: options.displayMode });
+
         const billingMethods: PaBillingResponse[] | null =
           await tecpetSdk.billingMethod.list(
             options?.segmentType as ShopSegment,
             Number(options?.shopId),
           );
+
+        logHandler("getBillingMethods", { billingMethods: summarizeArray(billingMethods), tags: billingMethods?.map((m) => m.tag) });
+
         if (billingMethods && billingMethods.length > 0) {
           const sizeMethod: PaBillingResponse = billingMethods.find(
             (m) => m.tag === "SIZE",
@@ -126,6 +132,8 @@ export const GetBillingMethodsHandler = async ({
               );
               break;
           }
+          logHandler("getBillingMethods", { displayMode: options.displayMode, sizesNames: summarizeArray(sizesNames), sizeItemsCount: sizeMethod.billingItems.length });
+
           variables.set([
             { id: options.sizesNames as string, value: sizesNames },
           ]);

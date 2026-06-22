@@ -1,5 +1,6 @@
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 import type { ServiceOptionType } from "./buildServiceOptions";
 
 export interface IAdditionals {
@@ -103,11 +104,15 @@ export const BuildSelectedAdditionalsHandler = async ({
       (options.selectedAdditionalsArray as string) ?? "[]",
     );
 
+    logHandler("buildSelectedAdditionals", { selectedAdditionalId: selectedAdditional.id, selectedAdditionalName: selectedAdditional.name, inputAdditionals: summarizeArray(additionals.map((a) => ({ id: a.id, name: a.name }))), previouslySelectedIds: summarizeArray(selectedAdditionals) });
+
     selectedAdditionals.push(selectedAdditional.id);
 
     const updatedAdditionalArray = additionals.filter(
       (item) => item.id !== selectedAdditional.id,
     );
+
+    logHandler("buildSelectedAdditionals", { updatedSelectedIds: summarizeArray(selectedAdditionals), outputUpdatedAdditionals: summarizeArray(updatedAdditionalArray.map((a) => ({ id: a.id, name: a.name }))) });
 
     variables.set([
       {

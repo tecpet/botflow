@@ -4,6 +4,7 @@ import type {
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 import type { EmployeeServiceIndicationOption } from "../api/employee/getEmployees";
 
 export const buildEmployeeOptions = createAction({
@@ -76,6 +77,8 @@ export const BuildEmployeeOptionsHandler = async ({
             typeof item === "string" ? JSON.parse(item) : item,
           );
 
+        logHandler("buildEmployeeOptions", { inputEmployees: summarizeArray(employees.map((e) => ({ id: e.id, name: e.name }))), inputServiceCategories: summarizeArray(servicesCategories.map((c) => ({ category: c.category, name: c.name }))), targetCategory: servicesCategories[0]?.category });
+
         const employeeIndications: Array<
           PaEmployeeIndication & { name?: string }
         > = [];
@@ -93,6 +96,8 @@ export const BuildEmployeeOptionsHandler = async ({
             });
           }
         });
+
+        logHandler("buildEmployeeOptions", { outputEmployeeIndications: summarizeArray(employeeIndications.map((e) => ({ id: e.id, name: e.name, serviceCategoryId: e.serviceCategoryId }))), serviceIndicationName: servicesCategories[0]?.name });
 
         variables.set([
           {

@@ -1,6 +1,7 @@
 import type { PaGetAvailableTimesResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 import type { AvailableTimeType } from "../api/availableTimes/getAvailableTimes";
 
 export const buildAvailableTimesOptions = createAction({
@@ -79,6 +80,8 @@ export const BuildAvailableTimesOptionsHandler = async ({
       typeof item === "string" ? JSON.parse(item) : item,
     );
 
+    logHandler("buildAvailableTimesOptions", { inputAvailableTimes: summarizeArray(availableTimes.map((t) => ({ id: t.id, dateBR: t.dateBR, scheduleStartTime: t.scheduleStartTime }))), behavior: options.timeSelectionBehaviorBehavior, displayMode: options.timeSelectionBehaviorTimeDisplayMode });
+
     availableTimes.push({
       id: "OTHER",
       scheduleStartTime: "PREFIRO OUTRA DATA",
@@ -87,6 +90,8 @@ export const BuildAvailableTimesOptionsHandler = async ({
       dateISO: "",
       stop: "",
     });
+
+    logHandler("buildAvailableTimesOptions", { outputAvailableTimes: summarizeArray(availableTimes.map((t) => ({ id: t.id, dateBR: t.dateBR, scheduleStartTime: t.scheduleStartTime }))) });
 
     variables.set([
       {

@@ -8,6 +8,7 @@ import {
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler } from "../../../helpers/logger";
 
 export const createPet = createAction({
   auth,
@@ -99,9 +100,13 @@ export const CreatePetHandler = async ({
           hair: options?.hair as BillingItemType,
         };
 
+        logHandler("createPet", { clientId: petInput.clientId, specieId: petInput.specieId, breedId: petInput.breedId, genre: petInput.genre, size: petInput.size, hair: petInput.hair, hasName: Boolean(petInput.name) });
+
         const pet: PaPetResponse = (await tecpetSdk.pet.create(
           petInput,
         )) as PaPetResponse;
+
+        logHandler("createPet", { created: Boolean(pet), petId: pet?.id, petName: pet?.name });
 
         if (pet) {
           variables.set([{ id: options.pet as string, value: pet }]);

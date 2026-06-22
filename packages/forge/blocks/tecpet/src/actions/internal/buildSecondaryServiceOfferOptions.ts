@@ -4,6 +4,7 @@ import type {
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 import type { ServiceOptionType } from "./buildServiceOptions";
 
 export const buildSecondaryServiceOfferOptions = createAction({
@@ -90,6 +91,8 @@ export const BuildSecondaryServiceOfferOptionsHandler = async ({
         typeof item === "string" ? JSON.parse(item) : item,
       );
 
+    logHandler("buildSecondaryServiceOfferOptions", { serviceId, inputAdditionalServices: summarizeArray(additionalServices.map((s) => ({ id: s.id, name: s.name }))), inputSecondaryGroups: summarizeArray(secondaryGroups.map((g) => ({ selectedServiceId: g.selectedService?.id, anySelectedService: g.anySelectedService, recommendedCount: g.recommendedServices?.length }))) });
+
     const seenIds = new Set<number>();
     const secondaryServices: PaSimpleServiceResponse[] = secondaryGroups
       .filter(
@@ -133,6 +136,8 @@ export const BuildSecondaryServiceOfferOptionsHandler = async ({
         category: null as any,
       });
     }
+
+    logHandler("buildSecondaryServiceOfferOptions", { secondaryServices: summarizeArray(secondaryServices.map((s) => ({ id: s.id, name: s.name }))), outputRecommendedAdditionals: summarizeArray(recommendedAdditionalOptions.map((s) => ({ id: s.id, name: s.name }))) });
 
     variables.set([
       {

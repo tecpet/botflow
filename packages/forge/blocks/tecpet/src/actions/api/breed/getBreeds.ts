@@ -3,6 +3,7 @@ import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 import { getSimilarBreeds } from "../../../helpers/utils";
 
 export const getBreeds = createAction({
@@ -74,6 +75,9 @@ export const GetBreedsHandler = async ({
     const specieId = (options?.specie as string) ?? "";
     const shopId = Number(options.shopId);
     const breedName = (options.name as string) ?? "";
+
+    logHandler("getBreeds", { shopId, specieId, breedName });
+
     const breeds: PaBreedResponse[] = await tecpetSdk.breed.list(
       specieId,
       "",
@@ -89,6 +93,8 @@ export const GetBreedsHandler = async ({
         breedName,
         breeds,
       );
+
+      logHandler("getBreeds", { breeds: summarizeArray(breeds), similarBreeds: summarizeArray(similarBreeds), petSRDId: petSRD?.id });
 
       similarBreeds.push({
         id: petSRD.id,

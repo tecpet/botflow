@@ -1,6 +1,7 @@
 import type { ChatbotActionJson } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler } from "../../helpers/logger";
 
 export const parseSelectedFluxInfoCollectionMenus = createAction({
   baseOptions,
@@ -415,6 +416,8 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
           ? (options.selectedMenuConfigurations as any)
           : undefined;
 
+    logHandler("parseSelectedFluxInfoCollectionMenus", { hasConfig: Boolean(chatbotActionConfig), configName: chatbotActionConfig?.name ?? null });
+
     if (!chatbotActionConfig) return;
 
     const {
@@ -427,6 +430,8 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       responseMessage,
       extraInfo,
     } = chatbotActionConfig.infoCollectionMenus;
+
+    logHandler("parseSelectedFluxInfoCollectionMenus", { showSendingInfo: chatbotActionConfig.showSendingInfo, allowPetRegistration: chatbotActionConfig.allowPetRegistration, petNameEnabled: Boolean(petInfo?.petName?.enabled ?? false), serviceRecommendation: serviceSelection?.serviceRecommendation?.enabled ?? false, takeAndBringEnabled: Boolean(takeAndBring?.allowTakeAndBring?.enabled ?? false), timeSelectionBehavior: timeSelection?.timeSelectionBehavior?.behavior ?? null, allowCancel: editBooking?.allowCancel?.enabled ?? null, allowChangeDateAndTime: editBooking?.allowChangeDateAndTime?.enabled ?? null });
 
     /* ----- Sending Info ----- */
 

@@ -1,6 +1,7 @@
 import type { PaGetBookingResponse, PaPetResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 import { formatBRDateStringDayMonth } from "../../helpers/utils";
 
 export const buildClientBookingsSummary = createAction({
@@ -67,6 +68,8 @@ export const BuildClientBookingsSummaryHandler = async ({
       typeof item === "string" ? JSON.parse(item) : item,
     );
 
+    logHandler("buildClientBookingsSummary", { petId: pet.id, petName: pet.name, inputBookings: summarizeArray(bookings.map((b) => ({ id: b.id, petId: b.petId, status: b.status, date: b.date, start: b.start }))) });
+
     const threshold = new Date(Date.now() + 30 * 60 * 1000);
 
     const parseBookingDate = (date: string, start: string): Date => {
@@ -115,6 +118,8 @@ export const BuildClientBookingsSummaryHandler = async ({
       start: "",
       stop: "",
     });
+
+    logHandler("buildClientBookingsSummary", { outputFilteredBookings: summarizeArray(filteredBookings.map((b) => ({ id: b.id, date: b.date, start: b.start, bookingDescription: b.bookingDescription, backToMenu: b.backToMenu }))) });
 
     variables.set([
       {
