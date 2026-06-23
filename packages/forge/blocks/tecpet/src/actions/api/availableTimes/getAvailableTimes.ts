@@ -11,8 +11,8 @@ import { format, getHours, getMinutes } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
-import { formatBRDate, formatISODate, parseIds } from "../../../helpers/utils";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
+import { formatBRDate, formatISODate, parseIds } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
 export type AvailableTimeType = PaGetAvailableTimesResponse & {
@@ -264,7 +264,8 @@ export const GetAvailableTimesHandler = async ({
           filteredAvailableTimes,
           selectedTimeMinAdvanceHours,
           dateISO,
-          shopSettings.timezone,
+          // Campo correto é `timeZone` (Z maiúsculo); `timezone` vinha undefined.
+          shopSettings?.timeZone ?? "America/Sao_Paulo",
         );
 
         filteredAvailableTimes = filterAvailableTimesByInterval(

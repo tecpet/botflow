@@ -88,7 +88,7 @@ export const ValidateTakeAndBringMinAdvanceHoursHandler = async ({
       );
     }
 
-    let shopSettings: { timezone?: string } | undefined;
+    let shopSettings: { timeZone?: string } | undefined;
     try {
       shopSettings = rawShopSettings ? JSON.parse(rawShopSettings) : undefined;
     } catch (parseError) {
@@ -100,14 +100,23 @@ export const ValidateTakeAndBringMinAdvanceHoursHandler = async ({
     }
 
     const minAdvanceHours = Number(options.takeAndBringMinAdvanceHours ?? 0);
-    const shopTimezone = shopSettings?.timezone;
+    // O config da loja expõe o campo como `timeZone` (Z maiúsculo); ler
+    // `timezone` retornava sempre undefined e — com o guard abaixo — forçava
+    // takeAndBringAllowed=false, pulando a oferta. Default defensivo para a
+    // timezone padrão das lojas caso o campo venha ausente.
+    const shopTimezone = shopSettings?.timeZone ?? "America/Sao_Paulo";
 
-    logHandler("validateTakeAndBringMinAdvanceHours", { dateISO: selectedTime?.dateISO ?? null, slotStart: selectedTime?.start ?? null, minAdvanceHours, shopTimezone: shopTimezone ?? null });
+    logHandler("validateTakeAndBringMinAdvanceHours", {
+      dateISO: selectedTime?.dateISO ?? null,
+      slotStart: selectedTime?.start ?? null,
+      minAdvanceHours,
+      shopTimezone: shopTimezone ?? null,
+    });
 
     // Guarda explícita: antes, qualquer um desses ausentes lançava exceção,
     // caía no catch silencioso e deixava a variável indefinida (a oferta sumia
     // sem rastro). Agora logamos exatamente o que faltou e definimos o fallback.
-    if (!selectedTime || !selectedTime.dateISO || !shopTimezone) {
+    if (!selectedTime || !selectedTime.dateISO) {
       console.warn(
         `${LOG_TAG} inputs insuficientes para avaliar a antecedência — usando fallback ${FALLBACK_ON_ERROR}`,
         {
@@ -118,7 +127,14 @@ export const ValidateTakeAndBringMinAdvanceHoursHandler = async ({
           shopTimezone: shopTimezone ?? null,
         },
       );
-      logHandler("validateTakeAndBringMinAdvanceHours", { takeAndBringAllowed: FALLBACK_ON_ERROR, reason: "inputs insuficientes (selectedTime/dateISO/timezone ausente) — usando fallback", hasSelectedTime: Boolean(selectedTime), dateISO: selectedTime?.dateISO ?? null, shopTimezone: shopTimezone ?? null });
+      logHandler("validateTakeAndBringMinAdvanceHours", {
+        takeAndBringAllowed: FALLBACK_ON_ERROR,
+        reason:
+          "inputs insuficientes (selectedTime/dateISO ausente) — usando fallback",
+        hasSelectedTime: Boolean(selectedTime),
+        dateISO: selectedTime?.dateISO ?? null,
+        shopTimezone: shopTimezone ?? null,
+      });
       setAllowed(FALLBACK_ON_ERROR);
       return;
     }
@@ -138,7 +154,16 @@ export const ValidateTakeAndBringMinAdvanceHoursHandler = async ({
       takeAndBringAllowed,
     });
 
-    logHandler("validateTakeAndBringMinAdvanceHours", { takeAndBringAllowed, reason: takeAndBringAllowed ? "horário respeita a antecedência mínima — leva e traz permitido" : "horário não respeita a antecedência mínima — leva e traz bloqueado", dateISO: selectedTime.dateISO, slotStart: selectedTime.start, minAdvanceHours, shopTimezone });
+    logHandler("validateTakeAndBringMinAdvanceHours", {
+      takeAndBringAllowed,
+      reason: takeAndBringAllowed
+        ? "horário respeita a antecedência mínima — leva e traz permitido"
+        : "horário não respeita a antecedência mínima — leva e traz bloqueado",
+      dateISO: selectedTime.dateISO,
+      slotStart: selectedTime.start,
+      minAdvanceHours,
+      shopTimezone,
+    });
 
     setAllowed(takeAndBringAllowed);
   } catch (error) {
