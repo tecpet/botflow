@@ -11,7 +11,13 @@ import { format, getHours, getMinutes } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
-import { formatBRDate, formatISODate, parseIds } from "../../../helpers/utils";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
+import {
+  formatBRDate,
+  formatISODate,
+  parseIds,
+  parseJsonArray,
+} from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
 export type AvailableTimeType = PaGetAvailableTimesResponse & {
@@ -44,6 +50,16 @@ export const getAvailableTimes = createAction({
       label: "Id dos serviços disponiveis",
       isRequired: true,
       helperText: "Id dos serviços disponiveis",
+    }),
+    selectedAdditionals: option.string.layout({
+      label: "Adicionais selecionados",
+      isRequired: false,
+      helperText: "Array de ids dos adicionais selecionados",
+    }),
+    additionalOptions: option.string.layout({
+      label: "Opções de adicionais",
+      isRequired: false,
+      helperText: "Array de adicionais disponíveis",
     }),
     employeeIndications: option.string.layout({
       label: "Funcionários indicados para o serviço",
@@ -125,12 +141,10 @@ export const GetAvailableTimesHandler = async ({
   credentials,
   options,
   variables,
-  logs,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
   try {
     const tecpetSdk = new TecpetSDK(
@@ -174,10 +188,30 @@ export const GetAvailableTimesHandler = async ({
       ? JSON.parse(options.bookingId as string)
       : null;
 
+    const isReschedule =
+      bookingId != null &&
+      !(Array.isArray(bookingId) && bookingId.length === 0) &&
+      !(
+        typeof bookingId === "object" &&
+        !Array.isArray(bookingId) &&
+        Object.keys(bookingId).length === 0
+      );
+
+    logHandler("getAvailableTimes", {
+      shopId: options.shopId,
+      petId: options.petId,
+      segmentType: options.segmentType,
+      isReschedule,
+      bookingId,
+    });
+
     let services: number[] = [];
     let combos: number[] = [];
 
-    if (bookingId) {
+    let selectedAdditionalIds: number[] = [];
+    let groomAdditionalIds: number[] = [];
+
+    if (isReschedule) {
       services = parseIds(rawServices);
       combos = parseIds(rawCombos);
     } else {
@@ -185,14 +219,44 @@ export const GetAvailableTimesHandler = async ({
         options.selectedService as string,
       );
 
-      const serviceIds = parseIds(rawServices);
-      const comboIds = parseIds(rawCombos);
-
       const selectedId = Number(parsedSelectedService.id);
 
-      services = serviceIds.includes(selectedId) ? [selectedId] : [];
-      combos = comboIds.includes(selectedId) ? [selectedId] : [];
+      if (parsedSelectedService.type === "COMBO") {
+        combos = [selectedId];
+      } else {
+        services = [selectedId];
+      }
+
+      selectedAdditionalIds = options.selectedAdditionals
+        ? parseIds(options.selectedAdditionals)
+        : [];
+
+      const additionalOptions: ServiceOptionType[] = options.additionalOptions
+        ? parseJsonArray<ServiceOptionType>(options.additionalOptions)
+        : [];
+
+      groomAdditionalIds = additionalOptions
+        .filter(
+          (additional) =>
+            selectedAdditionalIds.includes(Number(additional.id)) &&
+            additional.category?.type === "GROOM",
+        )
+        .map((additional) => Number(additional.id));
+
+      if (groomAdditionalIds.length > 0) {
+        services = [...services, ...groomAdditionalIds];
+      }
     }
+
+    logHandler("getAvailableTimes", {
+      isReschedule,
+      services,
+      combos,
+      selectedAdditionalIds: summarizeArray(selectedAdditionalIds),
+      groomAdditionalIds: summarizeArray(groomAdditionalIds),
+      catalogServices: summarizeArray(parseIds(rawServices)),
+      catalogCombos: summarizeArray(parseIds(rawCombos)),
+    });
 
     let additionalDays = rawAdditionalDays ? Number(rawAdditionalDays) : 0;
 
@@ -240,7 +304,8 @@ export const GetAvailableTimesHandler = async ({
           filteredAvailableTimes,
           selectedTimeMinAdvanceHours,
           dateISO,
-          shopSettings.timezone,
+          // Campo correto é `timeZone` (Z maiúsculo); `timezone` vinha undefined.
+          shopSettings?.timeZone ?? "America/Sao_Paulo",
         );
 
         filteredAvailableTimes = filterAvailableTimesByInterval(
