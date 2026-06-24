@@ -3,11 +3,16 @@ import type {
   PaShopConfigurationsTimeTable,
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { auth } from "../../../auth";
-import { baseOptions } from "../../../constants";
-import { logHandler, summarizeArray } from "../../../helpers/logger";
+import { auth } from "../../auth";
+import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 
 type DayKey = keyof Omit<PaShopConfigurationsTimeTable, "fullTime">;
+
+const toMinutes = (time: string): number => {
+  const [hour, minute] = time.split(":").map(Number);
+  return hour * 60 + minute;
+};
 
 const isShopOpenNow = (
   timeTable: PaShopConfigurationsTimeTable,
@@ -38,14 +43,13 @@ const isShopOpenNow = (
 
   if (!ranges || ranges.length === 0) return false;
 
-  return ranges.some((range) => {
-    const [startH, startM] = range.start.split(":").map(Number);
-    const [stopH, stopM] = range.stop.split(":").map(Number);
-    return (
-      currentMinutes >= startH * 60 + startM &&
-      currentMinutes < stopH * 60 + stopM
-    );
-  });
+  // Considera apenas o primeiro e o último horário do dia, ignorando os
+  // intervalos (ex.: almoço). A loja só é considerada fechada quando o horário
+  // atual está antes da abertura ou depois do fechamento.
+  const opening = Math.min(...ranges.map((range) => toMinutes(range.start)));
+  const closing = Math.max(...ranges.map((range) => toMinutes(range.stop)));
+
+  return currentMinutes >= opening && currentMinutes < closing;
 };
 
 export const verifyShopTimeTable = createAction({
@@ -98,7 +102,13 @@ export const VerifyShopTimeTableHandler = async ({
       typeof s === "string" ? JSON.parse(s) : s,
     );
 
-    logHandler("verifyShopTimeTable", { segment, timeZone, shopSegments: summarizeArray(shopSegments.map((s) => ({ type: s.type, name: s.name }))) });
+    logHandler("verifyShopTimeTable", {
+      segment,
+      timeZone,
+      shopSegments: summarizeArray(
+        shopSegments.map((s) => ({ type: s.type, name: s.name })),
+      ),
+    });
 
     const matchedSegment = shopSegments.find(
       (s) => s.type === segment || s.name === segment,
@@ -111,7 +121,13 @@ export const VerifyShopTimeTableHandler = async ({
       open = !timeTable || isShopOpenNow(timeTable, timeZone);
     }
 
-    logHandler("verifyShopTimeTable", { matchedSegment: matchedSegment ? { type: matchedSegment.type, name: matchedSegment.name } : null, hasTimeTable: Boolean(matchedSegment?.timeTable), open });
+    logHandler("verifyShopTimeTable", {
+      matchedSegment: matchedSegment
+        ? { type: matchedSegment.type, name: matchedSegment.name }
+        : null,
+      hasTimeTable: Boolean(matchedSegment?.timeTable),
+      open,
+    });
 
     variables.set([{ id: options.isOpen, value: open }]);
   } catch (error) {

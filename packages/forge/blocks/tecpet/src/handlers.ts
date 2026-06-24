@@ -54,10 +54,6 @@ import {
   GetShopConfigurationsHandler,
   getShopConfigurations,
 } from "./actions/api/shop/getShopConfigurations";
-import {
-  VerifyShopTimeTableHandler,
-  verifyShopTimeTable,
-} from "./actions/api/shopTimeTable/verifyShopTimeTable";
 import { GetSpeciesHandler, getSpecies } from "./actions/api/specie/getSpecies";
 import {
   ExtractTokenHandler,
@@ -135,6 +131,10 @@ import {
   VerifyInputedDateTextHandler,
   verifyInputedDateText,
 } from "./actions/validations/verifyInputedDateText";
+import {
+  VerifyShopTimeTableHandler,
+  verifyShopTimeTable,
+} from "./actions/validations/verifyShopTimeTable";
 import {
   VerifySimilarBreedOptionSelectedHandler,
   verifySimilarBreedOptionSelected,
