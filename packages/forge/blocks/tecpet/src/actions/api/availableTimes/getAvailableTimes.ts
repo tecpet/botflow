@@ -12,7 +12,12 @@ import { utcToZonedTime } from "date-fns-tz";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
-import { formatBRDate, formatISODate, parseIds } from "../../../helpers/utils";
+import {
+  formatBRDate,
+  formatISODate,
+  parseIds,
+  parseJsonArray,
+} from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
 export type AvailableTimeType = PaGetAvailableTimesResponse & {
@@ -45,6 +50,16 @@ export const getAvailableTimes = createAction({
       label: "Id dos serviços disponiveis",
       isRequired: true,
       helperText: "Id dos serviços disponiveis",
+    }),
+    selectedAdditionals: option.string.layout({
+      label: "Adicionais selecionados",
+      isRequired: false,
+      helperText: "Array de ids dos adicionais selecionados",
+    }),
+    additionalOptions: option.string.layout({
+      label: "Opções de adicionais",
+      isRequired: false,
+      helperText: "Array de adicionais disponíveis",
     }),
     employeeIndications: option.string.layout({
       label: "Funcionários indicados para o serviço",
@@ -193,6 +208,9 @@ export const GetAvailableTimesHandler = async ({
     let services: number[] = [];
     let combos: number[] = [];
 
+    let selectedAdditionalIds: number[] = [];
+    let groomAdditionalIds: number[] = [];
+
     if (isReschedule) {
       services = parseIds(rawServices);
       combos = parseIds(rawCombos);
@@ -208,12 +226,34 @@ export const GetAvailableTimesHandler = async ({
       } else {
         services = [selectedId];
       }
+
+      selectedAdditionalIds = options.selectedAdditionals
+        ? parseIds(options.selectedAdditionals)
+        : [];
+
+      const additionalOptions: ServiceOptionType[] = options.additionalOptions
+        ? parseJsonArray<ServiceOptionType>(options.additionalOptions)
+        : [];
+
+      groomAdditionalIds = additionalOptions
+        .filter(
+          (additional) =>
+            selectedAdditionalIds.includes(Number(additional.id)) &&
+            additional.category?.type === "GROOM",
+        )
+        .map((additional) => Number(additional.id));
+
+      if (groomAdditionalIds.length > 0) {
+        services = [...services, ...groomAdditionalIds];
+      }
     }
 
     logHandler("getAvailableTimes", {
       isReschedule,
       services,
       combos,
+      selectedAdditionalIds: summarizeArray(selectedAdditionalIds),
+      groomAdditionalIds: summarizeArray(groomAdditionalIds),
       catalogServices: summarizeArray(parseIds(rawServices)),
       catalogCombos: summarizeArray(parseIds(rawCombos)),
     });
