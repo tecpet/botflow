@@ -116,6 +116,10 @@ import {
   verifyAvailableTimesOptionSelected,
 } from "./actions/validations/veirifyAvailableTimesOptionSelected";
 import {
+  VerifyActiveShopSegmentsHandler,
+  verifyActiveShopSegments,
+} from "./actions/validations/verifyActiveShopSegments";
+import {
   VerifyBookingGuardHandler,
   verifyBookingGuard,
 } from "./actions/validations/verifyBookingGuard";
@@ -211,6 +215,9 @@ export default [
   }),
   createActionHandler(verifyShopTimeTable, {
     server: VerifyShopTimeTableHandler,
+  }),
+  createActionHandler(verifyActiveShopSegments, {
+    server: VerifyActiveShopSegmentsHandler,
   }),
   createActionHandler(verifyInitialMessageToTrigger, {
     server: VerifyInitialMessageToTriggerHandler,

@@ -20,7 +20,7 @@ const isShopOpenNow = (
 ): boolean => {
   if (timeTable.fullTime) return true;
 
-  const tz = timeZone ?? "UTC";
+  const tz = timeZone ?? "America/Sao_Paulo";
   const now = new Date();
 
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -61,9 +61,10 @@ export const verifyShopTimeTable = createAction({
       label: "Segmentos da loja",
       isRequired: true,
     }),
-    timeZone: option.string.layout({
-      label: "Fuso horário da loja",
-      placeholder: "Ex: America/Sao_Paulo",
+    shopSettings: option.string.layout({
+      label: "Configurações da loja",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
     }),
     segment: option.string.layout({
       label: "Segmento",
@@ -94,34 +95,59 @@ export const VerifyShopTimeTableHandler = async ({
 }) => {
   try {
     const rawShopSegments = options.shopSegments as string;
+    const rawShopSettings = options.shopSettings as string | undefined;
     const segment = options.segment as string;
-    const timeZone = (options.timeZone as string | undefined) || "UTC";
 
     const parsed: unknown[] = JSON.parse(rawShopSegments);
     const shopSegments: PaShopConfigurationsSegment[] = parsed.map((s) =>
       typeof s === "string" ? JSON.parse(s) : s,
     );
 
+    let shopSettings: { timeZone?: string } | undefined;
+    try {
+      shopSettings =
+        typeof rawShopSettings === "string"
+          ? JSON.parse(rawShopSettings)
+          : (rawShopSettings as { timeZone?: string } | undefined);
+    } catch (parseError) {
+      console.error("[verifyShopTimeTable] falha ao parsear shopSettings", {
+        rawShopSettings,
+        parseError,
+      });
+    }
+
+    // O config da loja expõe o fuso como `timeZone` (Z maiúsculo). Quando
+    // ausente, usa o fuso padrão das lojas — nunca "UTC", que deslocaria o
+    // horário atual em ~3h e marcaria a loja como fechada dentro do expediente.
+    const timeZone = shopSettings?.timeZone ?? "America/Sao_Paulo";
+
     logHandler("verifyShopTimeTable", {
-      segment,
+      segment: segment || null,
       timeZone,
       shopSegments: summarizeArray(
         shopSegments.map((s) => ({ type: s.type, name: s.name })),
       ),
     });
 
-    const matchedSegment = shopSegments.find(
-      (s) => s.type === segment || s.name === segment,
-    );
+    // Se um segmento foi informado, casa por tipo/nome. Caso contrário, usa o
+    // primeiro segmento da loja (shopSegments[0]): quando a loja tem apenas um
+    // segmento, a etapa de seleção de segmento é pulada e `segment` chega vazio,
+    // o que antes resultava em matchedSegment=null → open=false (mostrando "fora
+    // do horário comercial" mesmo dentro do expediente/intervalo de almoço).
+    const matchedSegment = segment
+      ? shopSegments.find((s) => s.type === segment || s.name === segment)
+      : shopSegments[0];
 
     let open = false;
 
     if (matchedSegment) {
       const { timeTable } = matchedSegment;
+
       open = !timeTable || isShopOpenNow(timeTable, timeZone);
     }
 
     logHandler("verifyShopTimeTable", {
+      usedFirstSegment: !segment,
       matchedSegment: matchedSegment
         ? { type: matchedSegment.type, name: matchedSegment.name }
         : null,

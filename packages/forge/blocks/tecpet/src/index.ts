@@ -34,6 +34,7 @@ import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedF
 import { parseSelectedFluxSettings } from "./actions/parser/selectedFlux.settings";
 import { validateTakeAndBringMinAdvanceHours } from "./actions/validations/validateTakeAndBringMinAdvanceHours";
 import { verifyAvailableTimesOptionSelected } from "./actions/validations/veirifyAvailableTimesOptionSelected";
+import { verifyActiveShopSegments } from "./actions/validations/verifyActiveShopSegments";
 import { verifyBookingGuard } from "./actions/validations/verifyBookingGuard";
 import { verifyInitialMessageToTrigger } from "./actions/validations/verifyInitialMessageToTrigger";
 import { verifyInputedCpfText } from "./actions/validations/verifyInputedCpf";
@@ -67,6 +68,7 @@ const validations = [
   verifyInitialMessageToTrigger,
   validateTakeAndBringMinAdvanceHours,
   verifySimilarBreedOptionSelected,
+  verifyActiveShopSegments,
 ];
 
 const clientActions = [getClient, editClient, getClientSummary];

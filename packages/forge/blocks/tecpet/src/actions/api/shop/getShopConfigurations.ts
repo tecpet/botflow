@@ -39,7 +39,7 @@ export const getShopConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    variableIdToSaveAll: option.string.layout({
+    shopSettings: option.string.layout({
       label: "Salvar configurações",
       placeholder: "Selecione",
       inputType: "variableDropdown",
@@ -71,7 +71,7 @@ export const getShopConfigurations = createAction({
   }),
   getSetVariableIds: ({
     chargeMode,
-    variableIdToSaveAll,
+    shopSettings,
     chargeModeBySizeAndHair,
     chargeModeByBreed,
     shopSegments,
@@ -90,7 +90,7 @@ export const getShopConfigurations = createAction({
 
     if (chargeMode) variables.push(chargeMode);
 
-    if (variableIdToSaveAll) variables.push(variableIdToSaveAll);
+    if (shopSettings) variables.push(shopSettings);
 
     if (shopSegments) variables.push(shopSegments);
 
@@ -195,8 +195,8 @@ export const GetShopConfigurationsHandler = async ({
         if (options.chargeMode) {
           variables.set([{ id: options.chargeMode, value: chargeMode }]);
         }
-        if (options.variableIdToSaveAll) {
-          variables.set([{ id: options.variableIdToSaveAll, value: result }]);
+        if (options.shopSettings) {
+          variables.set([{ id: options.shopSettings, value: result }]);
         }
       }
     }
