@@ -1,5 +1,6 @@
 import type { PaGetBookingResponse, PaPetResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
+import { utcToZonedTime } from "date-fns-tz";
 import { baseOptions } from "../../constants";
 import { logHandler, summarizeArray } from "../../helpers/logger";
 import { formatBRDateStringDayMonth } from "../../helpers/utils";
@@ -15,6 +16,11 @@ export const buildClientBookingsSummary = createAction({
     clientBookings: option.string.layout({
       label: "Agendamentos do cliente",
       isRequired: true,
+    }),
+    shopSettings: option.string.layout({
+      label: "Configurações da loja",
+      isRequired: false,
+      helperText: "Configurações da loja (usado para ler o fuso horário)",
     }),
     bookingsValue: option.string.layout({
       label: "Agendamentos",
@@ -55,6 +61,21 @@ export const BuildClientBookingsSummaryHandler = async ({
 
     const pet: PaPetResponse = JSON.parse(rawPet);
 
+    let shopSettings: { timeZone?: string } | undefined;
+    try {
+      shopSettings = options.shopSettings
+        ? JSON.parse(options.shopSettings as string)
+        : undefined;
+    } catch (parseError) {
+      console.error(
+        "[buildClientBookingsSummary] falha ao fazer parse de shopSettings",
+        { rawShopSettings: options.shopSettings },
+        parseError,
+      );
+    }
+
+    const shopTimezone = shopSettings?.timeZone ?? "America/Sao_Paulo";
+
     const clientBookingsParsed: string[] = rawClientBookings
       ? JSON.parse(rawClientBookings as string)
       : [];
@@ -68,9 +89,15 @@ export const BuildClientBookingsSummaryHandler = async ({
       typeof item === "string" ? JSON.parse(item) : item,
     );
 
-    logHandler("buildClientBookingsSummary", { petId: pet.id, petName: pet.name, inputBookings: summarizeArray(bookings.map((b) => ({ id: b.id, petId: b.petId, status: b.status, date: b.date, start: b.start }))) });
+    logHandler("buildClientBookingsSummary", { petId: pet.id, petName: pet.name, shopTimezone, inputBookings: summarizeArray(bookings.map((b) => ({ id: b.id, petId: b.petId, status: b.status, date: b.date, start: b.start }))) });
 
-    const threshold = new Date(Date.now() + 30 * 60 * 1000);
+    // `date`/`start` vêm no fuso da loja, mas `new Date(y, m, d, h, min)` os
+    // interpreta no fuso do container (UTC em produção). Comparar contra
+    // `Date.now()` descartava como "passado" todo agendamento a menos de ~3h30
+    // de acontecer. Trazemos o "agora" para o fuso da loja para que ambos os
+    // lados da comparação estejam na mesma referência de horário de parede.
+    const nowInShopTimezone = utcToZonedTime(new Date(), shopTimezone);
+    const threshold = new Date(nowInShopTimezone.getTime() + 30 * 60 * 1000);
 
     const parseBookingDate = (date: string, start: string): Date => {
       const [day, month, year] = date.split("/").map(Number);
