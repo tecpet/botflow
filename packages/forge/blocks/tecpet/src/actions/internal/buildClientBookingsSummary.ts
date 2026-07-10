@@ -122,6 +122,13 @@ export const BuildClientBookingsSummaryHandler = async ({
     const isEligibleBooking = (date: string, start: string): boolean =>
       parseBookingDate(date, start) >= threshold;
 
+    // Corte apenas para agendamentos genuinamente passados (data+hora antes de
+    // "agora" no fuso da loja): esses saem da lista. Os futuros a menos de
+    // 30 min continuam aparecendo, porém com `withinMinAdvance: false` —
+    // exibidos e bloqueados para alteração pelo fluxo.
+    const isUpcomingBooking = (date: string, start: string): boolean =>
+      parseBookingDate(date, start) >= nowInShopTimezone;
+
     const filteredBookings: Array<
       Partial<
         PaGetBookingResponse & {
@@ -134,7 +141,8 @@ export const BuildClientBookingsSummaryHandler = async ({
       .filter(
         (booking) =>
           booking.petId === pet.id &&
-          (booking.status === "SCHEDULED" || booking.status === "CONFIRMED"),
+          (booking.status === "SCHEDULED" || booking.status === "CONFIRMED") &&
+          isUpcomingBooking(booking.date ?? "", booking.start ?? ""),
       )
       .sort(
         (a, b) =>
