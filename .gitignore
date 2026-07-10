@@ -66,3 +66,6 @@ packages/forge/blocks/tecpet-sdk
 .nitro
 
 **/test/.auth
+
+# Manifests de deploy k8s (arquivos de workflow) — não versionar
+k8s/

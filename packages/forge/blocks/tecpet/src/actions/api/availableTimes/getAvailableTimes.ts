@@ -120,11 +120,19 @@ export const getAvailableTimes = createAction({
       helperText: "Dias para adicionar",
       inputType: "variableDropdown",
     }),
+    groomAdditionalIds: option.string.layout({
+      label: "Ids dos adicionais de banho e tosa (GROOM)",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "Ids dos adicionais selecionados da categoria GROOM, para exibir/formatar separado do serviço principal",
+    }),
   }),
   getSetVariableIds: ({
     availableTimes,
     inputAdditionalDays,
     noTimesAvailable,
+    groomAdditionalIds,
   }) => {
     const variables = [];
 
@@ -133,6 +141,8 @@ export const getAvailableTimes = createAction({
     if (inputAdditionalDays) variables.push(inputAdditionalDays);
 
     if (noTimesAvailable) variables.push(noTimesAvailable);
+
+    if (groomAdditionalIds) variables.push(groomAdditionalIds);
 
     return variables;
   },
@@ -343,6 +353,9 @@ export const GetAvailableTimesHandler = async ({
       { id: options.inputAdditionalDays as string, value: additionalDays },
     ]);
     variables.set([{ id: options.availableTimes as string, value: all ?? [] }]);
+    variables.set([
+      { id: options.groomAdditionalIds as string, value: groomAdditionalIds },
+    ]);
   } catch (error) {
     console.error(error);
   }

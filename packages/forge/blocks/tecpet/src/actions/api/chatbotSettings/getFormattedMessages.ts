@@ -4,6 +4,7 @@ import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { logHandler } from "../../../helpers/logger";
+import { parseIds } from "../../../helpers/utils";
 
 export const getFormattedMessages = createAction({
   auth,
@@ -50,6 +51,12 @@ export const getFormattedMessages = createAction({
       isRequired: false,
       helperText: "Id do agendamento",
     }),
+    additionalIds: option.string.layout({
+      label: "IDs dos adicionais",
+      isRequired: false,
+      helperText:
+        "Array de ids dos serviços adicionais (ex.: banho e tosa) a incluir nas tags SERVICE_NAME/SERVICE_VALUE",
+    }),
     updatedMessage: option.string.layout({
       label: "Mensagem com as tags subsituidas",
       placeholder: "Selecione",
@@ -77,7 +84,19 @@ export const GetFormattedMessagesHandler = async ({
       credentials.apiKey as string,
     );
 
-    logHandler("getFormattedMessages", { shopId: options.shopId as number, clientId: options.clientId, petId: options.petId, invoiceId: options.invoiceId, serviceId: options.serviceId, comboId: options.comboId, bookingId: options.bookingId });
+    logHandler("getFormattedMessages", {
+      shopId: options.shopId as number,
+      clientId: options.clientId,
+      petId: options.petId,
+      invoiceId: options.invoiceId,
+      serviceId: options.serviceId,
+      comboId: options.comboId,
+      bookingId: options.bookingId,
+    });
+
+    const additionalIds = options.additionalIds
+      ? parseIds(options.additionalIds)
+      : [];
 
     let body: GetChatbotFormattedMessagesInput = { ids: {}, messages: [] };
 
@@ -89,6 +108,7 @@ export const GetFormattedMessagesHandler = async ({
           comboId: options.comboId as number,
           invoiceId: options.invoiceId as string,
           bookingId: options.bookingId as number,
+          additionalIds: additionalIds.length ? additionalIds : undefined,
         },
         messages: [{ text: (options.message as string) ?? "" }],
       };
@@ -100,11 +120,15 @@ export const GetFormattedMessagesHandler = async ({
           invoiceId: options.invoiceId as string,
           serviceId: options.serviceId as number,
           bookingId: options.bookingId as number,
+          additionalIds: additionalIds.length ? additionalIds : undefined,
         },
         messages: [{ text: (options.message as string) ?? "" }],
       };
     }
-    logHandler("getFormattedMessages", { usedComboBranch: Boolean(options.comboId), bodyIds: body.ids });
+    logHandler("getFormattedMessages", {
+      usedComboBranch: Boolean(options.comboId),
+      bodyIds: body.ids,
+    });
 
     const result = await tecpetSdk.chatbot.getFormattedMessage(
       body,

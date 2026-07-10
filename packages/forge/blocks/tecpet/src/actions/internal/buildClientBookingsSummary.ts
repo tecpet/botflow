@@ -84,12 +84,26 @@ export const BuildClientBookingsSummaryHandler = async ({
       PaGetBookingResponse & {
         bookingDescription?: string;
         backToMenu?: boolean;
+        withinMinAdvance?: boolean;
       }
     > = clientBookingsParsed.map((item) =>
       typeof item === "string" ? JSON.parse(item) : item,
     );
 
-    logHandler("buildClientBookingsSummary", { petId: pet.id, petName: pet.name, shopTimezone, inputBookings: summarizeArray(bookings.map((b) => ({ id: b.id, petId: b.petId, status: b.status, date: b.date, start: b.start }))) });
+    logHandler("buildClientBookingsSummary", {
+      petId: pet.id,
+      petName: pet.name,
+      shopTimezone,
+      inputBookings: summarizeArray(
+        bookings.map((b) => ({
+          id: b.id,
+          petId: b.petId,
+          status: b.status,
+          date: b.date,
+          start: b.start,
+        })),
+      ),
+    });
 
     // `date`/`start` vêm no fuso da loja, mas `new Date(y, m, d, h, min)` os
     // interpreta no fuso do container (UTC em produção). Comparar contra
@@ -113,18 +127,20 @@ export const BuildClientBookingsSummaryHandler = async ({
         PaGetBookingResponse & {
           bookingDescription?: string;
           backToMenu?: boolean;
+          withinMinAdvance?: boolean;
         }
       >
-    > = bookings.filter(
-      (booking) =>
-        booking.petId === pet.id &&
-        (booking.status === "SCHEDULED" || booking.status === "CONFIRMED") &&
-        isEligibleBooking(booking.date ?? "", booking.start ?? ""),
-    ).sort(
-      (a, b) =>
-        parseBookingDate(a.date ?? "", a.start ?? "").getTime() -
-        parseBookingDate(b.date ?? "", b.start ?? "").getTime(),
-    );
+    > = bookings
+      .filter(
+        (booking) =>
+          booking.petId === pet.id &&
+          (booking.status === "SCHEDULED" || booking.status === "CONFIRMED"),
+      )
+      .sort(
+        (a, b) =>
+          parseBookingDate(a.date ?? "", a.start ?? "").getTime() -
+          parseBookingDate(b.date ?? "", b.start ?? "").getTime(),
+      );
 
     filteredBookings.forEach((booking) => {
       let bookingDescription = "";
@@ -137,6 +153,16 @@ export const BuildClientBookingsSummaryHandler = async ({
 
       booking["bookingDescription"] = bookingDescription;
 
+      // Sinaliza se o agendamento ainda respeita a antecedência mínima de
+      // alteração (30 min antes do horário). Calculado com a data original
+      // (dd/MM/yyyy) — antes de `booking.date` ser reescrito para dia/mês.
+      // O fluxo (botflow-builder) usa esta flag para barrar reagendamento/
+      // cancelamento fora da janela e exibir a mensagem correspondente.
+      booking.withinMinAdvance = isEligibleBooking(
+        booking.date ?? "",
+        booking.start ?? "",
+      );
+
       booking.date = formatBRDateStringDayMonth(booking.date ?? "");
     });
 
@@ -146,7 +172,18 @@ export const BuildClientBookingsSummaryHandler = async ({
       stop: "",
     });
 
-    logHandler("buildClientBookingsSummary", { outputFilteredBookings: summarizeArray(filteredBookings.map((b) => ({ id: b.id, date: b.date, start: b.start, bookingDescription: b.bookingDescription, backToMenu: b.backToMenu }))) });
+    logHandler("buildClientBookingsSummary", {
+      outputFilteredBookings: summarizeArray(
+        filteredBookings.map((b) => ({
+          id: b.id,
+          date: b.date,
+          start: b.start,
+          bookingDescription: b.bookingDescription,
+          withinMinAdvance: b.withinMinAdvance,
+          backToMenu: b.backToMenu,
+        })),
+      ),
+    });
 
     variables.set([
       {
