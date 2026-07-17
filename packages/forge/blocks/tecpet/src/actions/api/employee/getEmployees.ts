@@ -8,6 +8,7 @@ import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
+import { parseIds, parseJsonArray } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
 export interface EmployeeServiceIndicationOption {
@@ -35,6 +36,16 @@ export const getEmployess = createAction({
       label: "Serviço selecionado",
       isRequired: true,
       helperText: "Serviço selecionado",
+    }),
+    selectedAdditionals: option.string.layout({
+      label: "Adicionais selecionados",
+      isRequired: false,
+      helperText: "Array de ids dos adicionais selecionados",
+    }),
+    additionalOptions: option.string.layout({
+      label: "Opções de adicionais",
+      isRequired: false,
+      helperText: "Catálogo de adicionais disponíveis",
     }),
     employees: option.string.layout({
       label: "Valor dos funcionários",
@@ -115,6 +126,42 @@ export const GetEmployessHandler = async ({
       });
 
       servicesCategoriesIds = [selectedService.category.id];
+    }
+
+    // A Tosa (GROOM) é tratada como adicional nesta loja. Sem incluir a categoria
+    // de tosa aqui, o profissional só é escolhido para o serviço principal (Banho)
+    // e o availableTimes recebe indicação parcial — o que quebra o cálculo e cai
+    // no atendimento humano. Incluímos as categorias dos adicionais GROOM
+    // selecionados para que o fluxo também peça o profissional da tosa.
+    const selectedAdditionalIds: number[] = options.selectedAdditionals
+      ? parseIds(options.selectedAdditionals)
+      : [];
+
+    const additionalOptions: ServiceOptionType[] = options.additionalOptions
+      ? parseJsonArray<ServiceOptionType>(options.additionalOptions)
+      : [];
+
+    const groomAdditionals = additionalOptions.filter(
+      (additional) =>
+        selectedAdditionalIds.includes(Number(additional.id)) &&
+        additional.category?.type === "GROOM",
+    );
+
+    for (const groom of groomAdditionals) {
+      const alreadyIndicated = employeeServiceCategoriesIndication.some(
+        (serviceCategory) => serviceCategory.category === groom.category.type,
+      );
+
+      if (!alreadyIndicated) {
+        employeeServiceCategoriesIndication.push({
+          name: serviceCategoryLabel[groom.category.type],
+          category: groom.category.type,
+        });
+      }
+
+      if (!servicesCategoriesIds.includes(groom.category.id)) {
+        servicesCategoriesIds.push(groom.category.id);
+      }
     }
 
     filters["serviceCategoryIds"] = servicesCategoriesIds;
