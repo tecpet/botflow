@@ -270,6 +270,16 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    allowCancelMinAdvanceHours: option.string.layout({
+      label: "Antecedência mínima para cancelar",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    allowChangeDateAndTimeMinAdvanceHours: option.string.layout({
+      label: "Antecedência mínima para reagendar",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
     allowPetRegistration: option.string.layout({
       label: "Permitir cadastro de pet",
       placeholder: "Selecione",
@@ -327,6 +337,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     allowChangeDateAndTime,
     allowCancelMessage,
     allowChangeDateAndTimeMessage,
+    allowCancelMinAdvanceHours,
+    allowChangeDateAndTimeMinAdvanceHours,
     allowPetRegistration,
   }) => {
     const variables = [];
@@ -389,6 +401,9 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     if (allowCancelMessage) variables.push(allowCancelMessage);
     if (allowChangeDateAndTimeMessage)
       variables.push(allowChangeDateAndTimeMessage);
+    if (allowCancelMinAdvanceHours) variables.push(allowCancelMinAdvanceHours);
+    if (allowChangeDateAndTimeMinAdvanceHours)
+      variables.push(allowChangeDateAndTimeMinAdvanceHours);
     if (onComercialTimeResponseMessage)
       variables.push(onComercialTimeResponseMessage);
     if (outOfComercialTimeResponseMessage)
@@ -416,7 +431,10 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
           ? (options.selectedMenuConfigurations as any)
           : undefined;
 
-    logHandler("parseSelectedFluxInfoCollectionMenus", { hasConfig: Boolean(chatbotActionConfig), configName: chatbotActionConfig?.name ?? null });
+    logHandler("parseSelectedFluxInfoCollectionMenus", {
+      hasConfig: Boolean(chatbotActionConfig),
+      configName: chatbotActionConfig?.name ?? null,
+    });
 
     if (!chatbotActionConfig) return;
 
@@ -431,7 +449,21 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       extraInfo,
     } = chatbotActionConfig.infoCollectionMenus;
 
-    logHandler("parseSelectedFluxInfoCollectionMenus", { showSendingInfo: chatbotActionConfig.showSendingInfo, allowPetRegistration: chatbotActionConfig.allowPetRegistration, petNameEnabled: Boolean(petInfo?.petName?.enabled ?? false), serviceRecommendation: serviceSelection?.serviceRecommendation?.enabled ?? false, takeAndBringEnabled: Boolean(takeAndBring?.allowTakeAndBring?.enabled ?? false), timeSelectionBehavior: timeSelection?.timeSelectionBehavior?.behavior ?? null, allowCancel: editBooking?.allowCancel?.enabled ?? null, allowChangeDateAndTime: editBooking?.allowChangeDateAndTime?.enabled ?? null });
+    logHandler("parseSelectedFluxInfoCollectionMenus", {
+      showSendingInfo: chatbotActionConfig.showSendingInfo,
+      allowPetRegistration: chatbotActionConfig.allowPetRegistration,
+      petNameEnabled: Boolean(petInfo?.petName?.enabled ?? false),
+      serviceRecommendation:
+        serviceSelection?.serviceRecommendation?.enabled ?? false,
+      takeAndBringEnabled: Boolean(
+        takeAndBring?.allowTakeAndBring?.enabled ?? false,
+      ),
+      timeSelectionBehavior:
+        timeSelection?.timeSelectionBehavior?.behavior ?? null,
+      allowCancel: editBooking?.allowCancel?.enabled ?? null,
+      allowChangeDateAndTime:
+        editBooking?.allowChangeDateAndTime?.enabled ?? null,
+    });
 
     /* ----- Sending Info ----- */
 
@@ -481,6 +513,14 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       [
         options.allowChangeDateAndTimeMessage as string,
         editBooking?.allowChangeDateAndTime?.message,
+      ],
+      [
+        options.allowCancelMinAdvanceHours as string,
+        editBooking?.allowCancel?.minCancelAdvanceHours ?? "",
+      ],
+      [
+        options.allowChangeDateAndTimeMinAdvanceHours as string,
+        editBooking?.allowChangeDateAndTime?.minRescheduleAdvanceHours ?? "",
       ],
     ];
 
