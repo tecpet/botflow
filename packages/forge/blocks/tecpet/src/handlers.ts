@@ -108,6 +108,14 @@ import {
   parseSelectedFluxSettings,
 } from "./actions/parser/selectedFlux.settings";
 import {
+  ValidateCancelMinAdvanceHoursHandler,
+  validateCancelMinAdvanceHours,
+} from "./actions/validations/validateCancelMinAdvanceHours";
+import {
+  ValidateRescheduleMinAdvanceHoursHandler,
+  validateRescheduleMinAdvanceHours,
+} from "./actions/validations/validateRescheduleMinAdvanceHours";
+import {
   ValidateTakeAndBringMinAdvanceHoursHandler,
   validateTakeAndBringMinAdvanceHours,
 } from "./actions/validations/validateTakeAndBringMinAdvanceHours";
@@ -233,6 +241,12 @@ export default [
   }),
   createActionHandler(validateTakeAndBringMinAdvanceHours, {
     server: ValidateTakeAndBringMinAdvanceHoursHandler,
+  }),
+  createActionHandler(validateCancelMinAdvanceHours, {
+    server: ValidateCancelMinAdvanceHoursHandler,
+  }),
+  createActionHandler(validateRescheduleMinAdvanceHours, {
+    server: ValidateRescheduleMinAdvanceHoursHandler,
   }),
   createActionHandler(getServiceRecommendations, {
     server: GetServiceRecommendationsHandler,

@@ -32,6 +32,8 @@ import { showGuidanceOptions } from "./actions/internal/showGuidanceOptions";
 import { showSendingInfoItems } from "./actions/internal/showSendingInfoItems";
 import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedFlux.chatbotAction";
 import { parseSelectedFluxSettings } from "./actions/parser/selectedFlux.settings";
+import { validateCancelMinAdvanceHours } from "./actions/validations/validateCancelMinAdvanceHours";
+import { validateRescheduleMinAdvanceHours } from "./actions/validations/validateRescheduleMinAdvanceHours";
 import { validateTakeAndBringMinAdvanceHours } from "./actions/validations/validateTakeAndBringMinAdvanceHours";
 import { verifyAvailableTimesOptionSelected } from "./actions/validations/veirifyAvailableTimesOptionSelected";
 import { verifyActiveShopSegments } from "./actions/validations/verifyActiveShopSegments";
@@ -67,6 +69,8 @@ const validations = [
   verifyShopTimeTable,
   verifyInitialMessageToTrigger,
   validateTakeAndBringMinAdvanceHours,
+  validateCancelMinAdvanceHours,
+  validateRescheduleMinAdvanceHours,
   verifySimilarBreedOptionSelected,
   verifyActiveShopSegments,
 ];

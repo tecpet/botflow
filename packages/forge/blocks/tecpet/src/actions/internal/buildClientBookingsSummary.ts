@@ -84,7 +84,6 @@ export const BuildClientBookingsSummaryHandler = async ({
       PaGetBookingResponse & {
         bookingDescription?: string;
         backToMenu?: boolean;
-        withinMinAdvance?: boolean;
       }
     > = clientBookingsParsed.map((item) =>
       typeof item === "string" ? JSON.parse(item) : item,
@@ -111,7 +110,6 @@ export const BuildClientBookingsSummaryHandler = async ({
     // de acontecer. Trazemos o "agora" para o fuso da loja para que ambos os
     // lados da comparação estejam na mesma referência de horário de parede.
     const nowInShopTimezone = utcToZonedTime(new Date(), shopTimezone);
-    const threshold = new Date(nowInShopTimezone.getTime() + 30 * 60 * 1000);
 
     const parseBookingDate = (date: string, start: string): Date => {
       const [day, month, year] = date.split("/").map(Number);
@@ -119,13 +117,12 @@ export const BuildClientBookingsSummaryHandler = async ({
       return new Date(year, month - 1, day, hour, minute);
     };
 
-    const isEligibleBooking = (date: string, start: string): boolean =>
-      parseBookingDate(date, start) >= threshold;
-
     // Corte apenas para agendamentos genuinamente passados (data+hora antes de
-    // "agora" no fuso da loja): esses saem da lista. Os futuros a menos de
-    // 30 min continuam aparecendo, porém com `withinMinAdvance: false` —
-    // exibidos e bloqueados para alteração pelo fluxo.
+    // "agora" no fuso da loja): esses saem da lista. A antecedência mínima para
+    // alterar/cancelar NÃO é avaliada aqui — fica a cargo das validações
+    // dedicadas (validateRescheduleMinAdvanceHours / validateCancelMinAdvanceHours),
+    // que recebem o agendamento selecionado + a config da loja e a antecedência
+    // configurada (minReschedule/minCancelAdvanceHours).
     const isUpcomingBooking = (date: string, start: string): boolean =>
       parseBookingDate(date, start) >= nowInShopTimezone;
 
@@ -134,7 +131,6 @@ export const BuildClientBookingsSummaryHandler = async ({
         PaGetBookingResponse & {
           bookingDescription?: string;
           backToMenu?: boolean;
-          withinMinAdvance?: boolean;
         }
       >
     > = bookings
@@ -161,16 +157,6 @@ export const BuildClientBookingsSummaryHandler = async ({
 
       booking["bookingDescription"] = bookingDescription;
 
-      // Sinaliza se o agendamento ainda respeita a antecedência mínima de
-      // alteração (30 min antes do horário). Calculado com a data original
-      // (dd/MM/yyyy) — antes de `booking.date` ser reescrito para dia/mês.
-      // O fluxo (botflow-builder) usa esta flag para barrar reagendamento/
-      // cancelamento fora da janela e exibir a mensagem correspondente.
-      booking.withinMinAdvance = isEligibleBooking(
-        booking.date ?? "",
-        booking.start ?? "",
-      );
-
       booking.date = formatBRDateStringDayMonth(booking.date ?? "");
     });
 
@@ -187,7 +173,6 @@ export const BuildClientBookingsSummaryHandler = async ({
           date: b.date,
           start: b.start,
           bookingDescription: b.bookingDescription,
-          withinMinAdvance: b.withinMinAdvance,
           backToMenu: b.backToMenu,
         })),
       ),
