@@ -7,6 +7,7 @@ import { rescheduleBooking } from "./actions/api/booking/rescheduleBooking";
 import { getBreeds } from "./actions/api/breed/getBreeds";
 import { getConfigurations } from "./actions/api/chatbotSettings/getConfigurations";
 import { getFormattedMessages } from "./actions/api/chatbotSettings/getFormattedMessages";
+import { getInteractionMode } from "./actions/api/chatbotSettings/getInteractionMode";
 import { editClient } from "./actions/api/client/editClient";
 import { getClient } from "./actions/api/client/getClient";
 import { getClientSummary } from "./actions/api/client/getClientSummary";
@@ -94,6 +95,7 @@ const apiActions = [
   getCategoriesAndServices,
   getAvailableTimes,
   getFormattedMessages,
+  getInteractionMode,
   ...clientActions,
   ...petActions,
   ...bookingActions,

@@ -28,6 +28,10 @@ import {
   GetFormattedMessagesHandler,
   getFormattedMessages,
 } from "./actions/api/chatbotSettings/getFormattedMessages";
+import {
+  GetInteractionModeHandler,
+  getInteractionMode,
+} from "./actions/api/chatbotSettings/getInteractionMode";
 import { EditClientHandler, editClient } from "./actions/api/client/editClient";
 import { GetClientHandler, getClient } from "./actions/api/client/getClient";
 import {
@@ -162,6 +166,9 @@ export default [
   createActionHandler(getConfigurations, { server: GetConfigurationsHandler }),
   createActionHandler(getFormattedMessages, {
     server: GetFormattedMessagesHandler,
+  }),
+  createActionHandler(getInteractionMode, {
+    server: GetInteractionModeHandler,
   }),
   createActionHandler(buildSecondaryServiceOfferOptions, {
     server: BuildSecondaryServiceOfferOptionsHandler,
