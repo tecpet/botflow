@@ -96,6 +96,10 @@ import {
   buildServiceOptions,
 } from "./actions/internal/buildServiceOptions";
 import {
+  SearchChainCitiesHandler,
+  searchChainCities,
+} from "./actions/internal/searchChainCities";
+import {
   ShowGuidanceOptionsHandler,
   showGuidanceOptions,
 } from "./actions/internal/showGuidanceOptions";
@@ -155,6 +159,10 @@ import {
   VerifySimilarBreedOptionSelectedHandler,
   verifySimilarBreedOptionSelected,
 } from "./actions/validations/verifySimilarBreedOptionSelected";
+import {
+  VerifySimilarCityOptionSelectedHandler,
+  verifySimilarCityOptionSelected,
+} from "./actions/validations/verifySimilarCityOptionSelected";
 
 export default [
   createActionHandler(getAvailableTimes, { server: GetAvailableTimesHandler }),
@@ -210,6 +218,9 @@ export default [
   createActionHandler(buildChainShopOptions, {
     server: BuildChainShopOptionsHandler,
   }),
+  createActionHandler(searchChainCities, {
+    server: SearchChainCitiesHandler,
+  }),
   createActionHandler(showGuidanceOptions, {
     server: ShowGuidanceOptionsHandler,
   }),
@@ -245,6 +256,9 @@ export default [
   }),
   createActionHandler(verifySimilarBreedOptionSelected, {
     server: VerifySimilarBreedOptionSelectedHandler,
+  }),
+  createActionHandler(verifySimilarCityOptionSelected, {
+    server: VerifySimilarCityOptionSelectedHandler,
   }),
   createActionHandler(validateTakeAndBringMinAdvanceHours, {
     server: ValidateTakeAndBringMinAdvanceHoursHandler,

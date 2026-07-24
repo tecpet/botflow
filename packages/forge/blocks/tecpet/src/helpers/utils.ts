@@ -1296,6 +1296,52 @@ export const getSimilarBreeds = (
   return filtered.slice(0, 5).map((b) => b.breed);
 };
 
+// Busca de cidades da rede — parte da mesma técnica do getSimilarBreeds
+// (Levenshtein), porém sem dicionário de nomes canônicos (as cidades vêm
+// direto do cadastro da rede, não de um vocabulário fixo). Diferente das
+// raças, o cliente costuma digitar só um pedaço do nome da cidade (ex.: "C",
+// "camp"), e a similaridade de Levenshtein de um trecho curto contra o nome
+// completo é baixa demais — por isso priorizamos também prefixo/substring,
+// senão uma busca parcial não retornaria nada e o fluxo travaria.
+export const getSimilarCities = <
+  T extends { cityName: string; [k: string]: any },
+>(
+  input: string,
+  cities: T[],
+  limit = 5,
+): T[] => {
+  const inputNorm = normalize(input);
+  if (!inputNorm) return [];
+
+  const scored = cities.map((city) => {
+    const cityNorm = normalize(city.cityName);
+    const words = cityNorm.split(" ").filter(Boolean);
+
+    let score = bestSimilarity(inputNorm, cityNorm);
+
+    if (cityNorm.startsWith(inputNorm)) {
+      score = Math.max(score, 0.95);
+    } else if (words.some((word) => word.startsWith(inputNorm))) {
+      score = Math.max(score, 0.85);
+    } else if (cityNorm.includes(inputNorm)) {
+      score = Math.max(score, 0.75);
+    }
+
+    return { city, score };
+  });
+
+  const sorted = scored.sort((a, b) => b.score - a.score);
+
+  // Cidades acima do threshold de similaridade (60%). Se nenhuma passar,
+  // caímos para as de maior score mesmo abaixo do threshold — assim a
+  // listagem nunca fica vazia (enquanto houver cidades na rede) e o fluxo
+  // não trava, deixando o cliente escolher a mais próxima.
+  const filtered = sorted.filter((c) => c.score >= 0.6);
+  const result = filtered.length > 0 ? filtered : sorted;
+
+  return result.slice(0, limit).map((c) => c.city);
+};
+
 export const formatAsCurrency = (valor: number) => {
   return valor.toFixed(2).replace(".", ",");
 };

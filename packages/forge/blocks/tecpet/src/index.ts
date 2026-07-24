@@ -29,6 +29,7 @@ import { buildEmployeeOptions } from "./actions/internal/buildEmployeeOptions";
 import { buildSecondaryServiceOfferOptions } from "./actions/internal/buildSecondaryServiceOfferOptions";
 import { buildSelectedAdditionals } from "./actions/internal/buildSelectedAdditionals";
 import { buildServiceOptions } from "./actions/internal/buildServiceOptions";
+import { searchChainCities } from "./actions/internal/searchChainCities";
 import { showGuidanceOptions } from "./actions/internal/showGuidanceOptions";
 import { showSendingInfoItems } from "./actions/internal/showSendingInfoItems";
 import { parseSelectedFluxInfoCollectionMenus } from "./actions/parser/selectedFlux.chatbotAction";
@@ -44,6 +45,7 @@ import { verifyInputedCpfText } from "./actions/validations/verifyInputedCpf";
 import { verifyInputedDateText } from "./actions/validations/verifyInputedDateText";
 import { verifyShopTimeTable } from "./actions/validations/verifyShopTimeTable";
 import { verifySimilarBreedOptionSelected } from "./actions/validations/verifySimilarBreedOptionSelected";
+import { verifySimilarCityOptionSelected } from "./actions/validations/verifySimilarCityOptionSelected";
 import { auth } from "./auth";
 import { TecpetLogo } from "./logo";
 
@@ -60,6 +62,7 @@ const buildActions = [
   buildClientPetsSummary,
   buildSecondaryServiceOfferOptions,
   buildChainShopOptions,
+  searchChainCities,
 ];
 
 const validations = [
@@ -73,6 +76,7 @@ const validations = [
   validateCancelMinAdvanceHours,
   validateRescheduleMinAdvanceHours,
   verifySimilarBreedOptionSelected,
+  verifySimilarCityOptionSelected,
   verifyActiveShopSegments,
 ];
 
