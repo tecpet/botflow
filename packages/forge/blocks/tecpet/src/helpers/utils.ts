@@ -1380,3 +1380,31 @@ export const parseIds = (raw: unknown): number[] => {
 
   throw new Error("IDs malformados: esperado array ou string JSON");
 };
+
+/**
+ * Extrai o id do agendamento que caracteriza uma remarcação, a partir do que o
+ * fluxo entrega no campo "Agendamento selecionado" — que pode vir como número,
+ * como o objeto do agendamento, ou como lista contendo um desses.
+ *
+ * Retorna null quando não há um id de agendamento de fato. É intencionalmente
+ * mais estrito que "o valor não está vazio": resíduo de sessão (0, false, "",
+ * {}, [] e o sentinela { backToMenu: true } da lista de reservas) não deve
+ * ligar o ramo de remarcação, senão a busca de horários vai com o catálogo
+ * inteiro da loja e o agendamento acaba com duração diferente da contratada.
+ */
+export const extractBookingId = (raw: unknown): number | null => {
+  if (raw == null) return null;
+
+  const first = Array.isArray(raw) ? raw[0] : raw;
+  if (first == null) return null;
+
+  const candidate =
+    typeof first === "object" ? (first as { id?: unknown }).id : first;
+
+  if (typeof candidate !== "number" && typeof candidate !== "string")
+    return null;
+
+  const id = Number(candidate);
+
+  return Number.isInteger(id) && id > 0 ? id : null;
+};

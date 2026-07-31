@@ -13,6 +13,7 @@ import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
 import {
+  extractBookingId,
   formatBRDate,
   formatISODate,
   parseIds,
@@ -194,18 +195,23 @@ export const GetAvailableTimesHandler = async ({
       ? JSON.parse(options.combosIds as string)
       : [];
 
-    const bookingId = options.bookingId
-      ? JSON.parse(options.bookingId as string)
-      : null;
+    let rawBookingId: unknown = null;
+    try {
+      rawBookingId = options.bookingId
+        ? JSON.parse(options.bookingId as string)
+        : null;
+    } catch {
+      // Texto livre não-JSON nesse campo não deve abortar a busca de horários.
+      rawBookingId = null;
+    }
 
-    const isReschedule =
-      bookingId != null &&
-      !(Array.isArray(bookingId) && bookingId.length === 0) &&
-      !(
-        typeof bookingId === "object" &&
-        !Array.isArray(bookingId) &&
-        Object.keys(bookingId).length === 0
-      );
+    // Só é remarcação quando há um id de agendamento de fato. Aceitar qualquer
+    // valor não-vazio fazia resíduo de sessão cair no ramo de remarcação, que
+    // consulta os horários com o catálogo inteiro da loja e devolve slots com
+    // duração diferente da contratada.
+    const bookingId = extractBookingId(rawBookingId);
+
+    const isReschedule = bookingId !== null;
 
     logHandler("getAvailableTimes", {
       shopId: options.shopId,
@@ -213,6 +219,7 @@ export const GetAvailableTimesHandler = async ({
       segmentType: options.segmentType,
       isReschedule,
       bookingId,
+      rawBookingId,
     });
 
     let services: number[] = [];
