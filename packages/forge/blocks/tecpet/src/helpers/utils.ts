@@ -1391,6 +1391,10 @@ export const parseIds = (raw: unknown): number[] => {
  * {}, [] e o sentinela { backToMenu: true } da lista de reservas) não deve
  * ligar o ramo de remarcação, senão a busca de horários vai com o catálogo
  * inteiro da loja e o agendamento acaba com duração diferente da contratada.
+ *
+ * Um id válido também não é prova de remarcação — a variável do fluxo pode
+ * carregar um agendamento anterior do cliente. Quem consome precisa validar o
+ * agendamento de fato (status, pet e data).
  */
 export const extractBookingId = (raw: unknown): number | null => {
   if (raw == null) return null;
@@ -1408,3 +1412,30 @@ export const extractBookingId = (raw: unknown): number | null => {
 
   return Number.isInteger(id) && id > 0 ? id : null;
 };
+
+/**
+ * Interpreta o par `date` (DD/MM/YYYY) + `start` (HH:mm) que a API devolve para
+ * um agendamento. Ambos vêm no fuso da loja.
+ */
+export const parseBookingDate = (date: string, start: string): Date => {
+  const [day, month, year] = date.split("/").map(Number);
+  const [hour, minute] = start.split(":").map(Number);
+  return new Date(year, month - 1, day, hour, minute);
+};
+
+/**
+ * Corte apenas para agendamentos genuinamente passados (data+hora antes de
+ * `now`). A antecedência mínima para alterar/cancelar NÃO é avaliada aqui —
+ * fica a cargo das validações dedicadas (validateRescheduleMinAdvanceHours /
+ * validateCancelMinAdvanceHours).
+ *
+ * `now` precisa vir já convertido para o fuso da loja: `date`/`start` estão no
+ * fuso da loja, mas `new Date(y, m, d, h, min)` os interpreta no fuso do
+ * container (UTC em produção), então comparar contra o "agora" cru descartaria
+ * como passado todo agendamento a menos de ~3h30 de acontecer.
+ */
+export const isUpcomingBooking = (
+  date: string,
+  start: string,
+  now: Date,
+): boolean => parseBookingDate(date, start) >= now;

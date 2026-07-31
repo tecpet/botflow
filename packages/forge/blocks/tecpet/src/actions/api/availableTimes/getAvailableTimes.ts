@@ -3,7 +3,9 @@ import {
   type PaEmployeeIndication,
   type PaGetAvailableTimesResponse,
   type PaGetAvailableTimesTimesBody,
+  type PaGetBookingResponse,
   type ShopSegment,
+  Status,
   TecpetSDK,
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
@@ -16,6 +18,7 @@ import {
   extractBookingId,
   formatBRDate,
   formatISODate,
+  isUpcomingBooking,
   parseIds,
   parseJsonArray,
 } from "../../../helpers/utils";
@@ -184,6 +187,9 @@ export const GetAvailableTimesHandler = async ({
       ? JSON.parse(options.shopSettings as string)
       : undefined;
 
+    // Campo correto é `timeZone` (Z maiúsculo); `timezone` vinha undefined.
+    const shopTimezone = shopSettings?.timeZone ?? "America/Sao_Paulo";
+
     const selectedTimeMinAdvanceHours = Number(
       options.selectedTimeMinAdvanceHours ?? 0,
     );
@@ -205,20 +211,70 @@ export const GetAvailableTimesHandler = async ({
       rawBookingId = null;
     }
 
-    // Só é remarcação quando há um id de agendamento de fato. Aceitar qualquer
-    // valor não-vazio fazia resíduo de sessão cair no ramo de remarcação, que
-    // consulta os horários com o catálogo inteiro da loja e devolve slots com
-    // duração diferente da contratada.
-    const bookingId = extractBookingId(rawBookingId);
+    // Primeiro filtro, barato: descarta valor que nem parece id de agendamento
+    // (0, false, "", {}, [] e o sentinela { backToMenu: true } da lista de
+    // reservas) e evita o GET abaixo.
+    const candidateBookingId = extractBookingId(rawBookingId);
 
-    const isReschedule = bookingId !== null;
+    // Um id válido não basta. A variável do fluxo carrega o agendamento anterior
+    // do cliente (o getFormattedMessages a consome para montar mensagem), então
+    // um cliente recorrente caía no ramo de remarcação ao iniciar um agendamento
+    // NOVO, e a busca de horários ia com o catálogo do pet em vez do serviço
+    // escolhido — devolvendo slot com a soma das durações. Só é remarcação
+    // quando o id aponta para um agendamento que o fluxo de "minhas reservas"
+    // ofereceria: do mesmo pet, em aberto e ainda por vir.
+    let rescheduleBooking: PaGetBookingResponse | null = null;
+
+    if (candidateBookingId !== null) {
+      try {
+        const booking = await tecpetSdk.booking.get(
+          candidateBookingId,
+          Number(options.shopId),
+        );
+
+        const isOpen =
+          booking?.status === Status.SCHEDULED ||
+          booking?.status === Status.CONFIRMED;
+        const isSamePet = Number(booking?.petId) === Number(options.petId);
+        const isUpcoming = isUpcomingBooking(
+          booking?.date ?? "",
+          booking?.start ?? "",
+          utcToZonedTime(new Date(), shopTimezone),
+        );
+
+        if (isOpen && isSamePet && isUpcoming) {
+          rescheduleBooking = booking;
+        }
+
+        logHandler("getAvailableTimes", {
+          candidateBookingId,
+          bookingStatus: booking?.status,
+          bookingPetId: booking?.petId,
+          bookingDate: booking?.date,
+          isOpen,
+          isSamePet,
+          isUpcoming,
+        });
+      } catch (error) {
+        // Agendamento inexistente, de outra loja ou API fora: tratamos como
+        // agendamento novo, que é o ramo seguro.
+        logHandler("getAvailableTimes", {
+          candidateBookingId,
+          bookingLookupFailed: true,
+          error: (error as Error)?.message,
+        });
+      }
+    }
+
+    const isReschedule = rescheduleBooking !== null;
 
     logHandler("getAvailableTimes", {
       shopId: options.shopId,
       petId: options.petId,
       segmentType: options.segmentType,
       isReschedule,
-      bookingId,
+      candidateBookingId,
+      bookingId: rescheduleBooking?.id ?? null,
       rawBookingId,
     });
 
@@ -228,9 +284,16 @@ export const GetAvailableTimesHandler = async ({
     let selectedAdditionalIds: number[] = [];
     let groomAdditionalIds: number[] = [];
 
-    if (isReschedule) {
-      services = parseIds(rawServices);
-      combos = parseIds(rawCombos);
+    if (rescheduleBooking) {
+      // Lê do próprio agendamento em vez de `servicesIds`. Aquela variável tem
+      // dois sentidos conforme o fluxo (serviços do agendamento na remarcação,
+      // catálogo do menu no agendamento novo), e a remarcação só funcionava por
+      // coincidência de preenchimento. Vindo do agendamento, a lista está certa
+      // mesmo que este ramo seja alcançado indevidamente.
+      services = rescheduleBooking.services.map((service) =>
+        Number(service.id),
+      );
+      combos = rescheduleBooking.combos.map((combo) => Number(combo.id));
     } else {
       const parsedSelectedService: ServiceOptionType = JSON.parse(
         options.selectedService as string,
@@ -321,8 +384,7 @@ export const GetAvailableTimesHandler = async ({
           filteredAvailableTimes,
           selectedTimeMinAdvanceHours,
           dateISO,
-          // Campo correto é `timeZone` (Z maiúsculo); `timezone` vinha undefined.
-          shopSettings?.timeZone ?? "America/Sao_Paulo",
+          shopTimezone,
         );
 
         filteredAvailableTimes = filterAvailableTimesByInterval(

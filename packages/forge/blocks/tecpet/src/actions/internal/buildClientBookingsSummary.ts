@@ -3,7 +3,11 @@ import { createAction, option } from "@typebot.io/forge";
 import { utcToZonedTime } from "date-fns-tz";
 import { baseOptions } from "../../constants";
 import { logHandler, summarizeArray } from "../../helpers/logger";
-import { formatBRDateStringDayMonth } from "../../helpers/utils";
+import {
+  formatBRDateStringDayMonth,
+  isUpcomingBooking,
+  parseBookingDate,
+} from "../../helpers/utils";
 
 export const buildClientBookingsSummary = createAction({
   baseOptions,
@@ -104,27 +108,10 @@ export const BuildClientBookingsSummaryHandler = async ({
       ),
     });
 
-    // `date`/`start` vêm no fuso da loja, mas `new Date(y, m, d, h, min)` os
-    // interpreta no fuso do container (UTC em produção). Comparar contra
-    // `Date.now()` descartava como "passado" todo agendamento a menos de ~3h30
-    // de acontecer. Trazemos o "agora" para o fuso da loja para que ambos os
-    // lados da comparação estejam na mesma referência de horário de parede.
+    // Trazemos o "agora" para o fuso da loja para que ambos os lados da
+    // comparação estejam na mesma referência de horário de parede — ver
+    // isUpcomingBooking em helpers/utils.
     const nowInShopTimezone = utcToZonedTime(new Date(), shopTimezone);
-
-    const parseBookingDate = (date: string, start: string): Date => {
-      const [day, month, year] = date.split("/").map(Number);
-      const [hour, minute] = start.split(":").map(Number);
-      return new Date(year, month - 1, day, hour, minute);
-    };
-
-    // Corte apenas para agendamentos genuinamente passados (data+hora antes de
-    // "agora" no fuso da loja): esses saem da lista. A antecedência mínima para
-    // alterar/cancelar NÃO é avaliada aqui — fica a cargo das validações
-    // dedicadas (validateRescheduleMinAdvanceHours / validateCancelMinAdvanceHours),
-    // que recebem o agendamento selecionado + a config da loja e a antecedência
-    // configurada (minReschedule/minCancelAdvanceHours).
-    const isUpcomingBooking = (date: string, start: string): boolean =>
-      parseBookingDate(date, start) >= nowInShopTimezone;
 
     const filteredBookings: Array<
       Partial<
@@ -138,7 +125,11 @@ export const BuildClientBookingsSummaryHandler = async ({
         (booking) =>
           booking.petId === pet.id &&
           (booking.status === "SCHEDULED" || booking.status === "CONFIRMED") &&
-          isUpcomingBooking(booking.date ?? "", booking.start ?? ""),
+          isUpcomingBooking(
+            booking.date ?? "",
+            booking.start ?? "",
+            nowInShopTimezone,
+          ),
       )
       .sort(
         (a, b) =>
