@@ -290,10 +290,12 @@ export const GetAvailableTimesHandler = async ({
       // catálogo do menu no agendamento novo), e a remarcação só funcionava por
       // coincidência de preenchimento. Vindo do agendamento, a lista está certa
       // mesmo que este ramo seja alcançado indevidamente.
-      services = rescheduleBooking.services.map((service) =>
+      services = (rescheduleBooking.services ?? []).map((service) =>
         Number(service.id),
       );
-      combos = rescheduleBooking.combos.map((combo) => Number(combo.id));
+      combos = (rescheduleBooking.combos ?? []).map((combo) =>
+        Number(combo.id),
+      );
     } else {
       const parsedSelectedService: ServiceOptionType = JSON.parse(
         options.selectedService as string,
