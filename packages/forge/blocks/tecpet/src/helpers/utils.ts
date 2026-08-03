@@ -1367,6 +1367,26 @@ export function parseJsonArray<T>(raw: unknown): T[] {
   ) as T[];
 }
 
+/**
+ * JSON.parse que não derruba o handler: devolve `fallback` quando o valor está
+ * ausente ou não é JSON válido.
+ *
+ * Variável de fluxo malformada é dado de entrada ruim, não motivo para abortar
+ * o bloco. Quando um handler morre no meio, ele não grava as variáveis de saída
+ * — e o fluxo pode reentrar no mesmo bloco indefinidamente (foi o que derrubou
+ * o chatbot na TP-3635). Prefira este parse onde um valor ruim pode ser
+ * degradado; deixe o JSON.parse cru só onde a ausência do dado realmente
+ * impede o bloco de fazer seu trabalho.
+ */
+export const safeJsonParse = <T>(raw: unknown, fallback: T): T => {
+  if (typeof raw !== "string" || raw === "") return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+};
+
 export const parseIds = (raw: unknown): number[] => {
   if (Array.isArray(raw)) return raw.map(Number);
 

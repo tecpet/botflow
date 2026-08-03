@@ -21,6 +21,7 @@ import {
   isUpcomingBooking,
   parseIds,
   parseJsonArray,
+  safeJsonParse,
 } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
@@ -166,16 +167,20 @@ export const GetAvailableTimesHandler = async ({
       credentials.apiKey as string,
     );
 
-    const rawEmployeeIndications = options.employeeIndications;
+    const parsedEmployeeIndications = safeJsonParse<unknown[]>(
+      options.employeeIndications,
+      [],
+    );
 
-    const parsedEmployeeIndications: string[] = rawEmployeeIndications
-      ? JSON.parse(options.employeeIndications as string)
-      : [];
-
-    const employeesIndication: PaEmployeeIndication[] =
-      parsedEmployeeIndications.map((item) =>
-        typeof item === "string" ? JSON.parse(item) : item,
-      );
+    // Indicação malformada não deve impedir a busca de horários: seguimos sem
+    // indicação em vez de derrubar o bloco.
+    const employeesIndication: PaEmployeeIndication[] = (
+      Array.isArray(parsedEmployeeIndications) ? parsedEmployeeIndications : []
+    )
+      .map((item) =>
+        typeof item === "string" ? safeJsonParse<unknown>(item, null) : item,
+      )
+      .filter((item): item is PaEmployeeIndication => item !== null);
 
     const rawAdditionalDays = options.getAdditionalDays;
 
@@ -183,9 +188,10 @@ export const GetAvailableTimesHandler = async ({
       (options.timeSelectionBehaviorTimeDisplayMode as ChatbotTimeDisplayModeEnum) ??
       null;
 
-    const shopSettings = options.shopSettings
-      ? JSON.parse(options.shopSettings as string)
-      : undefined;
+    const shopSettings = safeJsonParse<{ timeZone?: string } | undefined>(
+      options.shopSettings,
+      undefined,
+    );
 
     // Campo correto é `timeZone` (Z maiúsculo); `timezone` vinha undefined.
     const shopTimezone = shopSettings?.timeZone ?? "America/Sao_Paulo";
@@ -194,22 +200,11 @@ export const GetAvailableTimesHandler = async ({
       options.selectedTimeMinAdvanceHours ?? 0,
     );
 
-    const rawServices = options.servicesIds
-      ? JSON.parse(options.servicesIds as string)
-      : [];
-    const rawCombos = options.combosIds
-      ? JSON.parse(options.combosIds as string)
-      : [];
+    const rawServices = safeJsonParse<unknown[]>(options.servicesIds, []);
+    const rawCombos = safeJsonParse<unknown[]>(options.combosIds, []);
 
-    let rawBookingId: unknown = null;
-    try {
-      rawBookingId = options.bookingId
-        ? JSON.parse(options.bookingId as string)
-        : null;
-    } catch {
-      // Texto livre não-JSON nesse campo não deve abortar a busca de horários.
-      rawBookingId = null;
-    }
+    // Texto livre não-JSON nesse campo não deve abortar a busca de horários.
+    const rawBookingId = safeJsonParse<unknown>(options.bookingId, null);
 
     // Primeiro filtro, barato: descarta valor que nem parece id de agendamento
     // (0, false, "", {}, [] e o sentinela { backToMenu: true } da lista de
@@ -336,14 +331,17 @@ export const GetAvailableTimesHandler = async ({
       combos,
       selectedAdditionalIds: summarizeArray(selectedAdditionalIds),
       groomAdditionalIds: summarizeArray(groomAdditionalIds),
-      catalogServices: summarizeArray(parseIds(rawServices)),
-      catalogCombos: summarizeArray(parseIds(rawCombos)),
+      // Sem parseIds aqui: ele lança por contrato, e log de diagnóstico não
+      // pode ser capaz de derrubar o handler.
+      catalogServices: summarizeArray(rawServices),
+      catalogCombos: summarizeArray(rawCombos),
     });
 
     let additionalDays = rawAdditionalDays ? Number(rawAdditionalDays) : 0;
 
-    const showOtherDates = JSON.parse(
-      (options.showOtherDates as string) ?? "false",
+    const showOtherDates = safeJsonParse<boolean>(
+      options.showOtherDates,
+      false,
     );
 
     if (showOtherDates) {
@@ -429,6 +427,27 @@ export const GetAvailableTimesHandler = async ({
     ]);
   } catch (error) {
     console.error(error);
+
+    // Falha do bloco não pode deixar o fluxo reentrando. Sem gravar as
+    // variáveis de saída, `inputAdditionalDays` e `availableTimes` ficam com o
+    // valor anterior e a aresta do fluxo volta a este bloco indefinidamente —
+    // foi o que consumiu a cota da credencial global e derrubou o chatbot de
+    // todas as lojas (TP-3635).
+    //
+    // Falhamos fechado, saindo pelo ramo de "sem horários disponíveis" que já
+    // existe. Isso é correto aqui porque este catch só é alcançado por erro
+    // determinístico: a chamada de horários tem catch próprio que faz `break`
+    // (erro transitório de API segue o fluxo normal) e o booking.get também.
+    // O que chega aqui não melhora com nova tentativa.
+    logHandler("getAvailableTimes", {
+      handlerFailed: true,
+      error: (error as Error)?.message,
+    });
+
+    variables.set([
+      { id: options.noTimesAvailable as string, value: true },
+      { id: options.availableTimes as string, value: [] },
+    ]);
   }
 };
 
