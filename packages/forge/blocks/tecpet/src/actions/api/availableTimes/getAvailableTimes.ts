@@ -9,10 +9,13 @@ import {
   TecpetSDK,
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { format, getHours, getMinutes } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import {
+  isBookingWithinMinAdvanceHours,
+  resolveMinAdvanceHours,
+} from "../../../helpers/bookingMinAdvance";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
 import {
   extractBookingId,
@@ -24,6 +27,11 @@ import {
   safeJsonParse,
 } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
+
+// Valores que significam "a loja não configurou a antecedência do seletor". O
+// "null" entra aqui porque é o que o Typebot injeta quando a variável do fluxo
+// está nula — não é erro de configuração, então não gera warn.
+const NOT_CONFIGURED_VALUES = new Set(["", "null", "undefined"]);
 
 export type AvailableTimeType = PaGetAvailableTimesResponse & {
   dateISO: string; // 2025-06-11
@@ -196,9 +204,32 @@ export const GetAvailableTimesHandler = async ({
     // Campo correto é `timeZone` (Z maiúsculo); `timezone` vinha undefined.
     const shopTimezone = shopSettings?.timeZone ?? "America/Sao_Paulo";
 
-    const selectedTimeMinAdvanceHours = Number(
-      options.selectedTimeMinAdvanceHours ?? 0,
+    // O parser grava `timeSelectionBehavior.minAdvanceHours ?? null`, e o Typebot
+    // injeta uma variável nula na option como a STRING "null". `Number("null")`
+    // é NaN, e NaN escapava do guard `<= 0` — o corte então rodava com
+    // `cutOffMinutes: NaN` e descartava TODOS os horários de hoje, deixando o
+    // cliente sem horário para a data atual. Sem valor utilizável = sem
+    // restrição, que era a intenção do `?? 0` original.
+    const rawMinAdvanceHours = String(
+      options.selectedTimeMinAdvanceHours ?? "",
+    ).trim();
+    const isMinAdvanceConfigured = !NOT_CONFIGURED_VALUES.has(
+      rawMinAdvanceHours.toLowerCase(),
     );
+    const selectedTimeMinAdvanceHours = resolveMinAdvanceHours(
+      rawMinAdvanceHours,
+      0,
+    );
+
+    if (
+      isMinAdvanceConfigured &&
+      !Number.isFinite(Number(rawMinAdvanceHours))
+    ) {
+      console.warn(
+        "[getAvailableTimes] antecedência mínima do seletor não é numérica — seguindo sem restrição",
+        { rawMinAdvanceHours },
+      );
+    }
 
     const rawServices = safeJsonParse<unknown[]>(options.servicesIds, []);
     const rawCombos = safeJsonParse<unknown[]>(options.combosIds, []);
@@ -456,28 +487,55 @@ function getMinutesFromMidnight(timeStr: string): number {
   return hours * 60 + (minutes || 0);
 }
 
-function filterAvailableTimesByMinAdvance(
+/**
+ * Descarta os horários que não respeitam a antecedência mínima do seletor.
+ *
+ * Compara instantes completos (data + hora) no fuso da loja. Antes o corte era
+ * feito em "minutos desde a meia-noite" e só valia quando `dateContext` era
+ * HOJE — qualquer outra data saía inteira pelo `if (!isToday) return times`.
+ * Isso fazia a antecedência do seletor ser ignorada em todos os horários de
+ * amanhã e, no ramo de "outras datas" (onde a data base é deslocada para
+ * frente), em todos os horários oferecidos.
+ */
+export function filterAvailableTimesByMinAdvance(
   times: PaGetAvailableTimesResponse[],
   minAdvanceHours: number,
   dateContext: string,
   shopTimezone: string,
 ): PaGetAvailableTimesResponse[] {
-  if (minAdvanceHours <= 0 || times.length === 0) {
+  if (
+    !Number.isFinite(minAdvanceHours) ||
+    minAdvanceHours <= 0 ||
+    times.length === 0
+  ) {
     return times;
   }
-  const nowInShopTimezone = utcToZonedTime(new Date(), shopTimezone);
-  const nowMinutes =
-    getHours(nowInShopTimezone) * 60 + getMinutes(nowInShopTimezone);
-  const cutOffMinutes = nowMinutes + minAdvanceHours * 60;
-  const todayDateStr = format(nowInShopTimezone, "yyyy-MM-dd");
-  const isToday = dateContext === todayDateStr;
-  if (!isToday) {
-    return times;
-  }
-  return times.filter((time) => {
-    const slotMinutes = getMinutesFromMidnight(time.start);
-    return slotMinutes >= cutOffMinutes;
+
+  const filtered = times.filter((time) => {
+    const allowed = isBookingWithinMinAdvanceHours({
+      date: dateContext,
+      start: time.start,
+      minAdvanceHours,
+      shopTimezone,
+    });
+
+    // `null` = não foi possível calcular o início. Mantemos o horário: a API é a
+    // fonte da verdade sobre o slot existir, e esconder a agenda inteira por um
+    // formato inesperado deixa o cliente sem opção nenhuma.
+    return allowed !== false;
   });
+
+  logHandler("getAvailableTimes", {
+    minAdvanceFilter: {
+      dateContext,
+      minAdvanceHours,
+      shopTimezone,
+      before: times.length,
+      after: filtered.length,
+    },
+  });
+
+  return filtered;
 }
 
 function filterAvailableTimesByInterval(

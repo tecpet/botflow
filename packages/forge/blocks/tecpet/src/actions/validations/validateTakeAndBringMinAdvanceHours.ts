@@ -1,8 +1,10 @@
 import type { PaGetAvailableTimesResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { getHours, getMinutes } from "date-fns";
-import { format, utcToZonedTime } from "date-fns-tz";
 import { baseOptions } from "../../constants";
+import {
+  DEFAULT_SHOP_TIMEZONE,
+  isBookingWithinMinAdvanceHours,
+} from "../../helpers/bookingMinAdvance";
 import { logHandler } from "../../helpers/logger";
 import type { AvailableTimeType } from "../api/availableTimes/getAvailableTimes";
 
@@ -99,12 +101,21 @@ export const ValidateTakeAndBringMinAdvanceHoursHandler = async ({
       );
     }
 
-    const minAdvanceHours = Number(options.takeAndBringMinAdvanceHours ?? 0);
+    // O parser envia "" quando a loja habilitou o leva e traz sem definir
+    // antecedência (`allowTakeAndBring.minAdvanceHours` ausente) — nesse caso
+    // não há restrição, então 0. Um valor presente mas não numérico é erro de
+    // configuração: cai no guard de `Number.isFinite` abaixo em vez de virar
+    // NaN e bloquear todos os horários sem explicação.
+    const rawMinAdvanceHours = String(
+      options.takeAndBringMinAdvanceHours ?? "",
+    ).trim();
+    const minAdvanceHours =
+      rawMinAdvanceHours === "" ? 0 : Number(rawMinAdvanceHours);
     // O config da loja expõe o campo como `timeZone` (Z maiúsculo); ler
     // `timezone` retornava sempre undefined e — com o guard abaixo — forçava
     // takeAndBringAllowed=false, pulando a oferta. Default defensivo para a
     // timezone padrão das lojas caso o campo venha ausente.
-    const shopTimezone = shopSettings?.timeZone ?? "America/Sao_Paulo";
+    const shopTimezone = shopSettings?.timeZone ?? DEFAULT_SHOP_TIMEZONE;
 
     logHandler("validateTakeAndBringMinAdvanceHours", {
       dateISO: selectedTime?.dateISO ?? null,
@@ -116,35 +127,71 @@ export const ValidateTakeAndBringMinAdvanceHoursHandler = async ({
     // Guarda explícita: antes, qualquer um desses ausentes lançava exceção,
     // caía no catch silencioso e deixava a variável indefinida (a oferta sumia
     // sem rastro). Agora logamos exatamente o que faltou e definimos o fallback.
-    if (!selectedTime || !selectedTime.dateISO) {
+    // `start` entra no guard porque a opção "PREFIRO OUTRA DATA" vem com
+    // dateISO e start vazios, e sem horário não há antecedência a avaliar.
+    if (
+      !selectedTime ||
+      !selectedTime.dateISO ||
+      !selectedTime.start ||
+      !Number.isFinite(minAdvanceHours)
+    ) {
       console.warn(
         `${LOG_TAG} inputs insuficientes para avaliar a antecedência — usando fallback ${FALLBACK_ON_ERROR}`,
         {
           hasSelectedTime: Boolean(selectedTime),
           dateISO: selectedTime?.dateISO ?? null,
           slotStart: selectedTime?.start ?? null,
+          rawMinAdvanceHours,
           minAdvanceHours,
           shopTimezone: shopTimezone ?? null,
         },
       );
       logHandler("validateTakeAndBringMinAdvanceHours", {
         takeAndBringAllowed: FALLBACK_ON_ERROR,
-        reason:
-          "inputs insuficientes (selectedTime/dateISO ausente) — usando fallback",
+        reason: !Number.isFinite(minAdvanceHours)
+          ? "antecedência mínima não numérica — usando fallback"
+          : "inputs insuficientes (selectedTime/dateISO/start ausente) — usando fallback",
         hasSelectedTime: Boolean(selectedTime),
         dateISO: selectedTime?.dateISO ?? null,
+        slotStart: selectedTime?.start ?? null,
+        rawMinAdvanceHours,
         shopTimezone: shopTimezone ?? null,
       });
       setAllowed(FALLBACK_ON_ERROR);
       return;
     }
 
-    const takeAndBringAllowed = isTimeAllowedByMinAdvance(
+    const evaluated = isTimeAllowedByMinAdvance(
       selectedTime,
       minAdvanceHours,
       selectedTime.dateISO,
       shopTimezone,
     );
+
+    if (evaluated === null) {
+      console.warn(
+        `${LOG_TAG} não foi possível calcular o início do horário — usando fallback ${FALLBACK_ON_ERROR}`,
+        {
+          dateISO: selectedTime.dateISO,
+          slotStart: selectedTime.start,
+          minAdvanceHours,
+          shopTimezone,
+        },
+      );
+      logHandler("validateTakeAndBringMinAdvanceHours", {
+        takeAndBringAllowed: FALLBACK_ON_ERROR,
+        reason:
+          "início do horário inválido (dateISO/start não parseáveis) — usando fallback",
+        dateISO: selectedTime.dateISO,
+        slotStart: selectedTime.start,
+        minAdvanceHours,
+        shopTimezone,
+      });
+      setAllowed(FALLBACK_ON_ERROR);
+      return;
+    }
+
+    const takeAndBringAllowed = evaluated;
 
     console.log(`${LOG_TAG} resultado`, {
       dateISO: selectedTime.dateISO,
@@ -182,51 +229,43 @@ export const ValidateTakeAndBringMinAdvanceHoursHandler = async ({
   }
 };
 
-function getMinutesFromMidnight(timeStr: string): number {
-  const [hours, minutes] = timeStr.split(":").map(Number);
-  return hours * 60 + (minutes || 0);
-}
-
+/**
+ * `true`  = o horário respeita a antecedência mínima (oferta o leva e traz).
+ * `false` = faltam MENOS de `minAdvanceHours` horas para o início (bloqueia).
+ * `null`  = não foi possível avaliar (data/horário inválidos) — o chamador
+ *           decide o fallback.
+ *
+ * `minAdvanceHours` <= 0 (ou inválido) significa "sem restrição" → sempre `true`.
+ *
+ * Compara instantes completos (data + hora) via `isBookingWithinMinAdvanceHours`.
+ * Antes isso era feito em "minutos desde a meia-noite", avaliando o corte apenas
+ * quando `dateContext` era HOJE e liberando qualquer data futura — o que fazia
+ * antecedências maiores que o resto do dia (24h, 48h) nunca bloquearem nada:
+ * todo horário de amanhã em diante passava direto.
+ */
 export function isTimeAllowedByMinAdvance(
   time: PaGetAvailableTimesResponse & AvailableTimeType,
   minAdvanceHours: number,
   dateContext: string,
   shopTimezone: string,
-): boolean {
-  if (!time) {
-    console.warn(`${LOG_TAG} time ausente — retornando false`);
-    return false;
-  }
-  if (minAdvanceHours <= 0) return true;
-
-  const nowInShopTimezone = utcToZonedTime(new Date(), shopTimezone);
-
-  const nowMinutes =
-    getHours(nowInShopTimezone) * 60 + getMinutes(nowInShopTimezone);
-
-  const cutOffMinutes = nowMinutes + minAdvanceHours * 60;
-
-  const todayDateStr = format(nowInShopTimezone, "yyyy-MM-dd");
-
-  const isToday = dateContext === todayDateStr;
-
-  // Data futura sempre passa; o corte de antecedência só é avaliado no mesmo dia.
-  if (!isToday) {
-    console.log(`${LOG_TAG} data futura (${dateContext}) — permitido`, {
-      todayDateStr,
-    });
-    return true;
+): boolean | null {
+  if (!time?.start) {
+    console.warn(`${LOG_TAG} horário sem start — não é possível avaliar`);
+    return null;
   }
 
-  const slotMinutes = getMinutesFromMidnight(time.start);
-  const allowed = slotMinutes >= cutOffMinutes;
-
-  console.log(`${LOG_TAG} mesmo dia — avaliando corte de antecedência`, {
-    nowMinutes,
+  const allowed = isBookingWithinMinAdvanceHours({
+    date: dateContext,
+    start: time.start,
     minAdvanceHours,
-    cutOffMinutes,
+    shopTimezone,
+  });
+
+  console.log(`${LOG_TAG} avaliando corte de antecedência`, {
+    dateContext,
     slotStart: time.start,
-    slotMinutes,
+    minAdvanceHours,
+    shopTimezone,
     allowed,
   });
 

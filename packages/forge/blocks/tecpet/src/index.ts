@@ -43,6 +43,7 @@ import { verifyBookingGuard } from "./actions/validations/verifyBookingGuard";
 import { verifyInitialMessageToTrigger } from "./actions/validations/verifyInitialMessageToTrigger";
 import { verifyInputedCpfText } from "./actions/validations/verifyInputedCpf";
 import { verifyInputedDateText } from "./actions/validations/verifyInputedDateText";
+import { verifyNotAcceptedBreed } from "./actions/validations/verifyNotAcceptedBreed";
 import { verifyShopTimeTable } from "./actions/validations/verifyShopTimeTable";
 import { verifySimilarBreedOptionSelected } from "./actions/validations/verifySimilarBreedOptionSelected";
 import { verifySimilarCityOptionSelected } from "./actions/validations/verifySimilarCityOptionSelected";
@@ -78,6 +79,7 @@ const validations = [
   verifySimilarBreedOptionSelected,
   verifySimilarCityOptionSelected,
   verifyActiveShopSegments,
+  verifyNotAcceptedBreed,
 ];
 
 const clientActions = [getClient, editClient, getClientSummary];

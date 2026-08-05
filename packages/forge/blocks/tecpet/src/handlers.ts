@@ -152,6 +152,10 @@ import {
   verifyInputedDateText,
 } from "./actions/validations/verifyInputedDateText";
 import {
+  VerifyNotAcceptedBreedHandler,
+  verifyNotAcceptedBreed,
+} from "./actions/validations/verifyNotAcceptedBreed";
+import {
   VerifyShopTimeTableHandler,
   verifyShopTimeTable,
 } from "./actions/validations/verifyShopTimeTable";
@@ -259,6 +263,9 @@ export default [
   }),
   createActionHandler(verifySimilarCityOptionSelected, {
     server: VerifySimilarCityOptionSelectedHandler,
+  }),
+  createActionHandler(verifyNotAcceptedBreed, {
+    server: VerifyNotAcceptedBreedHandler,
   }),
   createActionHandler(validateTakeAndBringMinAdvanceHours, {
     server: ValidateTakeAndBringMinAdvanceHoursHandler,
