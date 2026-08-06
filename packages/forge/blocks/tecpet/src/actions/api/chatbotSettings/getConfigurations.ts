@@ -136,12 +136,17 @@ export const GetConfigurationsHandler = async ({
             logHandler("getConfigurations", { chainShopsCount: chainShops.length, aiEnabled: result.aiEnabled, voiceResponseEnabled: result.voiceResponseEnabled, enabledActions: summarizeArray(enabledActions.map((a) => a.name)), totalActions: result.chatbotActions.length });
 
             if (chainShops.length > 0) {
+              // Item de menu sintético: não existe como ação cadastrada na loja e
+              // por isso não tem fluxo associado. O `chatbotFlux` vazio é
+              // obrigatório — sem ele, quem consome a ação selecionada (ex.:
+              // parseSelectedFluxSettings) quebra ao ler `chatbotFlux.id`.
               result.chatbotActions.push({
                 id: "CHAIN",
                 name: "CONSULTAR REDE",
                 description: "",
                 enabled: true,
-              } as PaChatbotSettingsResponse["chatbotActions"][number]);
+                chatbotFlux: { id: "CHAIN", name: "CONSULTAR REDE", fluxType: "" },
+              } as unknown as PaChatbotSettingsResponse["chatbotActions"][number]);
             }
 
             variables.set([
