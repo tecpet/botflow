@@ -20,6 +20,11 @@ export const getPets = createAction({
       isRequired: true,
       helperText: "Id do cliente",
     }),
+    includeDeceased: option.string.layout({
+      label: "Incluir pets falecidos",
+      helperText:
+        "true para trazer também os pets marcados como falecidos. Vazio ou false traz somente os vivos",
+    }),
     pets: option.string.layout({
       label: "Pets",
       placeholder: "Selecione",
@@ -66,7 +71,12 @@ export const GetPetsHandler = async ({
       ? JSON.parse(rawPetsWithBooking as string)
       : null;
 
-    logHandler("getPets", { clientId: Number(options?.clientId), scheduleToAnotherPet, petsWithBooking: summarizeArray(petsWithBooking) });
+    const includeDeceased =
+      String(options.includeDeceased ?? "")
+        .trim()
+        .toLowerCase() === "true";
+
+    logHandler("getPets", { clientId: Number(options?.clientId), scheduleToAnotherPet, includeDeceased, petsWithBooking: summarizeArray(petsWithBooking) });
 
     const tecpetSdk = new TecpetSDK(
       (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
@@ -74,7 +84,10 @@ export const GetPetsHandler = async ({
     );
 
     let petsResponse: Partial<PaPetResponse>[] =
-      await tecpetSdk.pet.getByClient(Number(options?.clientId));
+      await tecpetSdk.pet.getByClient(
+        Number(options?.clientId),
+        includeDeceased,
+      );
 
     if (petsResponse) {
       if (petsResponse.length > 0) {
