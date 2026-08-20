@@ -39,7 +39,7 @@ export const TalkToAttendantHandler = async ({
       .post(`${credentials.baseUrl as string}/action`, {
         json: {
           sessionId: options.sessionId,
-          message: options.text ?? "Oi",
+          message: options.text || undefined,
           action: ChatbotActionButtonTypeEnum.TRANSFER_TO_HUMAN,
         },
         timeout: 30000,
