@@ -4,6 +4,7 @@ import { baseOptions } from "../../constants";
 import {
   DEFAULT_SHOP_TIMEZONE,
   isBookingWithinMinAdvanceHours,
+  NOT_CONFIGURED_VALUES,
 } from "../../helpers/bookingMinAdvance";
 import { logHandler } from "../../helpers/logger";
 import type { AvailableTimeType } from "../api/availableTimes/getAvailableTimes";
@@ -106,11 +107,20 @@ export const ValidateTakeAndBringMinAdvanceHoursHandler = async ({
     // não há restrição, então 0. Um valor presente mas não numérico é erro de
     // configuração: cai no guard de `Number.isFinite` abaixo em vez de virar
     // NaN e bloquear todos os horários sem explicação.
+    //
+    // "null"/"undefined" NÃO são erro de configuração: é como o Typebot injeta
+    // uma variável de fluxo nula na option. `Number("null")` é NaN e escapava
+    // para o guard, gravando `Antecedencia.Valida = false` e despejando no
+    // atendente quem só não tinha a antecedência configurada.
     const rawMinAdvanceHours = String(
       options.takeAndBringMinAdvanceHours ?? "",
     ).trim();
-    const minAdvanceHours =
-      rawMinAdvanceHours === "" ? 0 : Number(rawMinAdvanceHours);
+    const isMinAdvanceConfigured = !NOT_CONFIGURED_VALUES.has(
+      rawMinAdvanceHours.toLowerCase(),
+    );
+    const minAdvanceHours = isMinAdvanceConfigured
+      ? Number(rawMinAdvanceHours)
+      : 0;
     // O config da loja expõe o campo como `timeZone` (Z maiúsculo); ler
     // `timezone` retornava sempre undefined e — com o guard abaixo — forçava
     // takeAndBringAllowed=false, pulando a oferta. Default defensivo para a

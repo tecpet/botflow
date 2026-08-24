@@ -5,6 +5,15 @@ import { logHandler } from "./logger";
 // expõe o campo como `timeZone` (Z maiúsculo) — ler `timezone` retorna undefined.
 export const DEFAULT_SHOP_TIMEZONE = "America/Sao_Paulo";
 
+/**
+ * Valores que significam "a loja não configurou a antecedência". O "null" (e o
+ * "undefined") entram aqui porque é o que o Typebot injeta na option quando a
+ * variável do fluxo está nula — não é erro de configuração da loja, então não
+ * deve gerar warn nem cair em fallback conservador. Erro de configuração de
+ * verdade é um valor presente e não numérico.
+ */
+export const NOT_CONFIGURED_VALUES = new Set(["", "null", "undefined"]);
+
 // Antecedência mínima padrão (horas) quando a loja NÃO fornece um valor
 // (campo ausente/vazio/inválido). Um `0` EXPLÍCITO continua significando
 // "sem restrição" (a `isBookingWithinMinAdvanceHours` libera quando <= 0).

@@ -14,11 +14,13 @@ import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import {
   isBookingWithinMinAdvanceHours,
+  NOT_CONFIGURED_VALUES,
   resolveMinAdvanceHours,
 } from "../../../helpers/bookingMinAdvance";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
 import {
   extractBookingId,
+  extractTakeAndBringId,
   formatBRDate,
   formatISODate,
   isUpcomingBooking,
@@ -27,11 +29,6 @@ import {
   safeJsonParse,
 } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
-
-// Valores que significam "a loja não configurou a antecedência do seletor". O
-// "null" entra aqui porque é o que o Typebot injeta quando a variável do fluxo
-// está nula — não é erro de configuração, então não gera warn.
-const NOT_CONFIGURED_VALUES = new Set(["", "null", "undefined"]);
 
 export type AvailableTimeType = PaGetAvailableTimesResponse & {
   dateISO: string; // 2025-06-11
@@ -118,6 +115,18 @@ export const getAvailableTimes = createAction({
       isRequired: true,
       helperText: "Tempo mínimo de antecedência para o horário selecionado",
     }),
+    selectedTakeAndBring: option.string.layout({
+      label: "Leva e traz selecionado",
+      isRequired: false,
+      helperText:
+        "Serviço de leva e traz que o cliente aceitou. Vazio = recusou ou não foi perguntado.",
+    }),
+    takeAndBringMinAdvanceHours: option.string.layout({
+      label: "Leva e traz - Antecedência mínima",
+      isRequired: false,
+      helperText:
+        "Horas de antecedência do leva e traz. Só entra no corte quando há um leva e traz selecionado.",
+    }),
     inputAdditionalDays: option.string.layout({
       label: "Input de dias adicionais",
       helperText: "Dias para adicionar",
@@ -133,6 +142,13 @@ export const getAvailableTimes = createAction({
       helperText: "Dias para adicionar",
       inputType: "variableDropdown",
     }),
+    noTimesAvailableForTakeAndBring: option.string.layout({
+      label: "Sem horários por causa do leva e traz",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "Recebe true quando existiam horários e TODOS foram descartados pela antecedência do leva e traz. Use para oferecer seguir sem o leva e traz em vez de cair no ramo genérico de 'sem horários'.",
+    }),
     groomAdditionalIds: option.string.layout({
       label: "Ids dos adicionais de banho e tosa (GROOM)",
       placeholder: "Selecione",
@@ -145,6 +161,7 @@ export const getAvailableTimes = createAction({
     availableTimes,
     inputAdditionalDays,
     noTimesAvailable,
+    noTimesAvailableForTakeAndBring,
     groomAdditionalIds,
   }) => {
     const variables = [];
@@ -154,6 +171,9 @@ export const getAvailableTimes = createAction({
     if (inputAdditionalDays) variables.push(inputAdditionalDays);
 
     if (noTimesAvailable) variables.push(noTimesAvailable);
+
+    if (noTimesAvailableForTakeAndBring)
+      variables.push(noTimesAvailableForTakeAndBring);
 
     if (groomAdditionalIds) variables.push(groomAdditionalIds);
 
@@ -230,6 +250,35 @@ export const GetAvailableTimesHandler = async ({
         { rawMinAdvanceHours },
       );
     }
+
+    // O leva e traz passou a ser perguntado ANTES do seletor de horários
+    // (TP-3952). Antes, o cliente escolhia um horário, ouvia "leva e traz só com
+    // Xh de antecedência" e era jogado no atendente — reclamando justamente
+    // porque queria aquele horário. Agora a antecedência do leva e traz entra
+    // como corte na própria busca: quem aceitou o serviço só vê horários que já
+    // o comportam.
+    //
+    // Só aplica quando há um leva e traz de fato selecionado. `LevaTraz.Selecionado`
+    // sobrevive entre etapas da sessão, então exigimos um id de serviço válido
+    // (e não "a variável não está vazia") para não sumir com os horários de quem
+    // recusou o serviço por causa de resíduo de um agendamento anterior.
+    const takeAndBringId = extractTakeAndBringId(
+      safeJsonParse<unknown>(options.selectedTakeAndBring, null) ??
+        options.selectedTakeAndBring,
+    );
+    const takeAndBringMinAdvanceHours =
+      takeAndBringId === null
+        ? 0
+        : resolveMinAdvanceHours(options.takeAndBringMinAdvanceHours, 0);
+
+    // O corte do seletor continua valendo sempre; o do leva e traz só endurece.
+    const effectiveMinAdvanceHours = Math.max(
+      selectedTimeMinAdvanceHours,
+      takeAndBringMinAdvanceHours,
+    );
+
+    const takeAndBringTightensCutoff =
+      takeAndBringMinAdvanceHours > selectedTimeMinAdvanceHours;
 
     const rawServices = safeJsonParse<unknown[]>(options.servicesIds, []);
     const rawCombos = safeJsonParse<unknown[]>(options.combosIds, []);
@@ -392,6 +441,12 @@ export const GetAvailableTimesHandler = async ({
 
     const all: AvailableTimeType[] = [];
 
+    // Mesma busca sem o corte do leva e traz. Serve só para distinguir "a loja
+    // não tem agenda" de "a agenda existe, mas nenhum horário comporta o leva e
+    // traz" — sem isso o fluxo cai no ramo genérico de "sem horários" e manda o
+    // cliente para o atendente sem a chance de seguir sem o serviço.
+    const allWithoutTakeAndBring: AvailableTimeType[] = [];
+
     for (const dateISO of searchDates) {
       const body: PaGetAvailableTimesTimesBody = {
         date: dateISO,
@@ -409,28 +464,38 @@ export const GetAvailableTimesHandler = async ({
           body,
           Number(options.shopId),
         );
-        let filteredAvailableTimes = times;
 
-        filteredAvailableTimes = filterAvailableTimesByMinAdvance(
-          filteredAvailableTimes,
-          selectedTimeMinAdvanceHours,
-          dateISO,
-          shopTimezone,
-        );
+        const buildTimes = (minAdvanceHours: number) =>
+          filterAvailableTimesByInterval(
+            filterAvailableTimesByMinAdvance(
+              times,
+              minAdvanceHours,
+              dateISO,
+              shopTimezone,
+            ),
+            timeSelectionBehaviorTimeDisplayMode,
+          );
 
-        filteredAvailableTimes = filterAvailableTimesByInterval(
-          filteredAvailableTimes,
-          timeSelectionBehaviorTimeDisplayMode,
-        );
+        const collectInto = (
+          target: AvailableTimeType[],
+          filtered: PaGetAvailableTimesResponse[],
+        ) =>
+          filtered?.forEach((t: PaGetAvailableTimesResponse) =>
+            target.push({
+              ...t,
+              dateISO,
+              dateBR: formatBRDate(dateISO),
+              scheduleStartTime: `${t.start}`,
+            }),
+          );
 
-        filteredAvailableTimes?.forEach((t: PaGetAvailableTimesResponse) =>
-          all.push({
-            ...t,
-            dateISO,
-            dateBR: formatBRDate(dateISO),
-            scheduleStartTime: `${t.start}`,
-          }),
-        );
+        collectInto(all, buildTimes(effectiveMinAdvanceHours));
+
+        if (takeAndBringTightensCutoff)
+          collectInto(
+            allWithoutTakeAndBring,
+            buildTimes(selectedTimeMinAdvanceHours),
+          );
       } catch (error) {
         console.log(error);
         break;
@@ -448,6 +513,33 @@ export const GetAvailableTimesHandler = async ({
     if (additionalDays > MAX_ATTEMPTS) {
       variables.set([{ id: options.noTimesAvailable as string, value: true }]);
     }
+
+    // Só é "culpa do leva e traz" quando a agenda tinha horário e o corte extra
+    // levou todos. Agenda vazia dos dois jeitos segue pelo ramo normal de "sem
+    // horários" — oferecer "seguir sem o leva e traz" ali não resolveria nada.
+    const noTimesAvailableForTakeAndBring =
+      takeAndBringTightensCutoff &&
+      all.length === 0 &&
+      allWithoutTakeAndBring.length > 0;
+
+    logHandler("getAvailableTimes", {
+      takeAndBringId,
+      selectedTimeMinAdvanceHours,
+      takeAndBringMinAdvanceHours,
+      effectiveMinAdvanceHours,
+      timesWithTakeAndBringCutoff: all.length,
+      timesWithoutTakeAndBringCutoff: takeAndBringTightensCutoff
+        ? allWithoutTakeAndBring.length
+        : all.length,
+      noTimesAvailableForTakeAndBring,
+    });
+
+    variables.set([
+      {
+        id: options.noTimesAvailableForTakeAndBring as string,
+        value: noTimesAvailableForTakeAndBring,
+      },
+    ]);
 
     variables.set([
       { id: options.inputAdditionalDays as string, value: additionalDays },
@@ -478,6 +570,9 @@ export const GetAvailableTimesHandler = async ({
     variables.set([
       { id: options.noTimesAvailable as string, value: true },
       { id: options.availableTimes as string, value: [] },
+      // Nunca deixar indefinida: indefinido faz a condition do fluxo cair no
+      // ramo errado e oferecer "seguir sem o leva e traz" onde não há agenda.
+      { id: options.noTimesAvailableForTakeAndBring as string, value: false },
     ]);
   }
 };

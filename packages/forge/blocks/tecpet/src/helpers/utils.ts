@@ -1402,21 +1402,13 @@ export const parseIds = (raw: unknown): number[] => {
 };
 
 /**
- * Extrai o id do agendamento que caracteriza uma remarcação, a partir do que o
- * fluxo entrega no campo "Agendamento selecionado" — que pode vir como número,
- * como o objeto do agendamento, ou como lista contendo um desses.
- *
- * Retorna null quando não há um id de agendamento de fato. É intencionalmente
- * mais estrito que "o valor não está vazio": resíduo de sessão (0, false, "",
- * {}, [] e o sentinela { backToMenu: true } da lista de reservas) não deve
- * ligar o ramo de remarcação, senão a busca de horários vai com o catálogo
- * inteiro da loja e o agendamento acaba com duração diferente da contratada.
- *
- * Um id válido também não é prova de remarcação — a variável do fluxo pode
- * carregar um agendamento anterior do cliente. Quem consome precisa validar o
- * agendamento de fato (status, pet e data).
+ * Núcleo compartilhado de extração de id a partir do que o Typebot entrega numa
+ * variável de seleção: o valor pode chegar como número, como string, como o
+ * objeto inteiro da entidade, ou como lista contendo um desses (é o que a
+ * `picture choice input` grava quando o `valuesVariableId` aponta para um array
+ * de objetos). Retorna null para qualquer coisa que não seja um id positivo.
  */
-export const extractBookingId = (raw: unknown): number | null => {
+const extractEntityId = (raw: unknown): number | null => {
   if (raw == null) return null;
 
   const first = Array.isArray(raw) ? raw[0] : raw;
@@ -1432,6 +1424,37 @@ export const extractBookingId = (raw: unknown): number | null => {
 
   return Number.isInteger(id) && id > 0 ? id : null;
 };
+
+/**
+ * Extrai o id do agendamento que caracteriza uma remarcação, a partir do que o
+ * fluxo entrega no campo "Agendamento selecionado" — que pode vir como número,
+ * como o objeto do agendamento, ou como lista contendo um desses.
+ *
+ * Retorna null quando não há um id de agendamento de fato. É intencionalmente
+ * mais estrito que "o valor não está vazio": resíduo de sessão (0, false, "",
+ * {}, [] e o sentinela { backToMenu: true } da lista de reservas) não deve
+ * ligar o ramo de remarcação, senão a busca de horários vai com o catálogo
+ * inteiro da loja e o agendamento acaba com duração diferente da contratada.
+ *
+ * Um id válido também não é prova de remarcação — a variável do fluxo pode
+ * carregar um agendamento anterior do cliente. Quem consome precisa validar o
+ * agendamento de fato (status, pet e data).
+ */
+export const extractBookingId = (raw: unknown): number | null =>
+  extractEntityId(raw);
+
+/**
+ * Extrai o id do serviço de leva e traz escolhido pelo cliente.
+ *
+ * Vale o mesmo rigor do `extractBookingId`: "aceitou o leva e traz" tem que ser
+ * um id de serviço de verdade, não "a variável não está vazia". A variável
+ * `LevaTraz.Selecionado` sobrevive entre etapas da sessão, então resíduo de um
+ * agendamento anterior (ou o `""` que o fluxo grava ao resetar) não pode ligar
+ * o corte de antecedência do leva e traz e sumir com os horários de quem
+ * recusou o serviço.
+ */
+export const extractTakeAndBringId = (raw: unknown): number | null =>
+  extractEntityId(raw);
 
 /**
  * Interpreta o par `date` (DD/MM/YYYY) + `start` (HH:mm) que a API devolve para
