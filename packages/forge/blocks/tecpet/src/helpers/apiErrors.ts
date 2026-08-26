@@ -10,6 +10,9 @@
  */
 export enum TecpetApiError {
   BOOKING_IS_PAID_AND_CANNOT_BE_CANCELED = "BOOKING_IS_PAID_AND_CANNOT_BE_CANCELED",
+  BOOKING_DATE_AFTER_PET_PLAN_END_DATE = "BOOKING_DATE_AFTER_PET_PLAN_END_DATE",
+  BOOKING_DATE_BEFORE_PET_PLAN_START_DATE = "BOOKING_DATE_BEFORE_PET_PLAN_START_DATE",
+  PET_PLAN_IS_CANCELED = "PET_PLAN_IS_CANCELED",
 }
 
 /**
@@ -30,4 +33,25 @@ export const isTecpetApiError = (
     );
 
   return false;
+};
+
+/**
+ * O `HttpClient` do SDK repassa o corpo cru do erro (`throw error.response.data`),
+ * então o que chega ao catch normalmente é um objeto simples — e não um `Error`.
+ * Sem isso, `String(error)` cai em `"[object Object]"` e o log do fluxo perde
+ * justamente a mensagem da API (foi o que dificultou o diagnóstico da TP-4050).
+ */
+export const describeApiError = (error: unknown): string => {
+  if (error instanceof Error) return error.message;
+
+  const message = (error as { message?: unknown })?.message;
+
+  if (typeof message === "string") return message;
+  if (Array.isArray(message)) return message.join("; ");
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
 };
