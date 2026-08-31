@@ -4,6 +4,10 @@ import {
   getAvailableTimes,
 } from "./actions/api/availableTimes/getAvailableTimes";
 import {
+  GetGroupAvailableTimesHandler,
+  getGroupAvailableTimes,
+} from "./actions/api/availableTimes/getGroupAvailableTimes";
+import {
   GetBillingMethodsHandler,
   getBillingMethods,
 } from "./actions/api/billingMethod/getBillingMethods";
@@ -16,9 +20,17 @@ import {
   createBooking,
 } from "./actions/api/booking/createBooking";
 import {
+  GetGroupBookingsHandler,
+  getGroupBookings,
+} from "./actions/api/booking/getGroupBookings";
+import {
   RescheduleBookingHandler,
   rescheduleBooking,
 } from "./actions/api/booking/rescheduleBooking";
+import {
+  RescheduleGroupBookingsHandler,
+  rescheduleGroupBookings,
+} from "./actions/api/booking/rescheduleGroupBookings";
 import { GetBreedsHandler, getBreeds } from "./actions/api/breed/getBreeds";
 import {
   GetConfigurationsHandler,
@@ -174,6 +186,13 @@ export default [
   createActionHandler(cancelBooking, { server: CancelBookingHandler }),
   createActionHandler(createBooking, { server: CreateBookingHandler }),
   createActionHandler(rescheduleBooking, { server: RescheduleBookingHandler }),
+  createActionHandler(getGroupBookings, { server: GetGroupBookingsHandler }),
+  createActionHandler(getGroupAvailableTimes, {
+    server: GetGroupAvailableTimesHandler,
+  }),
+  createActionHandler(rescheduleGroupBookings, {
+    server: RescheduleGroupBookingsHandler,
+  }),
   createActionHandler(getBreeds, { server: GetBreedsHandler }),
   createActionHandler(getConfigurations, { server: GetConfigurationsHandler }),
   createActionHandler(getFormattedMessages, {

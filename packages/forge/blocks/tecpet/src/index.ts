@@ -1,9 +1,12 @@
 import { createBlock } from "@typebot.io/forge";
 import { getAvailableTimes } from "./actions/api/availableTimes/getAvailableTimes";
+import { getGroupAvailableTimes } from "./actions/api/availableTimes/getGroupAvailableTimes";
 import { getBillingMethods } from "./actions/api/billingMethod/getBillingMethods";
 import { cancelBooking } from "./actions/api/booking/cancelBooking";
 import { createBooking } from "./actions/api/booking/createBooking";
+import { getGroupBookings } from "./actions/api/booking/getGroupBookings";
 import { rescheduleBooking } from "./actions/api/booking/rescheduleBooking";
+import { rescheduleGroupBookings } from "./actions/api/booking/rescheduleGroupBookings";
 import { getBreeds } from "./actions/api/breed/getBreeds";
 import { getConfigurations } from "./actions/api/chatbotSettings/getConfigurations";
 import { getFormattedMessages } from "./actions/api/chatbotSettings/getFormattedMessages";
@@ -86,7 +89,13 @@ const clientActions = [getClient, editClient, getClientSummary];
 
 const petActions = [getPets, createPet, editPet];
 
-const bookingActions = [createBooking, cancelBooking, rescheduleBooking];
+const bookingActions = [
+  createBooking,
+  cancelBooking,
+  rescheduleBooking,
+  getGroupBookings,
+  rescheduleGroupBookings,
+];
 
 const apiActions = [
   extractToken,
@@ -100,6 +109,7 @@ const apiActions = [
   getEmployess,
   getCategoriesAndServices,
   getAvailableTimes,
+  getGroupAvailableTimes,
   getFormattedMessages,
   getInteractionMode,
   ...clientActions,
