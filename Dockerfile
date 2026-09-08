@@ -1,6 +1,6 @@
 # ================= INSTALL BUN ===================
 ARG BUN_VERSION=1.3.3
-FROM debian:bullseye-slim AS build-bun
+FROM debian:bookworm-slim AS build-bun
 ARG BUN_VERSION
 RUN apt-get update -qq \
     && apt-get install -qq --no-install-recommends \
@@ -56,7 +56,7 @@ RUN apt-get update -qq \
 
 # ================= ADD BUN IN NODE 22 IMAGE ===================
 
-FROM node:22-bullseye-slim AS base
+FROM node:22-bookworm-slim AS base
 ARG BUN_RUNTIME_TRANSPILER_CACHE_PATH=0
 ENV BUN_RUNTIME_TRANSPILER_CACHE_PATH=${BUN_RUNTIME_TRANSPILER_CACHE_PATH}
 ARG BUN_INSTALL_BIN=/usr/local/bin
