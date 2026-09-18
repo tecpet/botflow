@@ -25,6 +25,7 @@ import { getShopConfigurations } from "./actions/api/shop/getShopConfigurations"
 import { getSpecies } from "./actions/api/specie/getSpecies";
 import { extractToken } from "./actions/api/token/extractToken";
 import { buildAvailableTimesOptions } from "./actions/internal/buildAvailableTimesOptions";
+import { buildBookingServiceSelection } from "./actions/internal/buildBookingServiceSelection";
 import { buildChainShopOptions } from "./actions/internal/buildChainShopOptions";
 import { buildClientBookingsSummary } from "./actions/internal/buildClientBookingsSummary";
 import { buildClientPetsSummary } from "./actions/internal/buildClientPetsSummary";
@@ -60,6 +61,7 @@ const buildActions = [
   buildSelectedAdditionals,
   buildAvailableTimesOptions,
   buildEmployeeOptions,
+  buildBookingServiceSelection,
   showSendingInfoItems,
   showGuidanceOptions,
   buildClientBookingsSummary,

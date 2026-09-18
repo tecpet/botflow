@@ -80,6 +80,10 @@ import {
   buildAvailableTimesOptions,
 } from "./actions/internal/buildAvailableTimesOptions";
 import {
+  BuildBookingServiceSelectionHandler,
+  buildBookingServiceSelection,
+} from "./actions/internal/buildBookingServiceSelection";
+import {
   BuildChainShopOptionsHandler,
   buildChainShopOptions,
 } from "./actions/internal/buildChainShopOptions";
@@ -231,6 +235,9 @@ export default [
   }),
   createActionHandler(buildEmployeeOptions, {
     server: BuildEmployeeOptionsHandler,
+  }),
+  createActionHandler(buildBookingServiceSelection, {
+    server: BuildBookingServiceSelectionHandler,
   }),
   createActionHandler(buildSelectedAdditionals, {
     server: BuildSelectedAdditionalsHandler,

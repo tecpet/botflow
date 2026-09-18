@@ -608,6 +608,10 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
         Boolean(serviceSelection?.serviceProfessionalChoice?.enabled ?? false),
       ],
       [
+        options.professionalSelectionMessage,
+        serviceSelection?.serviceProfessionalChoice?.message ?? "",
+      ],
+      [
         options.promotionSelectionEnabled,
         Boolean(serviceSelection?.showServicePromotions?.enabled ?? false),
       ],
