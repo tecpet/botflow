@@ -25,6 +25,14 @@ export enum TecpetApiError {
    * código acima.
    */
   TIME_ALREADY_ALLOCATED = "TIME_ALREADY_ALLOCATED",
+  /**
+   * Código de negócio da Public API (TP-4460): o cadastro do pet não está
+   * liberado para agendamento automático. O servidor recusa quando a situação
+   * não é `ACTIVE` e o segmento não liberou pets com restrição/suspensos —
+   * `BLOCKED` e `INACTIVE` nunca são liberados. Sem o código nesta lista a
+   * recusa chegava ao fluxo como falha genérica, indistinguível de um 500.
+   */
+  PET_NOT_BOOKABLE = "PET_NOT_BOOKABLE",
 }
 
 /**

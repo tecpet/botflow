@@ -117,7 +117,7 @@ export const createBooking = createAction({
     bookingBlockedMessage: option.string.layout({
       label: "Mensagem de agendamento bloqueado (saída)",
       helperText:
-        "Recebe a mensagem a ser exibida quando o agendamento é recusado por horário indisponível. Vazio nas demais falhas",
+        "Recebe a mensagem a ser exibida quando o agendamento é recusado por horário indisponível. Vazio nas demais falhas, inclusive na recusa por situação do pet",
       inputType: "variableDropdown",
     }),
   }),
@@ -305,13 +305,24 @@ export const CreateBookingHandler = async ({
       isTecpetApiError(error, apiError),
     );
 
+    // Recusa de negócio da TP-4460: o pet não está liberado para agendamento
+    // automático. Não vira variável para o fluxo de propósito — `bookingSuccess`
+    // false já leva ao atendente pela saída padrão da condição, e uma flag a
+    // mais só duplicaria esse roteamento. O que muda aqui é não registrar a
+    // recusa como erro: ela é resposta esperada da API, não falha.
+    const blockedByPetSituation = isTecpetApiError(
+      error,
+      TecpetApiError.PET_NOT_BOOKABLE,
+    );
+
     logHandler("createBooking", {
       failed: true,
       timeUnavailable,
+      blockedByPetSituation,
       error: describeApiError(error),
     });
 
-    if (!timeUnavailable) {
+    if (!timeUnavailable && !blockedByPetSituation) {
       console.error(error);
       logs?.add({
         status: "error",
@@ -320,12 +331,17 @@ export const CreateBookingHandler = async ({
       });
     }
 
+    let message = "";
+
+    if (timeUnavailable) {
+      message =
+        (options.timeUnavailableMessage as string) ||
+        defaultTimeUnavailableMessage;
+    }
+
     setOutcome({
       success: false,
-      message: timeUnavailable
-        ? (options.timeUnavailableMessage as string) ||
-          defaultTimeUnavailableMessage
-        : "",
+      message,
     });
   }
 };
