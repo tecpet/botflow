@@ -192,13 +192,26 @@ export const RescheduleBookingHandler = async ({
       isTecpetApiError(error, apiError),
     );
 
+    // Recusa de negócio da TP-4460: o pet não está liberado para reagendamento
+    // automático (o servidor resolve o segmento pelo próprio agendamento, por
+    // isso o body não manda `segmentType`). Não vira variável para o fluxo:
+    // `rescheduleSuccess` false já encaminha ao atendente. O que muda é não
+    // registrar a recusa como erro — ela é resposta esperada da API.
+    const blockedByPetSituation = isTecpetApiError(
+      error,
+      TecpetApiError.PET_NOT_BOOKABLE,
+    );
+
+    const blockedByBusinessRule = blockedByPetPlan || blockedByPetSituation;
+
     logHandler("rescheduleBooking", {
       failed: true,
       blockedByPetPlan,
+      blockedByPetSituation,
       error: describeApiError(error),
     });
 
-    if (!blockedByPetPlan) {
+    if (!blockedByBusinessRule) {
       console.error(error);
       logs?.add({
         status: "error",
@@ -207,13 +220,18 @@ export const RescheduleBookingHandler = async ({
       });
     }
 
+    let message = "";
+
+    if (blockedByPetPlan) {
+      message =
+        (options.petPlanBlockedMessage as string) ||
+        defaultPetPlanBlockedMessage;
+    }
+
     setOutcome({
       success: false,
       blockedByPetPlan,
-      message: blockedByPetPlan
-        ? (options.petPlanBlockedMessage as string) ||
-          defaultPetPlanBlockedMessage
-        : "",
+      message,
     });
   }
 };

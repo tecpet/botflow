@@ -86,6 +86,12 @@ export const rescheduleGroupBookings = createAction({
         "Recebe true quando a API recusou algum pet por causa da validade do plano",
       inputType: "variableDropdown",
     }),
+    isRescheduleBlockedByPetSituation: option.string.layout({
+      label: "Reagendamento bloqueado pela situação do pet (saída)",
+      helperText:
+        "Recebe true quando a API recusou algum pet porque ele não está liberado para agendamento automático. Use para encaminhar ao atendente",
+      inputType: "variableDropdown",
+    }),
     rescheduleBlockedMessage: option.string.layout({
       label: "Mensagem de reagendamento bloqueado (saída)",
       helperText:
@@ -100,6 +106,7 @@ export const rescheduleGroupBookings = createAction({
     rescheduledSummary,
     failedPetNames,
     isRescheduleBlockedByPetPlan,
+    isRescheduleBlockedByPetSituation,
     rescheduleBlockedMessage,
   }) => {
     const variables = [];
@@ -111,6 +118,8 @@ export const rescheduleGroupBookings = createAction({
     if (failedPetNames) variables.push(failedPetNames);
     if (isRescheduleBlockedByPetPlan)
       variables.push(isRescheduleBlockedByPetPlan);
+    if (isRescheduleBlockedByPetSituation)
+      variables.push(isRescheduleBlockedByPetSituation);
     if (rescheduleBlockedMessage) variables.push(rescheduleBlockedMessage);
 
     return variables;
@@ -171,10 +180,12 @@ export const RescheduleGroupBookingsHandler = async ({
     rescheduled,
     failed,
     blockedByPetPlan,
+    blockedByPetSituation,
   }: {
     rescheduled: GroupScheduleItem[];
     failed: GroupScheduleItem[];
     blockedByPetPlan: boolean;
+    blockedByPetSituation: boolean;
   }) => {
     const success = failed.length === 0 && rescheduled.length > 0;
 
@@ -195,13 +206,17 @@ export const RescheduleGroupBookingsHandler = async ({
       formatPtBrList(failed.map((item) => item.petName)),
     );
     setVariable("isRescheduleBlockedByPetPlan", blockedByPetPlan);
-    setVariable(
-      "rescheduleBlockedMessage",
-      blockedByPetPlan
-        ? (options.petPlanBlockedMessage as string) ||
-            defaultPetPlanBlockedMessage
-        : "",
-    );
+    setVariable("isRescheduleBlockedByPetSituation", blockedByPetSituation);
+
+    let blockedMessage = "";
+
+    if (blockedByPetPlan) {
+      blockedMessage =
+        (options.petPlanBlockedMessage as string) ||
+        defaultPetPlanBlockedMessage;
+    }
+
+    setVariable("rescheduleBlockedMessage", blockedMessage);
   };
 
   try {
@@ -224,7 +239,12 @@ export const RescheduleGroupBookingsHandler = async ({
         details: "Selected group time option has no items",
       });
 
-      setOutcome({ rescheduled: [], failed: [], blockedByPetPlan: false });
+      setOutcome({
+        rescheduled: [],
+        failed: [],
+        blockedByPetPlan: false,
+        blockedByPetSituation: false,
+      });
       return;
     }
 
@@ -254,6 +274,7 @@ export const RescheduleGroupBookingsHandler = async ({
     const rescheduled: GroupScheduleItem[] = [];
     const failed: GroupScheduleItem[] = [];
     let blockedByPetPlan = false;
+    let blockedByPetSituation = false;
 
     // Sequencial de propósito: em paralelo os pets do mesmo tutor disputariam a
     // capacidade do dia na própria API, e um deles perderia o slot que a
@@ -289,7 +310,18 @@ export const RescheduleGroupBookingsHandler = async ({
           isTecpetApiError(error, apiError),
         );
 
+        // Um pet com situação não liberada não impede o reagendamento dos
+        // outros: ele entra em `failed` como qualquer recusa, e o grupo segue
+        // (TP-4460). O que muda é o fluxo saber que o motivo foi a situação e
+        // ter para onde mandar o tutor.
+        const itemBlockedByPetSituation = isTecpetApiError(
+          error,
+          TecpetApiError.PET_NOT_BOOKABLE,
+        );
+
         blockedByPetPlan = blockedByPetPlan || itemBlockedByPetPlan;
+        blockedByPetSituation =
+          blockedByPetSituation || itemBlockedByPetSituation;
         failed.push(item);
 
         logHandler("rescheduleGroupBookings", {
@@ -297,10 +329,11 @@ export const RescheduleGroupBookingsHandler = async ({
           petName: item.petName,
           failed: true,
           blockedByPetPlan: itemBlockedByPetPlan,
+          blockedByPetSituation: itemBlockedByPetSituation,
           error: describeApiError(error),
         });
 
-        if (!itemBlockedByPetPlan) {
+        if (!itemBlockedByPetPlan && !itemBlockedByPetSituation) {
           console.error(error);
           logs?.add({
             status: "error",
@@ -317,9 +350,15 @@ export const RescheduleGroupBookingsHandler = async ({
       failed: failed.length,
       failedPetNames: failed.map((item) => item.petName),
       blockedByPetPlan,
+      blockedByPetSituation,
     });
 
-    setOutcome({ rescheduled, failed, blockedByPetPlan });
+    setOutcome({
+      rescheduled,
+      failed,
+      blockedByPetPlan,
+      blockedByPetSituation,
+    });
   } catch (error) {
     console.error(error);
     logs?.add({
@@ -332,6 +371,11 @@ export const RescheduleGroupBookingsHandler = async ({
       error: describeApiError(error),
     });
 
-    setOutcome({ rescheduled: [], failed: [], blockedByPetPlan: false });
+    setOutcome({
+      rescheduled: [],
+      failed: [],
+      blockedByPetPlan: false,
+      blockedByPetSituation: false,
+    });
   }
 };
