@@ -497,8 +497,9 @@ export const GetAvailableTimesHandler = async ({
             buildTimes(selectedTimeMinAdvanceHours),
           );
       } catch (error) {
+        // Erro em um dia (ex.: BLOCKED_DAY) não pode interromper a janela:
+        // segue para o próximo dia (antes um `break` pulava os seguintes).
         console.log(error);
-        break;
       }
     }
 
@@ -559,7 +560,7 @@ export const GetAvailableTimesHandler = async ({
     //
     // Falhamos fechado, saindo pelo ramo de "sem horários disponíveis" que já
     // existe. Isso é correto aqui porque este catch só é alcançado por erro
-    // determinístico: a chamada de horários tem catch próprio que faz `break`
+    // determinístico: a chamada de horários tem catch próprio que pula o dia
     // (erro transitório de API segue o fluxo normal) e o booking.get também.
     // O que chega aqui não melhora com nova tentativa.
     logHandler("getAvailableTimes", {

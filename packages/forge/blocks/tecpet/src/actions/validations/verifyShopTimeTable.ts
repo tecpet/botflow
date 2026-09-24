@@ -110,10 +110,12 @@ export const verifyShopTimeTable = createAction({
       label: "Segmentos da loja",
       isRequired: true,
     }),
+    // Entrada (não saída): recebe o JSON via {{Loja.Configuracoes}}. Com
+    // `variableDropdown` o bloco gravava só o id da variável e o fuso caía
+    // sempre no padrão.
     shopSettings: option.string.layout({
       label: "Configurações da loja",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
+      helperText: "Configurações da loja ({{Loja.Configuracoes}})",
     }),
     segment: option.string.layout({
       label: "Segmento",
@@ -158,12 +160,22 @@ export const VerifyShopTimeTableHandler = async ({
       typeof s === "string" ? JSON.parse(s) : s,
     );
 
+    // Blocos salvos com o antigo `variableDropdown` mandam o id cru da
+    // variável em vez do JSON; resolve o valor pelo id para não depender de
+    // todos os fluxos serem republicados.
+    const resolvedShopSettings =
+      typeof rawShopSettings === "string" &&
+      rawShopSettings !== "" &&
+      !rawShopSettings.trim().startsWith("{")
+        ? (variables.get(rawShopSettings) ?? rawShopSettings)
+        : rawShopSettings;
+
     let shopSettings: { timeZone?: string } | undefined;
     try {
       shopSettings =
-        typeof rawShopSettings === "string"
-          ? JSON.parse(rawShopSettings)
-          : (rawShopSettings as { timeZone?: string } | undefined);
+        typeof resolvedShopSettings === "string"
+          ? JSON.parse(resolvedShopSettings)
+          : (resolvedShopSettings as { timeZone?: string } | undefined);
     } catch (parseError) {
       console.error("[verifyShopTimeTable] falha ao parsear shopSettings", {
         rawShopSettings,
