@@ -14,6 +14,16 @@ export enum TecpetApiError {
   BOOKING_DATE_BEFORE_PET_PLAN_START_DATE = "BOOKING_DATE_BEFORE_PET_PLAN_START_DATE",
   PET_PLAN_IS_CANCELED = "PET_PLAN_IS_CANCELED",
   /**
+   * Mensagens cruas das validações de plano do `createBooking` do servidor
+   * (TP-4568). A Public API as repassa dentro do texto do erro, com o status
+   * original (403/404).
+   */
+  PET_PLAN_NOT_FOUND = "PetPlan not found",
+  PET_PLAN_IS_FULL = "PetPlan is full",
+  PET_PLAN_WITHOUT_VALID_INVOICE = "This petplan dont have valid invoice",
+  PET_PLAN_WITHOUT_PAID_INVOICES = "This petPlan have not paid invoices",
+  PET_PLAN_SERVICES_NOT_AVAILABLE = "Those services don't are available to this plan",
+  /**
    * Código de negócio novo da Public API (TP-4219): o pet já tem compromisso que
    * se sobrepõe ao horário escolhido, em qualquer segmento da loja.
    */

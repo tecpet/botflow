@@ -2,6 +2,8 @@ import {
   type PaCreateBookingInput,
   type PaEmployeeIndication,
   type PaGetBookingResponse,
+  type PaPlanBookingInput,
+  PetPlanStatus,
   type ShopSegment,
   TecpetSDK,
 } from "@tec.pet/tecpet-sdk";
@@ -15,6 +17,10 @@ import {
   TecpetApiError,
 } from "../../../helpers/apiErrors";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
+import {
+  petPlanRefusalErrors,
+  resolvePetPlanForBooking,
+} from "../../../helpers/petPlan";
 import { parseIds } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 import type { AvailableTimeType } from "../availableTimes/getAvailableTimes";
@@ -120,6 +126,12 @@ export const createBooking = createAction({
         "Recebe a mensagem a ser exibida quando o agendamento é recusado por horário indisponível. Vazio nas demais falhas, inclusive na recusa por situação do pet",
       inputType: "variableDropdown",
     }),
+    usedPetPlan: option.string.layout({
+      label: "Descontado do plano (saída)",
+      helperText:
+        "Recebe true quando o agendamento foi vinculado ao plano/pacote do pet",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     booking,
@@ -127,6 +139,7 @@ export const createBooking = createAction({
     invoiceId,
     bookingSuccess,
     bookingBlockedMessage,
+    usedPetPlan,
   }) => {
     const variables = [];
 
@@ -135,6 +148,7 @@ export const createBooking = createAction({
     if (invoiceId) variables.push(invoiceId);
     if (bookingSuccess) variables.push(bookingSuccess);
     if (bookingBlockedMessage) variables.push(bookingBlockedMessage);
+    if (usedPetPlan) variables.push(usedPetPlan);
 
     return variables;
   },
@@ -199,6 +213,14 @@ export const CreateBookingHandler = async ({
     if (options.bookingBlockedMessage)
       variables.set([
         { id: options.bookingBlockedMessage as string, value: message },
+      ]);
+
+    if (options.usedPetPlan)
+      variables.set([
+        {
+          id: options.usedPetPlan as string,
+          value: Boolean(createdBooking?.petPlanId),
+        },
       ]);
   };
 
@@ -274,8 +296,28 @@ export const CreateBookingHandler = async ({
       employeeIndicationCount: body.employeeIndication?.length ?? 0,
     });
 
-    const createdBooking = await tecpetSdk.booking.create(
+    // Serviços que podem sair do plano: o escolhido ou, no combo, os dele.
+    // Adicionais e leva e traz ficam de fora, como no V1.
+    const planCandidateServiceIds =
+      parsedSelectedService.type === "COMBO"
+        ? (parsedSelectedService.services ?? []).map((service) =>
+            Number(service.id),
+          )
+        : serviceIds.includes(selectedId)
+          ? [selectedId]
+          : [];
+
+    const plan = await findPetPlanForBooking(
+      tecpetSdk,
+      Number(options.petId),
+      planCandidateServiceIds,
+      Number(options.shopId),
+    );
+
+    const createdBooking = await createWithPetPlanFallback(
+      tecpetSdk,
       body,
+      plan,
       Number(options.shopId),
     );
 
@@ -343,5 +385,84 @@ export const CreateBookingHandler = async ({
       success: false,
       message,
     });
+  }
+};
+
+/**
+ * Planos que o V1 já considerava ao fechar o agendamento. O status é o efetivo,
+ * derivado das faturas no servidor.
+ */
+const bookablePetPlanStatuses = [
+  PetPlanStatus.ACTIVE,
+  PetPlanStatus.PENDING,
+  PetPlanStatus.OVERDUE,
+];
+
+/**
+ * Plano do pet que cobre o serviço escolhido (TP-4568). Falha na consulta não
+ * pode travar o agendamento: sem plano, ele sai avulso, como antes.
+ */
+const findPetPlanForBooking = async (
+  tecpetSdk: TecpetSDK,
+  petId: number,
+  serviceIds: number[],
+  shopId: number,
+): Promise<PaPlanBookingInput | undefined> => {
+  if (!petId || !serviceIds.length) return undefined;
+
+  try {
+    const petPlans = await tecpetSdk.petPlan.list(
+      { petId, status: bookablePetPlanStatuses, vigente: true },
+      shopId,
+    );
+
+    const plan = resolvePetPlanForBooking(petPlans, serviceIds);
+
+    logHandler("createBooking", {
+      petPlansFound: petPlans.length,
+      petPlanId: plan?.petPlan ?? null,
+      petPlanServices: plan?.services ?? [],
+    });
+
+    return plan;
+  } catch (error) {
+    logHandler("createBooking", {
+      petPlanLookupFailed: true,
+      error: describeApiError(error),
+    });
+    return undefined;
+  }
+};
+
+/**
+ * Cria com o plano e, se o servidor recusar o plano, cria de novo sem ele. A
+ * fatura que o servidor usa é a do ciclo da data do agendamento, que pode não
+ * ser a fatura atual que o bloco consultou — então a recusa é esperada de vez
+ * em quando e não deve chegar ao cliente.
+ */
+const createWithPetPlanFallback = async (
+  tecpetSdk: TecpetSDK,
+  body: PaCreateBookingInput,
+  plan: PaPlanBookingInput | undefined,
+  shopId: number,
+): Promise<PaGetBookingResponse> => {
+  if (!plan) return tecpetSdk.booking.create(body, shopId);
+
+  try {
+    return await tecpetSdk.booking.create({ ...body, plan }, shopId);
+  } catch (error) {
+    const refusedByPetPlan = petPlanRefusalErrors.some((apiError) =>
+      isTecpetApiError(error, apiError),
+    );
+
+    if (!refusedByPetPlan) throw error;
+
+    logHandler("createBooking", {
+      petPlanRefused: true,
+      petPlanId: plan.petPlan,
+      error: describeApiError(error),
+    });
+
+    return tecpetSdk.booking.create(body, shopId);
   }
 };
