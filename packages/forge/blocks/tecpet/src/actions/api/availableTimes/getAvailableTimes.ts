@@ -18,6 +18,7 @@ import {
   resolveMinAdvanceHours,
 } from "../../../helpers/bookingMinAdvance";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
+import { buildRescheduleEmployeeIndication } from "../../../helpers/rescheduleEmployees";
 import {
   extractBookingId,
   extractTakeAndBringId,
@@ -405,6 +406,14 @@ export const GetAvailableTimesHandler = async ({
       }
     }
 
+    // Na remarcação a indicação também vem do próprio agendamento, pelo mesmo
+    // motivo dos serviços acima: `employeeIndications` pode ter sobrado de outro
+    // agendamento da sessão. É o que mantém o pet com o profissional que já
+    // estava alocado (TP-4662).
+    const searchEmployeesIndication = rescheduleBooking
+      ? buildRescheduleEmployeeIndication(rescheduleBooking)
+      : employeesIndication;
+
     logHandler("getAvailableTimes", {
       isReschedule,
       services,
@@ -439,69 +448,102 @@ export const GetAvailableTimesHandler = async ({
 
     const searchDates = [formatISODate(today), formatISODate(tomorrow)];
 
-    const all: AvailableTimeType[] = [];
+    const searchTimes = async (indication: PaEmployeeIndication[]) => {
+      const all: AvailableTimeType[] = [];
 
-    // Mesma busca sem o corte do leva e traz. Serve só para distinguir "a loja
-    // não tem agenda" de "a agenda existe, mas nenhum horário comporta o leva e
-    // traz" — sem isso o fluxo cai no ramo genérico de "sem horários" e manda o
-    // cliente para o atendente sem a chance de seguir sem o serviço.
-    const allWithoutTakeAndBring: AvailableTimeType[] = [];
+      // Mesma busca sem o corte do leva e traz. Serve só para distinguir "a loja
+      // não tem agenda" de "a agenda existe, mas nenhum horário comporta o leva e
+      // traz" — sem isso o fluxo cai no ramo genérico de "sem horários" e manda o
+      // cliente para o atendente sem a chance de seguir sem o serviço.
+      const allWithoutTakeAndBring: AvailableTimeType[] = [];
 
-    for (const dateISO of searchDates) {
-      const body: PaGetAvailableTimesTimesBody = {
-        date: dateISO,
-        combos,
-        services,
-        petId: Number(options.petId),
-        segment: options.segmentType as ShopSegment,
-        employeesIndication,
-      };
+      for (const dateISO of searchDates) {
+        const body: PaGetAvailableTimesTimesBody = {
+          date: dateISO,
+          combos,
+          services,
+          petId: Number(options.petId),
+          segment: options.segmentType as ShopSegment,
+          employeesIndication: indication,
+          // Na remarcação o próprio agendamento não pode ocupar a agenda do
+          // profissional nem contar como compromisso do pet: sem o id, o
+          // horário atual e os que se sobrepõem a ele sumiam da lista — e com a
+          // indicação do profissional não sobra outro para cobrir (TP-4662).
+          bookingId: rescheduleBooking?.id,
+        };
 
-      let times: PaGetAvailableTimesResponse[] = [];
+        let times: PaGetAvailableTimesResponse[] = [];
 
-      try {
-        times = await tecpetSdk.availableTimes.list(
-          body,
-          Number(options.shopId),
-        );
-
-        const buildTimes = (minAdvanceHours: number) =>
-          filterAvailableTimesByInterval(
-            filterAvailableTimesByMinAdvance(
-              times,
-              minAdvanceHours,
-              dateISO,
-              shopTimezone,
-            ),
-            timeSelectionBehaviorTimeDisplayMode,
+        try {
+          times = await tecpetSdk.availableTimes.list(
+            body,
+            Number(options.shopId),
           );
 
-        const collectInto = (
-          target: AvailableTimeType[],
-          filtered: PaGetAvailableTimesResponse[],
-        ) =>
-          filtered?.forEach((t: PaGetAvailableTimesResponse) =>
-            target.push({
-              ...t,
-              dateISO,
-              dateBR: formatBRDate(dateISO),
-              scheduleStartTime: `${t.start}`,
-            }),
-          );
+          const buildTimes = (minAdvanceHours: number) =>
+            filterAvailableTimesByInterval(
+              filterAvailableTimesByMinAdvance(
+                times,
+                minAdvanceHours,
+                dateISO,
+                shopTimezone,
+              ),
+              timeSelectionBehaviorTimeDisplayMode,
+            );
 
-        collectInto(all, buildTimes(effectiveMinAdvanceHours));
+          const collectInto = (
+            target: AvailableTimeType[],
+            filtered: PaGetAvailableTimesResponse[],
+          ) =>
+            filtered?.forEach((t: PaGetAvailableTimesResponse) =>
+              target.push({
+                ...t,
+                dateISO,
+                dateBR: formatBRDate(dateISO),
+                scheduleStartTime: `${t.start}`,
+              }),
+            );
 
-        if (takeAndBringTightensCutoff)
-          collectInto(
-            allWithoutTakeAndBring,
-            buildTimes(selectedTimeMinAdvanceHours),
-          );
-      } catch (error) {
-        // Erro em um dia (ex.: BLOCKED_DAY) não pode interromper a janela:
-        // segue para o próximo dia (antes um `break` pulava os seguintes).
-        console.log(error);
+          collectInto(all, buildTimes(effectiveMinAdvanceHours));
+
+          if (takeAndBringTightensCutoff)
+            collectInto(
+              allWithoutTakeAndBring,
+              buildTimes(selectedTimeMinAdvanceHours),
+            );
+        } catch (error) {
+          // Erro em um dia (ex.: BLOCKED_DAY) não pode interromper a janela:
+          // segue para o próximo dia (antes um `break` pulava os seguintes).
+          console.log(error);
+        }
       }
-    }
+
+      return { all, allWithoutTakeAndBring };
+    };
+
+    const preferredSearch = await searchTimes(searchEmployeesIndication);
+
+    // Na remarcação o mesmo profissional é preferência, não requisito: se ele
+    // não tem nenhum horário na janela — agenda cheia, folga, ou nem atende
+    // mais a categoria (a API responde erro e o dia é pulado acima) — a busca é
+    // refeita com qualquer profissional em vez de deixar o cliente sem horário
+    // (TP-4662). No agendamento novo a indicação é escolha do cliente e segue
+    // valendo sem fallback.
+    const employeeFallback =
+      isReschedule &&
+      searchEmployeesIndication.length > 0 &&
+      preferredSearch.all.length === 0;
+
+    const { all, allWithoutTakeAndBring } = employeeFallback
+      ? await searchTimes([])
+      : preferredSearch;
+
+    logHandler("getAvailableTimes", {
+      isReschedule,
+      employeesIndication: summarizeArray(searchEmployeesIndication),
+      employeeFallback,
+      timesWithFallback: employeeFallback ? all.length : null,
+    });
 
     if (all.length > 0) {
       all.sort((a, b) =>

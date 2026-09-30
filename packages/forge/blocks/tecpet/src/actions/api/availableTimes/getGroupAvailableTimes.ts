@@ -1,6 +1,5 @@
 import {
   ChatbotTimeDisplayModeEnum,
-  type PaEmployeeIndication,
   type PaGetAvailableTimesResponse,
   type PaGetAvailableTimesTimesBody,
   type PaGetBookingResponse,
@@ -25,6 +24,7 @@ import {
   timeToMinutes,
 } from "../../../helpers/groupReschedule";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
+import { buildRescheduleEmployeeIndication } from "../../../helpers/rescheduleEmployees";
 import {
   formatBRDate,
   formatISODate,
@@ -60,10 +60,6 @@ export const getGroupAvailableTimes = createAction({
       isRequired: true,
       helperText:
         "Saída do bloco Carregar agendamentos do grupo (JSON dos agendamentos)",
-    }),
-    employeeIndications: option.string.layout({
-      label: "Funcionários indicados para o serviço",
-      isRequired: false,
     }),
     shopSettings: option.string.layout({
       label: "Configurações da loja",
@@ -210,19 +206,6 @@ export const GetGroupAvailableTimesHandler = async ({
       );
     }
 
-    const parsedEmployeeIndications = safeJsonParse<unknown[]>(
-      options.employeeIndications,
-      [],
-    );
-
-    const employeesIndication: PaEmployeeIndication[] = (
-      Array.isArray(parsedEmployeeIndications) ? parsedEmployeeIndications : []
-    )
-      .map((item) =>
-        typeof item === "string" ? safeJsonParse<unknown>(item, null) : item,
-      )
-      .filter((item): item is PaEmployeeIndication => item !== null);
-
     const showOtherDates = safeJsonParse<boolean>(
       options.showOtherDates,
       false,
@@ -280,103 +263,148 @@ export const GetGroupAvailableTimesHandler = async ({
       credentials.apiKey as string,
     );
 
-    const groupOptions: GroupTimeOption[] = [];
+    // Cada pet mantém o profissional do próprio agendamento — irmãos podem estar
+    // com profissionais diferentes, então a indicação é por pet (TP-4662).
+    const employeesIndicationByBooking = new Map(
+      bookings.map((booking) => [
+        booking.id,
+        buildRescheduleEmployeeIndication(booking),
+      ]),
+    );
 
-    // Pet que não tem horário NENHUM nas datas pesquisadas: é o que explica ao
-    // tutor por que o grupo não fechou (mensagem diferente de "a loja não tem
-    // agenda"). Nome, e não id, porque vai para a mensagem.
-    const petsWithoutTimes = new Set<string>();
-    let anyPetHadTimes = false;
+    const hasEmployeeIndication = [
+      ...employeesIndicationByBooking.values(),
+    ].some((indication) => indication.length > 0);
 
-    for (const dateISO of searchDates) {
-      const availabilities: GroupPetAvailability[] = [];
-      let dateIsViable = true;
+    const searchGroupOptions = async (preferSameEmployee: boolean) => {
+      const groupOptions: GroupTimeOption[] = [];
 
-      for (const booking of bookings) {
-        // Os serviços vêm do próprio agendamento, nunca do catálogo do menu:
-        // reagendamento mantém o que foi contratado (mesma decisão do ramo de
-        // remarcação do getAvailableTimes).
-        const services = (booking.services ?? []).map((service) =>
-          Number(service.id),
-        );
-        const combos = (booking.combos ?? []).map((combo) => Number(combo.id));
+      // Pet que não tem horário NENHUM nas datas pesquisadas: é o que explica ao
+      // tutor por que o grupo não fechou (mensagem diferente de "a loja não tem
+      // agenda"). Nome, e não id, porque vai para a mensagem.
+      const petsWithoutTimes = new Set<string>();
+      let anyPetHadTimes = false;
 
-        const body: PaGetAvailableTimesTimesBody = {
-          date: dateISO,
-          combos,
-          services,
-          petId: Number(booking.petId),
-          segment: booking.segmentType as ShopSegment,
-          employeesIndication,
-        };
+      for (const dateISO of searchDates) {
+        const availabilities: GroupPetAvailability[] = [];
+        let dateIsViable = true;
 
-        let times: PaGetAvailableTimesResponse[] = [];
+        for (const booking of bookings) {
+          // Os serviços vêm do próprio agendamento, nunca do catálogo do menu:
+          // reagendamento mantém o que foi contratado (mesma decisão do ramo de
+          // remarcação do getAvailableTimes).
+          const services = (booking.services ?? []).map((service) =>
+            Number(service.id),
+          );
+          const combos = (booking.combos ?? []).map((combo) =>
+            Number(combo.id),
+          );
 
-        try {
-          times = await tecpetSdk.availableTimes.list(body, shopId);
-        } catch (error) {
-          // Erro transitório da API em um pet invalida o DIA (não dá para
-          // prometer um bloco sem saber a agenda dele), mas não a busca: as
-          // outras datas seguem, como o `break` do seletor de um pet só.
-          logHandler("getGroupAvailableTimes", {
-            dateISO,
-            bookingId: booking.id,
-            availableTimesFailed: true,
-            error: describeApiError(error),
-          });
-          dateIsViable = false;
-          break;
-        }
-
-        const filtered = filterAvailableTimesByMinAdvance(
-          times,
-          minAdvanceHours,
-          dateISO,
-          shopTimezone,
-        );
-
-        if (filtered.length === 0) {
-          petsWithoutTimes.add(booking.petName);
-          dateIsViable = false;
-          break;
-        }
-
-        anyPetHadTimes = true;
-
-        availabilities.push({
-          booking: {
-            id: booking.id,
+          const body: PaGetAvailableTimesTimesBody = {
+            date: dateISO,
+            combos,
+            services,
             petId: Number(booking.petId),
-            petName: booking.petName,
-          },
-          times: filtered,
+            segment: booking.segmentType as ShopSegment,
+            employeesIndication: preferSameEmployee
+              ? (employeesIndicationByBooking.get(booking.id) ?? [])
+              : [],
+            // O agendamento que está sendo movido não pode ocupar a agenda do
+            // próprio profissional (mesma razão do getAvailableTimes).
+            bookingId: booking.id,
+          };
+
+          let times: PaGetAvailableTimesResponse[] = [];
+
+          try {
+            times = await tecpetSdk.availableTimes.list(body, shopId);
+          } catch (error) {
+            // Erro transitório da API em um pet invalida o DIA (não dá para
+            // prometer um bloco sem saber a agenda dele), mas não a busca: as
+            // outras datas seguem, como o `break` do seletor de um pet só.
+            logHandler("getGroupAvailableTimes", {
+              dateISO,
+              bookingId: booking.id,
+              preferSameEmployee,
+              availableTimesFailed: true,
+              error: describeApiError(error),
+            });
+            dateIsViable = false;
+            break;
+          }
+
+          const filtered = filterAvailableTimesByMinAdvance(
+            times,
+            minAdvanceHours,
+            dateISO,
+            shopTimezone,
+          );
+
+          if (filtered.length === 0) {
+            petsWithoutTimes.add(booking.petName);
+            dateIsViable = false;
+            break;
+          }
+
+          anyPetHadTimes = true;
+
+          availabilities.push({
+            booking: {
+              id: booking.id,
+              petId: Number(booking.petId),
+              petName: booking.petName,
+            },
+            times: filtered,
+          });
+        }
+
+        if (!dateIsViable) continue;
+
+        const combinations = thinGroupOptionsByInterval(
+          buildGroupCombinationsForDate({
+            availabilities,
+            dateISO,
+            dateBR: formatBRDate(dateISO),
+            maxCombinations: MAX_COMBINATIONS_PER_DATE,
+          }),
+          intervalMinutesByDisplayMode(timeDisplayMode),
+        );
+
+        logHandler("getGroupAvailableTimes", {
+          dateISO,
+          preferSameEmployee,
+          pets: availabilities.length,
+          timesPerPet: availabilities.map((availability) => ({
+            petName: availability.booking.petName,
+            times: availability.times.length,
+          })),
+          combinations: combinations.length,
         });
+
+        groupOptions.push(...combinations);
       }
 
-      if (!dateIsViable) continue;
+      return { groupOptions, petsWithoutTimes, anyPetHadTimes };
+    };
 
-      const combinations = thinGroupOptionsByInterval(
-        buildGroupCombinationsForDate({
-          availabilities,
-          dateISO,
-          dateBR: formatBRDate(dateISO),
-          maxCombinations: MAX_COMBINATIONS_PER_DATE,
-        }),
-        intervalMinutesByDisplayMode(timeDisplayMode),
-      );
+    const preferredSearch = await searchGroupOptions(hasEmployeeIndication);
 
-      logHandler("getGroupAvailableTimes", {
-        dateISO,
-        pets: availabilities.length,
-        timesPerPet: availabilities.map((availability) => ({
-          petName: availability.booking.petName,
-          times: availability.times.length,
-        })),
-        combinations: combinations.length,
-      });
+    // Mesma regra do seletor de um pet só: manter os profissionais é
+    // preferência. Se nenhum bloco fecha com eles na janela, a busca é refeita
+    // com qualquer profissional antes de dizer ao tutor que não há horário.
+    const employeeFallback =
+      hasEmployeeIndication && preferredSearch.groupOptions.length === 0;
 
-      groupOptions.push(...combinations);
-    }
+    const { groupOptions, petsWithoutTimes, anyPetHadTimes } = employeeFallback
+      ? await searchGroupOptions(false)
+      : preferredSearch;
+
+    logHandler("getGroupAvailableTimes", {
+      employeesIndication: [...employeesIndicationByBooking.entries()].map(
+        ([bookingId, indication]) => ({ bookingId, indication }),
+      ),
+      employeeFallback,
+    });
 
     groupOptions.sort(
       (a, b) =>
