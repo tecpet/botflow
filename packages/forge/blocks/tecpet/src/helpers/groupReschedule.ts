@@ -257,37 +257,3 @@ export const buildGroupCombinationsForDate = ({
 
   return options;
 };
-
-/**
- * Afina a lista de opções pelo modo de exibição da loja (de 30 em 30 min, de
- * hora em hora), olhando o início do BLOCO. Mesma regra do seletor de um pet só,
- * aplicada uma vez sobre a combinação em vez de por pet — afinar antes de
- * combinar descartaria encaixes válidos.
- */
-export const thinGroupOptionsByInterval = (
-  options: GroupTimeOption[],
-  intervalMinutes: number,
-): GroupTimeOption[] => {
-  if (!Number.isFinite(intervalMinutes) || intervalMinutes <= 0) return options;
-  if (options.length === 0) return options;
-
-  const sorted = options
-    .slice()
-    .sort(
-      (a, b) => (timeToMinutes(a.start) ?? 0) - (timeToMinutes(b.start) ?? 0),
-    );
-
-  const kept: GroupTimeOption[] = [sorted[0]];
-  let lastMinutes = timeToMinutes(sorted[0].start) as number;
-
-  for (let index = 1; index < sorted.length; index++) {
-    const minutes = timeToMinutes(sorted[index].start) as number;
-
-    if (minutes - lastMinutes >= intervalMinutes) {
-      kept.push(sorted[index]);
-      lastMinutes = minutes;
-    }
-  }
-
-  return kept;
-};

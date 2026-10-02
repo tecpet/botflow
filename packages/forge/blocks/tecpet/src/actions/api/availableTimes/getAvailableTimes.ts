@@ -1,9 +1,9 @@
 import {
-  ChatbotTimeDisplayModeEnum,
   type PaEmployeeIndication,
   type PaGetAvailableTimesResponse,
   type PaGetAvailableTimesTimesBody,
   type PaGetBookingResponse,
+  type PaShopConfigurationsSegment,
   type ShopSegment,
   Status,
   TecpetSDK,
@@ -19,6 +19,11 @@ import {
 } from "../../../helpers/bookingMinAdvance";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
 import { buildRescheduleEmployeeIndication } from "../../../helpers/rescheduleEmployees";
+import {
+  filterByDisplayGrid,
+  intervalMinutesByDisplayMode,
+  resolveDisplayGridOrigin,
+} from "../../../helpers/timeDisplayGrid";
 import {
   extractBookingId,
   extractTakeAndBringId,
@@ -213,14 +218,14 @@ export const GetAvailableTimesHandler = async ({
 
     const rawAdditionalDays = options.getAdditionalDays;
 
-    const timeSelectionBehaviorTimeDisplayMode: ChatbotTimeDisplayModeEnum =
-      (options.timeSelectionBehaviorTimeDisplayMode as ChatbotTimeDisplayModeEnum) ??
-      null;
-
-    const shopSettings = safeJsonParse<{ timeZone?: string } | undefined>(
-      options.shopSettings,
-      undefined,
+    const displayIntervalMinutes = intervalMinutesByDisplayMode(
+      options.timeSelectionBehaviorTimeDisplayMode,
     );
+
+    const shopSettings = safeJsonParse<
+      | { timeZone?: string; segments?: PaShopConfigurationsSegment[] }
+      | undefined
+    >(options.shopSettings, undefined);
 
     // Campo correto é `timeZone` (Z maiúsculo); `timezone` vinha undefined.
     const shopTimezone = shopSettings?.timeZone ?? "America/Sao_Paulo";
@@ -480,15 +485,25 @@ export const GetAvailableTimesHandler = async ({
             Number(options.shopId),
           );
 
+          // A grade vem da abertura do segmento no dia, não do primeiro horário
+          // que sobrou: o corte de antecedência e os ocupados só removem
+          // pontos dela (TP-4816).
+          const gridOrigin = resolveDisplayGridOrigin({
+            shopSettings,
+            segmentType: options.segmentType,
+            dateISO,
+          });
+
           const buildTimes = (minAdvanceHours: number) =>
-            filterAvailableTimesByInterval(
+            filterByDisplayGrid(
               filterAvailableTimesByMinAdvance(
                 times,
                 minAdvanceHours,
                 dateISO,
                 shopTimezone,
               ),
-              timeSelectionBehaviorTimeDisplayMode,
+              displayIntervalMinutes,
+              gridOrigin,
             );
 
           const collectInto = (
@@ -504,7 +519,19 @@ export const GetAvailableTimesHandler = async ({
               }),
             );
 
-          collectInto(all, buildTimes(effectiveMinAdvanceHours));
+          const offeredTimes = buildTimes(effectiveMinAdvanceHours);
+
+          logHandler("getAvailableTimes", {
+            displayGrid: {
+              dateContext: dateISO,
+              intervalMinutes: displayIntervalMinutes,
+              originMinutes: gridOrigin.minutes,
+              originSource: gridOrigin.source,
+              offered: offeredTimes.length,
+            },
+          });
+
+          collectInto(all, offeredTimes);
 
           if (takeAndBringTightensCutoff)
             collectInto(
@@ -620,11 +647,6 @@ export const GetAvailableTimesHandler = async ({
   }
 };
 
-function getMinutesFromMidnight(timeStr: string): number {
-  const [hours, minutes] = timeStr.split(":").map(Number);
-  return hours * 60 + (minutes || 0);
-}
-
 /**
  * Descarta os horários que não respeitam a antecedência mínima do seletor.
  *
@@ -674,33 +696,4 @@ export function filterAvailableTimesByMinAdvance(
   });
 
   return filtered;
-}
-
-function filterAvailableTimesByInterval(
-  times: PaGetAvailableTimesResponse[],
-  mode: ChatbotTimeDisplayModeEnum | null,
-): PaGetAvailableTimesResponse[] {
-  if (!mode || mode === ChatbotTimeDisplayModeEnum.ALL || times.length === 0) {
-    return times;
-  }
-  const timesWithMinutes = times.map((t) => ({
-    ...t,
-    minutes: getMinutesFromMidnight(t.start),
-  }));
-  timesWithMinutes.sort((a, b) => a.minutes - b.minutes);
-
-  const intervalMinutes =
-    mode === ChatbotTimeDisplayModeEnum.THIRTY_MIN ? 30 : 60;
-
-  const filtered = [timesWithMinutes[0]];
-  let lastMinutes = timesWithMinutes[0].minutes;
-
-  for (let i = 1; i < timesWithMinutes.length; i++) {
-    const currentMinutes = timesWithMinutes[i].minutes;
-    if (currentMinutes - lastMinutes >= intervalMinutes) {
-      filtered.push(timesWithMinutes[i]);
-      lastMinutes = currentMinutes;
-    }
-  }
-  return filtered.map(({ minutes, ...rest }) => rest);
 }

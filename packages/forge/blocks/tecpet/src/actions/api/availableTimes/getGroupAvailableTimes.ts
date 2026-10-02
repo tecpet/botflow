@@ -1,8 +1,8 @@
 import {
-  ChatbotTimeDisplayModeEnum,
   type PaGetAvailableTimesResponse,
   type PaGetAvailableTimesTimesBody,
   type PaGetBookingResponse,
+  type PaShopConfigurationsSegment,
   type ShopSegment,
   TecpetSDK,
 } from "@tec.pet/tecpet-sdk";
@@ -20,11 +20,15 @@ import {
   formatPtBrList,
   type GroupPetAvailability,
   type GroupTimeOption,
-  thinGroupOptionsByInterval,
   timeToMinutes,
 } from "../../../helpers/groupReschedule";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
 import { buildRescheduleEmployeeIndication } from "../../../helpers/rescheduleEmployees";
+import {
+  filterByDisplayGrid,
+  intervalMinutesByDisplayMode,
+  resolveDisplayGridOrigin,
+} from "../../../helpers/timeDisplayGrid";
 import {
   formatBRDate,
   formatISODate,
@@ -64,7 +68,8 @@ export const getGroupAvailableTimes = createAction({
     shopSettings: option.string.layout({
       label: "Configurações da loja",
       isRequired: false,
-      helperText: "Configurações da loja (usado para ler o fuso horário)",
+      helperText:
+        "Configurações da loja (usado para ler o fuso horário e a abertura do segmento)",
     }),
     timeSelectionBehaviorTimeDisplayMode: option.string.layout({
       label: "Seletor de horários - Modo exibição dos horarios",
@@ -144,17 +149,10 @@ export const getGroupAvailableTimes = createAction({
 const MAX_ATTEMPTS = 10;
 
 // Teto de opções por dia. Sem ele, um dia inteiro livre para 3 pets geraria uma
-// lista de dezenas de blocos — o modo de exibição da loja afina depois, mas o
-// custo de montar (e serializar na variável do fluxo) já teria sido pago.
+// lista de dezenas de blocos (no modo ALL, um a cada `timeCycle`). A grade do
+// modo de exibição é aplicada nas âncoras antes, então o teto conta só blocos
+// que serão ofertados.
 const MAX_COMBINATIONS_PER_DATE = 20;
-
-const intervalMinutesByDisplayMode = (
-  mode: ChatbotTimeDisplayModeEnum | null,
-): number => {
-  if (mode === ChatbotTimeDisplayModeEnum.THIRTY_MIN) return 30;
-  if (mode === ChatbotTimeDisplayModeEnum.ONE_HOUR) return 60;
-  return 0;
-};
 
 export const GetGroupAvailableTimesHandler = async ({
   credentials,
@@ -178,15 +176,15 @@ export const GetGroupAvailableTimesHandler = async ({
       options.groupBookings,
     ).filter((booking) => Boolean(booking?.id));
 
-    const shopSettings = safeJsonParse<{ timeZone?: string } | undefined>(
-      options.shopSettings,
-      undefined,
-    );
+    const shopSettings = safeJsonParse<
+      | { timeZone?: string; segments?: PaShopConfigurationsSegment[] }
+      | undefined
+    >(options.shopSettings, undefined);
     const shopTimezone = shopSettings?.timeZone ?? DEFAULT_SHOP_TIMEZONE;
 
-    const timeDisplayMode =
-      (options.timeSelectionBehaviorTimeDisplayMode as ChatbotTimeDisplayModeEnum) ??
-      null;
+    const timeDisplayMode = options.timeSelectionBehaviorTimeDisplayMode;
+    const displayIntervalMinutes =
+      intervalMinutesByDisplayMode(timeDisplayMode);
 
     // Mesmo tratamento do seletor de um pet só: o Typebot injeta variável nula
     // como a STRING "null", e `Number("null")` é NaN — que escapava do guard
@@ -360,15 +358,35 @@ export const GetGroupAvailableTimesHandler = async ({
 
         if (!dateIsViable) continue;
 
-        const combinations = thinGroupOptionsByInterval(
-          buildGroupCombinationsForDate({
-            availabilities,
-            dateISO,
-            dateBR: formatBRDate(dateISO),
-            maxCombinations: MAX_COMBINATIONS_PER_DATE,
-          }),
-          intervalMinutesByDisplayMode(timeDisplayMode),
-        );
+        // Mesma grade do seletor de um pet só (TP-4816), olhando o início do
+        // BLOCO — o horário do primeiro pet, cujo segmento define a abertura.
+        // Só a âncora precisa cair na grade; os irmãos encaixam em sequência
+        // em qualquer slot. Afinar as âncoras ANTES de combinar faz o teto de
+        // combinações por dia contar só blocos que serão ofertados — afinando
+        // depois, um dia com :00/:30 ocupados esgotava o teto em blocos fora
+        // da grade e ficava vazio.
+        const [anchorAvailability, ...siblingAvailabilities] = availabilities;
+
+        const combinations = buildGroupCombinationsForDate({
+          availabilities: [
+            {
+              ...anchorAvailability,
+              times: filterByDisplayGrid(
+                anchorAvailability.times,
+                displayIntervalMinutes,
+                resolveDisplayGridOrigin({
+                  shopSettings,
+                  segmentType: bookings[0].segmentType,
+                  dateISO,
+                }),
+              ),
+            },
+            ...siblingAvailabilities,
+          ],
+          dateISO,
+          dateBR: formatBRDate(dateISO),
+          maxCombinations: MAX_COMBINATIONS_PER_DATE,
+        });
 
         logHandler("getGroupAvailableTimes", {
           dateISO,
