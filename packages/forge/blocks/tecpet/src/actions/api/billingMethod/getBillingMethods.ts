@@ -148,7 +148,7 @@ export const GetBillingMethodsHandler = async ({
           ) as PaBillingResponse;
 
           variables.set([
-            { id: options.sizes as string, value: hairMethod.billingItems },
+            { id: options.hairs as string, value: hairMethod.billingItems },
           ]);
           variables.set([
             {
