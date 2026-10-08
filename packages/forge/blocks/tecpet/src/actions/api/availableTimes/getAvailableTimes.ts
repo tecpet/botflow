@@ -17,8 +17,14 @@ import {
   NOT_CONFIGURED_VALUES,
   resolveMinAdvanceHours,
 } from "../../../helpers/bookingMinAdvance";
+import { formatPtBrList } from "../../../helpers/groupReschedule";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
-import { buildRescheduleEmployeeIndication } from "../../../helpers/rescheduleEmployees";
+import {
+  buildRescheduleEmployeeIndication,
+  findUnavailableIndications,
+  resolveDroppedEmployeeNames,
+  searchKeepingRescheduleEmployees,
+} from "../../../helpers/rescheduleEmployees";
 import {
   filterByDisplayGrid,
   intervalMinutesByDisplayMode,
@@ -162,6 +168,27 @@ export const getAvailableTimes = createAction({
       helperText:
         "Ids dos adicionais selecionados da categoria GROOM, para exibir/formatar separado do serviço principal",
     }),
+    employeeFallback: option.string.layout({
+      label: "Remarcação com outro profissional",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "Recebe true quando, na remarcação, o profissional do agendamento não tinha horário e a busca foi refeita sem ele. Use para avisar o cliente junto com os horários, em vez de perguntar antes.",
+    }),
+    employeeFallbackReason: option.string.layout({
+      label: "Motivo da troca de profissional",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "NO_TIMES: o profissional não tem horário nos dias buscados. EMPLOYEE_UNAVAILABLE: está inativo ou não atende mais a categoria; nunca ofereça outra data com ele. Vazio quando não houve troca.",
+    }),
+    replacedEmployeeNames: option.string.layout({
+      label: "Profissionais trocados",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        'Nomes dos profissionais do agendamento que ficaram de fora da busca (ex.: "Maria" ou "Maria e João"). Vazio quando não houve troca.',
+    }),
   }),
   getSetVariableIds: ({
     availableTimes,
@@ -169,6 +196,9 @@ export const getAvailableTimes = createAction({
     noTimesAvailable,
     noTimesAvailableForTakeAndBring,
     groomAdditionalIds,
+    employeeFallback,
+    employeeFallbackReason,
+    replacedEmployeeNames,
   }) => {
     const variables = [];
 
@@ -183,9 +213,44 @@ export const getAvailableTimes = createAction({
 
     if (groomAdditionalIds) variables.push(groomAdditionalIds);
 
+    if (employeeFallback) variables.push(employeeFallback);
+
+    if (employeeFallbackReason) variables.push(employeeFallbackReason);
+
+    if (replacedEmployeeNames) variables.push(replacedEmployeeNames);
+
     return variables;
   },
 });
+
+type EmployeeFallbackOutputs = {
+  employeeFallback: boolean;
+  employeeFallbackReason: string;
+  replacedEmployeeNames: string;
+};
+
+const NO_EMPLOYEE_FALLBACK: EmployeeFallbackOutputs = {
+  employeeFallback: false,
+  employeeFallbackReason: "",
+  replacedEmployeeNames: "",
+};
+
+/**
+ * Grava as saídas da troca de profissional, inclusive quando não houve troca.
+ * As variáveis duram a sessão inteira: um `true` deixado por uma busca anterior
+ * faria o fluxo avisar uma troca que não aconteceu.
+ */
+const setEmployeeFallbackOutputs = (
+  variables: { set: (values: { id: string; value: unknown }[]) => void },
+  options: Record<string, unknown>,
+  outputs: EmployeeFallbackOutputs,
+) => {
+  for (const [optionKey, value] of Object.entries(outputs)) {
+    const variableId = options[optionKey];
+
+    if (variableId) variables.set([{ id: variableId as string, value }]);
+  }
+};
 export const GetAvailableTimesHandler = async ({
   credentials,
   options,
@@ -548,28 +613,50 @@ export const GetAvailableTimesHandler = async ({
       return { all, allWithoutTakeAndBring };
     };
 
-    const preferredSearch = await searchTimes(searchEmployeesIndication);
-
     // Na remarcação o mesmo profissional é preferência, não requisito: se ele
     // não tem nenhum horário na janela — agenda cheia, folga, ou nem atende
     // mais a categoria (a API responde erro e o dia é pulado acima) — a busca é
-    // refeita com qualquer profissional em vez de deixar o cliente sem horário
-    // (TP-4662). No agendamento novo a indicação é escolha do cliente e segue
-    // valendo sem fallback.
-    const employeeFallback =
-      isReschedule &&
-      searchEmployeesIndication.length > 0 &&
-      preferredSearch.all.length === 0;
+    // refeita sem ele em vez de deixar o cliente sem horário (TP-4662). Sai só
+    // quem não tem horário: num Banho + Tosa, o profissional da Tosa continua
+    // quando a busca fecha com ele (TP-4863). No agendamento novo a indicação é
+    // escolha do cliente e segue valendo sem fallback.
+    const employeeSearch = isReschedule
+      ? await searchKeepingRescheduleEmployees({
+          indication: searchEmployeesIndication,
+          search: searchTimes,
+          hasTimes: (result) => result.all.length > 0,
+          findUnavailable: (indication) =>
+            findUnavailableIndications(
+              tecpetSdk,
+              Number(options.shopId),
+              indication,
+            ),
+        })
+      : null;
 
-    const { all, allWithoutTakeAndBring } = employeeFallback
-      ? await searchTimes([])
-      : preferredSearch;
+    const { all, allWithoutTakeAndBring } =
+      employeeSearch?.result ?? (await searchTimes(searchEmployeesIndication));
+
+    const droppedIndication = employeeSearch?.dropped ?? [];
+
+    const employeeFallbackOutputs: EmployeeFallbackOutputs = {
+      employeeFallback: droppedIndication.length > 0,
+      employeeFallbackReason: employeeSearch?.reason ?? "",
+      replacedEmployeeNames: formatPtBrList(
+        resolveDroppedEmployeeNames(rescheduleBooking, droppedIndication),
+      ),
+    };
 
     logHandler("getAvailableTimes", {
       isReschedule,
       employeesIndication: summarizeArray(searchEmployeesIndication),
-      employeeFallback,
-      timesWithFallback: employeeFallback ? all.length : null,
+      usedEmployeesIndication: employeeSearch
+        ? summarizeArray(employeeSearch.indication)
+        : null,
+      ...employeeFallbackOutputs,
+      timesWithFallback: employeeFallbackOutputs.employeeFallback
+        ? all.length
+        : null,
     });
 
     if (all.length > 0) {
@@ -618,6 +705,7 @@ export const GetAvailableTimesHandler = async ({
     variables.set([
       { id: options.groomAdditionalIds as string, value: groomAdditionalIds },
     ]);
+    setEmployeeFallbackOutputs(variables, options, employeeFallbackOutputs);
   } catch (error) {
     console.error(error);
 
@@ -644,6 +732,7 @@ export const GetAvailableTimesHandler = async ({
       // ramo errado e oferecer "seguir sem o leva e traz" onde não há agenda.
       { id: options.noTimesAvailableForTakeAndBring as string, value: false },
     ]);
+    setEmployeeFallbackOutputs(variables, options, NO_EMPLOYEE_FALLBACK);
   }
 };
 

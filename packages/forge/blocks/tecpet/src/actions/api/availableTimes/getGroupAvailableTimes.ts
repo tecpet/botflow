@@ -1,4 +1,5 @@
 import {
+  type PaEmployeeIndication,
   type PaGetAvailableTimesResponse,
   type PaGetAvailableTimesTimesBody,
   type PaGetBookingResponse,
@@ -23,7 +24,14 @@ import {
   timeToMinutes,
 } from "../../../helpers/groupReschedule";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
-import { buildRescheduleEmployeeIndication } from "../../../helpers/rescheduleEmployees";
+import {
+  buildRescheduleEmployeeIndication,
+  EmployeeFallbackReason,
+  findUnavailableIndications,
+  type RescheduleEmployeeSearch,
+  resolveDroppedEmployeeNames,
+  searchKeepingRescheduleEmployees,
+} from "../../../helpers/rescheduleEmployees";
 import {
   filterByDisplayGrid,
   intervalMinutesByDisplayMode,
@@ -124,6 +132,34 @@ export const getGroupAvailableTimes = createAction({
       helperText:
         "Recebe os nomes dos pets que não tinham horário nenhum nas datas pesquisadas",
     }),
+    employeeFallback: option.string.layout({
+      label: "Remarcação com outro profissional (saída)",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "Recebe true quando algum pet teve o profissional do agendamento trocado porque ele não tinha horário. Use para avisar o cliente junto com os horários, em vez de perguntar antes.",
+    }),
+    employeeFallbackReason: option.string.layout({
+      label: "Motivo da troca de profissional (saída)",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "NO_TIMES: o profissional não tem horário nos dias buscados. EMPLOYEE_UNAVAILABLE: algum profissional trocado está inativo ou não atende mais a categoria; nunca ofereça outra data com ele. Vazio quando não houve troca.",
+    }),
+    employeeFallbackPetNames: option.string.layout({
+      label: "Pets que trocaram de profissional (saída)",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "Nomes dos pets cujo profissional foi trocado. Os outros pets continuam com o profissional do agendamento. Vazio quando não houve troca.",
+    }),
+    replacedEmployeeNames: option.string.layout({
+      label: "Profissionais trocados (saída)",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        'Nomes dos profissionais que ficaram de fora da busca (ex.: "Maria" ou "Maria e João"). Vazio quando não houve troca.',
+    }),
   }),
   getSetVariableIds: ({
     inputAdditionalDays,
@@ -131,6 +167,10 @@ export const getGroupAvailableTimes = createAction({
     noTimesAvailable,
     noGroupCombinationAvailable,
     groupUnavailablePetNames,
+    employeeFallback,
+    employeeFallbackReason,
+    employeeFallbackPetNames,
+    replacedEmployeeNames,
   }) => {
     const variables = [];
 
@@ -140,10 +180,21 @@ export const getGroupAvailableTimes = createAction({
     if (noGroupCombinationAvailable)
       variables.push(noGroupCombinationAvailable);
     if (groupUnavailablePetNames) variables.push(groupUnavailablePetNames);
+    if (employeeFallback) variables.push(employeeFallback);
+    if (employeeFallbackReason) variables.push(employeeFallbackReason);
+    if (employeeFallbackPetNames) variables.push(employeeFallbackPetNames);
+    if (replacedEmployeeNames) variables.push(replacedEmployeeNames);
 
     return variables;
   },
 });
+
+// Horários de um pet na janela, por dia, já com o corte de antecedência.
+// `null` no dia = a API falhou nessa data.
+type PetWindowTimes = Map<string, PaGetAvailableTimesResponse[] | null>;
+
+const petHasTimes = (times: PetWindowTimes) =>
+  [...times.values()].some((dayTimes) => (dayTimes?.length ?? 0) > 0);
 
 // Mesmo teto de tentativas do seletor de um pet só: 10 dias adicionais, de 2 em 2.
 const MAX_ATTEMPTS = 10;
@@ -167,6 +218,25 @@ export const GetGroupAvailableTimesHandler = async ({
     const variableId = options[optionKey] as string;
 
     if (variableId) variables.set([{ id: variableId, value }]);
+  };
+
+  // Sempre gravadas, inclusive sem troca: as variáveis duram a sessão inteira, e
+  // um `true` de uma busca anterior faria o fluxo avisar uma troca que não houve.
+  const setEmployeeFallbackOutputs = (outputs: {
+    employeeFallback: boolean;
+    employeeFallbackReason: string;
+    employeeFallbackPetNames: string;
+    replacedEmployeeNames: string;
+  }) => {
+    for (const [optionKey, value] of Object.entries(outputs))
+      setVariable(optionKey, value);
+  };
+
+  const noEmployeeFallback = {
+    employeeFallback: false,
+    employeeFallbackReason: "",
+    employeeFallbackPetNames: "",
+    replacedEmployeeNames: "",
   };
 
   try {
@@ -253,6 +323,7 @@ export const GetGroupAvailableTimesHandler = async ({
       setVariable("noTimesAvailable", true);
       setVariable("noGroupCombinationAvailable", false);
       setVariable("groupUnavailablePetNames", "");
+      setEmployeeFallbackOutputs(noEmployeeFallback);
       return;
     }
 
@@ -270,11 +341,107 @@ export const GetGroupAvailableTimesHandler = async ({
       ]),
     );
 
-    const hasEmployeeIndication = [
-      ...employeesIndicationByBooking.values(),
-    ].some((indication) => indication.length > 0);
+    const fetchPetTimes = async (
+      booking: PaGetBookingResponse,
+      indication: PaEmployeeIndication[],
+    ): Promise<PetWindowTimes> => {
+      // Os serviços vêm do próprio agendamento, nunca do catálogo do menu:
+      // reagendamento mantém o que foi contratado (mesma decisão do ramo de
+      // remarcação do getAvailableTimes).
+      const services = (booking.services ?? []).map((service) =>
+        Number(service.id),
+      );
+      const combos = (booking.combos ?? []).map((combo) => Number(combo.id));
 
-    const searchGroupOptions = async (preferSameEmployee: boolean) => {
+      const timesByDate: PetWindowTimes = new Map();
+
+      for (const dateISO of searchDates) {
+        const body: PaGetAvailableTimesTimesBody = {
+          date: dateISO,
+          combos,
+          services,
+          petId: Number(booking.petId),
+          segment: booking.segmentType as ShopSegment,
+          employeesIndication: indication,
+          // O agendamento que está sendo movido não pode ocupar a agenda do
+          // próprio profissional (mesma razão do getAvailableTimes).
+          bookingId: booking.id,
+        };
+
+        try {
+          const times = await tecpetSdk.availableTimes.list(body, shopId);
+
+          timesByDate.set(
+            dateISO,
+            filterAvailableTimesByMinAdvance(
+              times,
+              minAdvanceHours,
+              dateISO,
+              shopTimezone,
+            ),
+          );
+        } catch (error) {
+          // Erro da API em um pet invalida o DIA (não dá para prometer um
+          // bloco sem saber a agenda dele), mas não a busca: as outras datas
+          // seguem, como no seletor de um pet só.
+          logHandler("getGroupAvailableTimes", {
+            dateISO,
+            bookingId: booking.id,
+            employeesIndication: indication,
+            availableTimesFailed: true,
+            error: describeApiError(error),
+          });
+          timesByDate.set(dateISO, null);
+        }
+      }
+
+      return timesByDate;
+    };
+
+    // Memoizado por pet + indicação: o fallback de um pet e o fallback geral
+    // podem repetir a mesma busca.
+    const petTimesCache = new Map<string, Promise<PetWindowTimes>>();
+
+    const searchPetTimes = (
+      booking: PaGetBookingResponse,
+      indication: PaEmployeeIndication[],
+    ) => {
+      const cacheKey = `${booking.id}|${indication
+        .map((item) => `${item.id}:${item.serviceCategoryId}`)
+        .join(",")}`;
+      const cached = petTimesCache.get(cacheKey);
+
+      if (cached) return cached;
+
+      const search = fetchPetTimes(booking, indication);
+      petTimesCache.set(cacheKey, search);
+
+      return search;
+    };
+
+    // O fallback é por pet (TP-4863): só sai da indicação o pet cujo
+    // profissional não tem horário na janela, e dentro dele só o profissional
+    // que trava a busca. Antes, um profissional bloqueado trocava o
+    // profissional de todos os pets do grupo.
+    const employeeSearchByBooking = new Map<
+      number,
+      RescheduleEmployeeSearch<PetWindowTimes>
+    >();
+
+    for (const booking of bookings) {
+      employeeSearchByBooking.set(
+        booking.id,
+        await searchKeepingRescheduleEmployees({
+          indication: employeesIndicationByBooking.get(booking.id) ?? [],
+          search: (indication) => searchPetTimes(booking, indication),
+          hasTimes: petHasTimes,
+          findUnavailable: (indication) =>
+            findUnavailableIndications(tecpetSdk, shopId, indication),
+        }),
+      );
+    }
+
+    const buildGroupOptions = (stage: "perPet" | "allEmployees") => {
       const groupOptions: GroupTimeOption[] = [];
 
       // Pet que não tem horário NENHUM nas datas pesquisadas: é o que explica ao
@@ -288,57 +455,18 @@ export const GetGroupAvailableTimesHandler = async ({
         let dateIsViable = true;
 
         for (const booking of bookings) {
-          // Os serviços vêm do próprio agendamento, nunca do catálogo do menu:
-          // reagendamento mantém o que foi contratado (mesma decisão do ramo de
-          // remarcação do getAvailableTimes).
-          const services = (booking.services ?? []).map((service) =>
-            Number(service.id),
-          );
-          const combos = (booking.combos ?? []).map((combo) =>
-            Number(combo.id),
-          );
+          const times = employeeSearchByBooking
+            .get(booking.id)
+            ?.result.get(dateISO);
 
-          const body: PaGetAvailableTimesTimesBody = {
-            date: dateISO,
-            combos,
-            services,
-            petId: Number(booking.petId),
-            segment: booking.segmentType as ShopSegment,
-            employeesIndication: preferSameEmployee
-              ? (employeesIndicationByBooking.get(booking.id) ?? [])
-              : [],
-            // O agendamento que está sendo movido não pode ocupar a agenda do
-            // próprio profissional (mesma razão do getAvailableTimes).
-            bookingId: booking.id,
-          };
-
-          let times: PaGetAvailableTimesResponse[] = [];
-
-          try {
-            times = await tecpetSdk.availableTimes.list(body, shopId);
-          } catch (error) {
-            // Erro transitório da API em um pet invalida o DIA (não dá para
-            // prometer um bloco sem saber a agenda dele), mas não a busca: as
-            // outras datas seguem, como o `break` do seletor de um pet só.
-            logHandler("getGroupAvailableTimes", {
-              dateISO,
-              bookingId: booking.id,
-              preferSameEmployee,
-              availableTimesFailed: true,
-              error: describeApiError(error),
-            });
+          // Falha da API nesse dia (ver fetchPetTimes): o dia sai sem culpar
+          // o pet.
+          if (!times) {
             dateIsViable = false;
             break;
           }
 
-          const filtered = filterAvailableTimesByMinAdvance(
-            times,
-            minAdvanceHours,
-            dateISO,
-            shopTimezone,
-          );
-
-          if (filtered.length === 0) {
+          if (times.length === 0) {
             petsWithoutTimes.add(booking.petName);
             dateIsViable = false;
             break;
@@ -352,7 +480,7 @@ export const GetGroupAvailableTimesHandler = async ({
               petId: Number(booking.petId),
               petName: booking.petName,
             },
-            times: filtered,
+            times,
           });
         }
 
@@ -390,7 +518,7 @@ export const GetGroupAvailableTimesHandler = async ({
 
         logHandler("getGroupAvailableTimes", {
           dateISO,
-          preferSameEmployee,
+          stage,
           pets: availabilities.length,
           timesPerPet: availabilities.map((availability) => ({
             petName: availability.booking.petName,
@@ -405,23 +533,83 @@ export const GetGroupAvailableTimesHandler = async ({
       return { groupOptions, petsWithoutTimes, anyPetHadTimes };
     };
 
-    const preferredSearch = await searchGroupOptions(hasEmployeeIndication);
+    const perPetSearch = buildGroupOptions("perPet");
 
-    // Mesma regra do seletor de um pet só: manter os profissionais é
-    // preferência. Se nenhum bloco fecha com eles na janela, a busca é refeita
-    // com qualquer profissional antes de dizer ao tutor que não há horário.
-    const employeeFallback =
-      hasEmployeeIndication && preferredSearch.groupOptions.length === 0;
+    // Cada pet tem horário sozinho, mas nenhum dia fecha o grupo com os
+    // profissionais que sobraram: último recurso, qualquer profissional para
+    // todos. É a garantia de antes da TP-4863, de a preferência não deixar o
+    // grupo sem horário. Se algum pet não tem horário nem sem indicação, o
+    // grupo não fecha de jeito nenhum, e trocar os outros não adiantaria.
+    const searches = [...employeeSearchByBooking.values()];
+    const groupWideFallback =
+      perPetSearch.groupOptions.length === 0 &&
+      searches.every((search) => petHasTimes(search.result)) &&
+      searches.some((search) => search.indication.length > 0);
 
-    const { groupOptions, petsWithoutTimes, anyPetHadTimes } = employeeFallback
-      ? await searchGroupOptions(false)
-      : preferredSearch;
+    if (groupWideFallback) {
+      for (const booking of bookings) {
+        const search = employeeSearchByBooking.get(booking.id);
+
+        if (!search || search.indication.length === 0) continue;
+
+        employeeSearchByBooking.set(booking.id, {
+          result: await searchPetTimes(booking, []),
+          indication: [],
+          dropped: employeesIndicationByBooking.get(booking.id) ?? [],
+          reason: search.reason ?? EmployeeFallbackReason.NO_TIMES,
+        });
+      }
+    }
+
+    const { groupOptions, petsWithoutTimes, anyPetHadTimes } = groupWideFallback
+      ? buildGroupOptions("allEmployees")
+      : perPetSearch;
+
+    const replacedBookings = bookings.filter(
+      (booking) =>
+        (employeeSearchByBooking.get(booking.id)?.dropped.length ?? 0) > 0,
+    );
+    const replacedReasons = replacedBookings.map(
+      (booking) => employeeSearchByBooking.get(booking.id)?.reason,
+    );
+
+    const employeeFallbackOutputs = {
+      employeeFallback: replacedBookings.length > 0,
+      employeeFallbackReason: replacedReasons.includes(
+        EmployeeFallbackReason.EMPLOYEE_UNAVAILABLE,
+      )
+        ? EmployeeFallbackReason.EMPLOYEE_UNAVAILABLE
+        : replacedBookings.length > 0
+          ? EmployeeFallbackReason.NO_TIMES
+          : "",
+      employeeFallbackPetNames: formatPtBrList(
+        replacedBookings.map((booking) => booking.petName),
+      ),
+      replacedEmployeeNames: formatPtBrList([
+        ...new Set(
+          replacedBookings.flatMap((booking) =>
+            resolveDroppedEmployeeNames(
+              booking,
+              employeeSearchByBooking.get(booking.id)?.dropped ?? [],
+            ),
+          ),
+        ),
+      ]),
+    };
 
     logHandler("getGroupAvailableTimes", {
-      employeesIndication: [...employeesIndicationByBooking.entries()].map(
-        ([bookingId, indication]) => ({ bookingId, indication }),
-      ),
-      employeeFallback,
+      employeesIndication: bookings.map((booking) => {
+        const search = employeeSearchByBooking.get(booking.id);
+
+        return {
+          bookingId: booking.id,
+          indication: employeesIndicationByBooking.get(booking.id) ?? [],
+          usedIndication: search?.indication ?? [],
+          reason: search?.reason ?? null,
+        };
+      }),
+      groupWideFallback,
+      ...employeeFallbackOutputs,
     });
 
     groupOptions.sort(
@@ -459,6 +647,7 @@ export const GetGroupAvailableTimesHandler = async ({
       "groupUnavailablePetNames",
       formatPtBrList([...petsWithoutTimes]),
     );
+    setEmployeeFallbackOutputs(employeeFallbackOutputs);
 
     if (additionalDays > MAX_ATTEMPTS) setVariable("noTimesAvailable", true);
   } catch (error) {
@@ -476,5 +665,6 @@ export const GetGroupAvailableTimesHandler = async ({
     setVariable("noTimesAvailable", true);
     setVariable("noGroupCombinationAvailable", false);
     setVariable("groupUnavailablePetNames", "");
+    setEmployeeFallbackOutputs(noEmployeeFallback);
   }
 };
