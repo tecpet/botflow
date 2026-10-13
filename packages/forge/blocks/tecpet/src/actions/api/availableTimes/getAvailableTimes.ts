@@ -13,6 +13,11 @@ import { utcToZonedTime } from "date-fns-tz";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import {
+  BOT_GUARD_SCOPES,
+  buildGuardServiceIds,
+  resolveBookingGuardBlockedDates,
+} from "../../../helpers/bookingGuard";
+import {
   isBookingWithinMinAdvanceHours,
   NOT_CONFIGURED_VALUES,
   resolveMinAdvanceHours,
@@ -430,6 +435,9 @@ export const GetAvailableTimesHandler = async ({
     let selectedAdditionalIds: number[] = [];
     let groomAdditionalIds: number[] = [];
 
+    // Serviço escolhido no agendamento novo; `null` na remarcação.
+    let selectedService: ServiceOptionType | null = null;
+
     if (rescheduleBooking) {
       // Lê do próprio agendamento em vez de `servicesIds`. Aquela variável tem
       // dois sentidos conforme o fluxo (serviços do agendamento na remarcação,
@@ -446,6 +454,8 @@ export const GetAvailableTimesHandler = async ({
       const parsedSelectedService: ServiceOptionType = JSON.parse(
         options.selectedService as string,
       );
+
+      selectedService = parsedSelectedService;
 
       const selectedId = Number(parsedSelectedService.id);
 
@@ -518,6 +528,57 @@ export const GetAvailableTimesHandler = async ({
 
     const searchDates = [formatISODate(today), formatISODate(tomorrow)];
 
+    // A restrição de agenda só era validada na confirmação, depois que o
+    // cliente já tinha escolhido o horário: a lista oferecia o sábado para uma
+    // tosa que a loja não faz no sábado, e quem escolhia caía no atendente
+    // (TP-4889). Agora os dias barrados saem da busca, avaliados contra os
+    // mesmos serviços que a confirmação valida.
+    //
+    // A remarcação fica de fora: ela não passa pela validação da confirmação, e
+    // o combo do agendamento não traz os serviços que o compõem.
+    const guardServiceIds = selectedService
+      ? buildGuardServiceIds({
+          selectedService,
+          catalogServiceIds: rawServices.map(Number),
+          selectedAdditionalIds,
+          takeAndBringId,
+        }).services
+      : [];
+
+    const guardFilter = selectedService
+      ? await resolveBookingGuardBlockedDates({
+          dates: searchDates,
+          validate: (dateISO) =>
+            tecpetSdk.bookingGuard.validation(
+              {
+                petId: Number(options.petId),
+                servicesId: guardServiceIds,
+                date: dateISO,
+                segmentType: options.segmentType as ShopSegment,
+                guardScopes: BOT_GUARD_SCOPES,
+              },
+              Number(options.shopId),
+            ),
+        })
+      : null;
+
+    logHandler("getAvailableTimes", {
+      bookingGuard: guardFilter
+        ? {
+            services: guardServiceIds,
+            blockedDates: [...guardFilter.blockedDates].map(
+              ([dateISO, guard]) => ({
+                dateISO,
+                guardId: guard?.id ?? null,
+                guardName: guard?.name ?? null,
+              }),
+            ),
+            dateIndependent: guardFilter.dateIndependent,
+            failedDates: guardFilter.failedDates,
+          }
+        : { skipped: "reschedule" },
+    });
+
     const searchTimes = async (indication: PaEmployeeIndication[]) => {
       const all: AvailableTimeType[] = [];
 
@@ -528,6 +589,10 @@ export const GetAvailableTimesHandler = async ({
       const allWithoutTakeAndBring: AvailableTimeType[] = [];
 
       for (const dateISO of searchDates) {
+        // Dia barrado pela restrição sai das duas listas: não é culpa do leva e
+        // traz, e sem agenda nele o fluxo segue para as próximas datas.
+        if (guardFilter?.blockedDates.has(dateISO)) continue;
+
         const body: PaGetAvailableTimesTimesBody = {
           date: dateISO,
           combos,

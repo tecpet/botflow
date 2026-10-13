@@ -1,5 +1,4 @@
 import {
-  BookingGuardScopeEnum,
   type PaGetBookingGuardValidationBody,
   type ShopSegment,
   TecpetSDK,
@@ -9,8 +8,16 @@ import type { LogsStore } from "@typebot.io/forge/types";
 import { auth } from "../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../constants";
 import { describeApiError } from "../../helpers/apiErrors";
+import {
+  BOT_GUARD_SCOPES,
+  buildGuardServiceIds,
+} from "../../helpers/bookingGuard";
 import { logHandler, summarizeArray } from "../../helpers/logger";
-import { parseIds } from "../../helpers/utils";
+import {
+  extractTakeAndBringId,
+  parseIds,
+  safeJsonParse,
+} from "../../helpers/utils";
 import type { AvailableTimeType } from "../api/availableTimes/getAvailableTimes";
 import type { ServiceOptionType } from "../internal/buildServiceOptions";
 
@@ -148,61 +155,25 @@ export const VerifyBookingGuardHandler = async ({
 
     const selectedId = Number(parsedSelectedService.id);
 
-    // A restrição tem que ser avaliada contra o MESMO conjunto de serviços
-    // que o `createBooking` vai gravar (principal + leva e traz +
-    // adicionais). Validar só o principal era o bug da TP-4170: restrição
-    // sobre um serviço que o fluxo só oferece como "mimo extra" nunca era
-    // testada, e o agendamento passava.
-    const services: number[] = [];
-
-    let comboServiceIds: number[] = [];
-
-    if (parsedSelectedService.type === "COMBO") {
-      // O endpoint de restrição só aceita `servicesId` — não existe
-      // `combosId` no contrato. Então o combo é expandido nos serviços que
-      // o compõem, que já vêm no próprio objeto montado por
-      // `buildServiceOptions`. Sem isso o combo saía com a lista vazia e
-      // escapava de qualquer restrição de serviço.
-      comboServiceIds = (parsedSelectedService.services ?? []).map((service) =>
-        Number(service.id),
-      );
-
-      services.push(...comboServiceIds);
-    } else if (serviceIds.includes(selectedId)) {
-      services.push(selectedId);
-    }
-
     const selectedAdditionalIds = options.selectedAdditionals
       ? parseIds(options.selectedAdditionals)
       : [];
 
-    services.push(...selectedAdditionalIds);
-
     // Parse tolerante de propósito: a variável é opcional, e desde a TP-4460 o
     // catch do handler bloqueia o agendamento. Sem essa tolerância um leva e
-    // traz malformado mandaria o cliente para o atendente sem necessidade.
-    let takeAndBringId: number | null = null;
-
-    if (options.selectedTakeAndBring) {
-      try {
-        const takeAndBring: ServiceOptionType = JSON.parse(
-          options.selectedTakeAndBring as string,
-        );
-
-        takeAndBringId = Number(takeAndBring?.id);
-      } catch {
-        takeAndBringId = null;
-      }
-
-      if (takeAndBringId) services.push(takeAndBringId);
-    }
-
-    // Dedup e descarte de ids inválidos: o combo pode repetir um serviço já
-    // escolhido como adicional, e o id sentinela -1 ("VER OUTROS SERVIÇOS")
-    // não pode chegar na consulta.
-    const uniqueServices = [...new Set(services)].filter(
-      (id) => Number.isFinite(id) && id > 0,
+    // traz malformado mandaria o cliente para o atendente sem necessidade. É o
+    // mesmo parse da busca de horários, que filtra os dias por esta restrição.
+    const takeAndBringId = extractTakeAndBringId(
+      safeJsonParse<unknown>(options.selectedTakeAndBring, null) ??
+        options.selectedTakeAndBring,
     );
+
+    const { services: uniqueServices, comboServiceIds } = buildGuardServiceIds({
+      selectedService: parsedSelectedService,
+      catalogServiceIds: serviceIds,
+      selectedAdditionalIds,
+      takeAndBringId,
+    });
 
     logHandler("verifyBookingGuard", {
       petId: Number(options.petId),
@@ -223,7 +194,7 @@ export const VerifyBookingGuardHandler = async ({
       servicesId: uniqueServices,
       date: selectedTimeOption.dateISO,
       segmentType: options.segmentType as ShopSegment,
-      guardScopes: [BookingGuardScopeEnum.BOT, BookingGuardScopeEnum.BOTH],
+      guardScopes: BOT_GUARD_SCOPES,
     };
 
     const bookingGuardValidation = await tecpetSdk.bookingGuard.validation(
