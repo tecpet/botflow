@@ -8,12 +8,18 @@ import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
+import {
+  groupCategoriesForSameEmployee,
+  parsePreferSameEmployee,
+} from "../../../helpers/sameEmployee";
 import { parseIds, parseJsonArray } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
 export interface EmployeeServiceIndicationOption {
   name: string;
   category: ServiceCategoryType;
+  /** Pergunta agrupada (TP-4743): todas as categorias com o mesmo profissional. */
+  categories?: ServiceCategoryType[];
 }
 
 export const serviceCategoryLabel = {
@@ -64,6 +70,12 @@ export const getEmployess = createAction({
       isRequired: true,
       helperText: "ID da loja",
     }),
+    preferSameEmployee: option.string.layout({
+      label: "Manter o mesmo profissional em todos os serviços",
+      isRequired: false,
+      helperText:
+        "Saída de Configurações da Loja. Quando verdadeira, pergunta um profissional só para todas as categorias do serviço",
+    }),
   }),
   getSetVariableIds: ({ selectedService }) => {
     const variables = [];
@@ -89,7 +101,11 @@ export const GetEmployessHandler = async ({
 
     const shopId = Number(options.shopId);
 
-    logHandler("getEmployess", { shopId, selectedServiceType: selectedService?.type, selectedServiceId: selectedService?.id });
+    logHandler("getEmployess", {
+      shopId,
+      selectedServiceType: selectedService?.type,
+      selectedServiceId: selectedService?.id,
+    });
 
     const filters: PaEmployeeFilter = { serviceCategoryIds: [] };
 
@@ -166,7 +182,10 @@ export const GetEmployessHandler = async ({
 
     filters["serviceCategoryIds"] = servicesCategoriesIds;
 
-    logHandler("getEmployess", { servicesCategoriesIds, employeeServiceCategoriesIndication });
+    logHandler("getEmployess", {
+      servicesCategoriesIds,
+      employeeServiceCategoriesIndication,
+    });
 
     const tecpetSdk = new TecpetSDK(
       (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
@@ -176,16 +195,33 @@ export const GetEmployessHandler = async ({
     const employees: PaEmployeeResponse[] =
       await tecpetSdk.employee.getEmployeesByServiceCategory(filters, shopId);
 
-    logHandler("getEmployess", { employees: summarizeArray(employees) });
+    const preferSameEmployee = parsePreferSameEmployee(
+      options.preferSameEmployee,
+    );
+
+    const offer = groupCategoriesForSameEmployee({
+      preferSameEmployee,
+      categories: employeeServiceCategoriesIndication,
+      employees,
+    });
+
+    logHandler("getEmployess", {
+      employees: summarizeArray(employees),
+      preferSameEmployee,
+      groupedCategories: offer.grouped,
+      offeredEmployees: summarizeArray(offer.employees.map((e) => e.id)),
+    });
 
     variables.set([
       {
         id: options.employeeServiceCategories as string,
-        value: employeeServiceCategoriesIndication,
+        value: offer.categories,
       },
     ]);
 
-    variables.set([{ id: options.employees as string, value: employees }]);
+    variables.set([
+      { id: options.employees as string, value: offer.employees },
+    ]);
   } catch (error) {
     console.error(error);
   }

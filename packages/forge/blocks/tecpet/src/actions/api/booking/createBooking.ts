@@ -21,6 +21,7 @@ import {
   petPlanRefusalErrors,
   resolvePetPlanForBooking,
 } from "../../../helpers/petPlan";
+import { flattenEmployeeIndications } from "../../../helpers/sameEmployee";
 import { parseIds } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 import type { AvailableTimeType } from "../availableTimes/getAvailableTimes";
@@ -243,8 +244,10 @@ export const CreateBookingHandler = async ({
       : [];
 
     const employeesIndications: PaEmployeeIndication[] =
-      parsedEmployeeIndications.map((item) =>
-        typeof item === "string" ? JSON.parse(item) : item,
+      flattenEmployeeIndications<PaEmployeeIndication>(
+        parsedEmployeeIndications.map((item) =>
+          typeof item === "string" ? JSON.parse(item) : item,
+        ),
       );
 
     logHandler("createBooking", {

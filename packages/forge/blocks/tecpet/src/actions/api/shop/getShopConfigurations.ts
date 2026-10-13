@@ -13,6 +13,15 @@ export interface ChainAddress {
   uf: string;
 }
 
+/**
+ * `booking.preferSameEmployee` (TP-4743) vem da API independentemente da versão
+ * do SDK em que o bloco está preso; tipado aqui até o bloco subir o SDK.
+ */
+type BookingConfigWithEmployeePreference =
+  PaShopConfigurationsResponse["advancedConfig"]["booking"] & {
+    preferSameEmployee?: boolean;
+  };
+
 export const getShopConfigurations = createAction({
   auth,
   baseOptions,
@@ -57,6 +66,11 @@ export const getShopConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    preferSameEmployee: option.string.layout({
+      label: "Manter o mesmo profissional em todos os serviços",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     chargeMode,
@@ -66,6 +80,7 @@ export const getShopConfigurations = createAction({
     shopSegments,
     chainShops,
     chainAddresses,
+    preferSameEmployee,
   }) => {
     const variables: string[] = [];
 
@@ -84,6 +99,8 @@ export const getShopConfigurations = createAction({
     if (chainShops) variables.push(chainShops);
 
     if (chainAddresses) variables.push(chainAddresses);
+
+    if (preferSameEmployee) variables.push(preferSameEmployee);
 
     return variables;
   },
@@ -128,8 +145,16 @@ export const GetShopConfigurationsHandler = async ({
           ).values(),
         );
 
+        const preferSameEmployee =
+          (
+            result.advancedConfig?.booking as
+              | BookingConfigWithEmployeePreference
+              | undefined
+          )?.preferSameEmployee === true;
+
         logHandler("getShopConfigurations", {
           chargeMode,
+          preferSameEmployee,
           serviceByBreed: result.advancedConfig?.global?.serviceByBreed,
           chainShops: summarizeArray(chainShops.map((s) => s.id)),
           chainAddresses: summarizeArray(chainAddresses),
@@ -164,6 +189,11 @@ export const GetShopConfigurationsHandler = async ({
         }
         if (options.shopSettings) {
           variables.set([{ id: options.shopSettings, value: result }]);
+        }
+        if (options.preferSameEmployee) {
+          variables.set([
+            { id: options.preferSameEmployee, value: preferSameEmployee },
+          ]);
         }
       }
     }

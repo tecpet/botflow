@@ -30,6 +30,7 @@ import {
   resolveDroppedEmployeeNames,
   searchKeepingRescheduleEmployees,
 } from "../../../helpers/rescheduleEmployees";
+import { flattenEmployeeIndications } from "../../../helpers/sameEmployee";
 import {
   filterByDisplayGrid,
   intervalMinutesByDisplayMode,
@@ -278,13 +279,15 @@ export const GetAvailableTimesHandler = async ({
 
     // Indicação malformada não deve impedir a busca de horários: seguimos sem
     // indicação em vez de derrubar o bloco.
-    const employeesIndication: PaEmployeeIndication[] = (
-      Array.isArray(parsedEmployeeIndications) ? parsedEmployeeIndications : []
-    )
-      .map((item) =>
-        typeof item === "string" ? safeJsonParse<unknown>(item, null) : item,
-      )
-      .filter((item): item is PaEmployeeIndication => item !== null);
+    const employeesIndication: PaEmployeeIndication[] =
+      flattenEmployeeIndications(
+        (Array.isArray(parsedEmployeeIndications)
+          ? parsedEmployeeIndications
+          : []
+        ).map((item) =>
+          typeof item === "string" ? safeJsonParse<unknown>(item, null) : item,
+        ),
+      ).filter((item): item is PaEmployeeIndication => item !== null);
 
     const rawAdditionalDays = options.getAdditionalDays;
 
