@@ -1,11 +1,3 @@
-# values do chart kubeapps para o botflow-viewer (DEV / AWS).
-# Deploy: helm upgrade --install botflow-viewer kubeapps/kubeapps -f helm/dev/values-viewer.yaml
-# (a tag da imagem vem por --set no pipeline build-push-ecr-viewer.yml)
-#
-# Secrets: params em /tecpet/botflow-viewer/<KEY> no Parameter Store,
-# puxados pelo ClusterSecretStore aws-parameterstore.
-# Banco: postgres-botflow-service (in-cluster), compartilhado entre builder e viewer.
-
 projectName: botflow-viewer
 namespace: tecpet-dev-app
 appVersion: development
@@ -33,7 +25,6 @@ deployment:
       image:
         registry: "280655931130.dkr.ecr.us-east-2.amazonaws.com"
         repository: "botflow-viewer"
-        # tag: definida pelo pipeline (--set ...image.tag=<sha>)
       ports:
         - containerPort: 3000
       env:
