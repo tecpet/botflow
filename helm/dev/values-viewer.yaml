@@ -1,0 +1,96 @@
+# values do chart kubeapps para o botflow-viewer (DEV / AWS).
+# Deploy: helm upgrade --install botflow-viewer kubeapps/kubeapps -f helm/dev/values-viewer.yaml
+# (a tag da imagem vem por --set no pipeline build-push-ecr-viewer.yml)
+#
+# Secrets: params em /tecpet/botflow-viewer/<KEY> no Parameter Store,
+# puxados pelo ClusterSecretStore aws-parameterstore.
+# Banco: postgres-botflow-service (in-cluster), compartilhado entre builder e viewer.
+
+projectName: botflow-viewer
+namespace: tecpet-dev-app
+appVersion: development
+
+serviceAccount:
+  enabled: false
+
+service:
+  enabled: true
+
+ingress:
+  enabled: true
+  ingresses:
+    - annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/group.name: k8s-public
+        alb.ingress.kubernetes.io/healthcheck-path: /healthz
+      hosts:
+        - host: botflow-viewer-aws.tecpet.dev
+
+deployment:
+  enabled: true
+  containers:
+    - name: botflow-viewer
+      image:
+        registry: "280655931130.dkr.ecr.us-east-2.amazonaws.com"
+        repository: "botflow-viewer"
+        # tag: definida pelo pipeline (--set ...image.tag=<sha>)
+      ports:
+        - containerPort: 3000
+      env:
+        - name: PORT
+          value: "3000"
+      envFrom:
+        - secretRef:
+            name: botflow-viewer-secrets
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: 3000
+        initialDelaySeconds: 30
+        periodSeconds: 15
+        failureThreshold: 12
+        timeoutSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: 3000
+        initialDelaySeconds: 180
+        periodSeconds: 15
+        failureThreshold: 3
+        timeoutSeconds: 5
+      resources:
+        requests:
+          cpu: "250m"
+          memory: "512Mi"
+
+externalSecrets:
+  - name: botflow-viewer-secrets
+    refreshInterval: 5m
+    secretStore:
+      name: aws-parameterstore
+      kind: ClusterSecretStore
+    dataFrom:
+      - find:
+          path: /tecpet/botflow-viewer/
+          name:
+            regexp: ".*"
+        rewrite:
+          - regexp:
+              source: "^/tecpet/botflow-viewer/(.+)$"
+              target: "$1"
+
+keda:
+  enabled: true
+  scaledObjects:
+    - name: botflow-viewer-scheduled-scaler
+      targetName: botflow-viewer-deploy
+      minReplicaCount: 0
+      maxReplicaCount: 3
+      triggers:
+        - name: cron-business-hours
+          type: cron
+          metadata:
+            timezone: America/Sao_Paulo
+            start: "0 8 * * 1-5"
+            end: "0 20 * * 1-5"
+            desiredReplicas: "1"
