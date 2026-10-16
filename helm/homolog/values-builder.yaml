@@ -1,0 +1,87 @@
+projectName: botflow-builder
+namespace: tecpet-homolog-app
+appVersion: homolog
+
+serviceAccount:
+  enabled: false
+
+service:
+  enabled: true
+
+ingress:
+  enabled: true
+  ingresses:
+    - annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/group.name: k8s-public
+        alb.ingress.kubernetes.io/healthcheck-path: /api/health
+      hosts:
+        - host: botflow-builder-homolog-aws.tecpet.dev
+
+deployment:
+  enabled: true
+  containers:
+    - name: botflow-builder
+      image:
+        registry: "280655931130.dkr.ecr.us-east-2.amazonaws.com"
+        repository: "botflow-builder"
+      ports:
+        - containerPort: 3000
+      env:
+        - name: PORT
+          value: "3000"
+      envFrom:
+        - secretRef:
+            name: botflow-builder-secrets
+      readinessProbe:
+        httpGet:
+          path: /api/health
+          port: 3000
+        initialDelaySeconds: 30
+        periodSeconds: 15
+        failureThreshold: 12
+        timeoutSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /api/health
+          port: 3000
+        initialDelaySeconds: 180
+        periodSeconds: 15
+        failureThreshold: 3
+        timeoutSeconds: 5
+      resources:
+        requests:
+          cpu: "250m"
+          memory: "768Mi"
+
+externalSecrets:
+  - name: botflow-builder-secrets
+    refreshInterval: 5m
+    secretStore:
+      name: aws-parameterstore
+      kind: ClusterSecretStore
+    dataFrom:
+      - find:
+          path: /tecpet/botflow-builder-homolog/
+          name:
+            regexp: ".*"
+        rewrite:
+          - regexp:
+              source: "^/tecpet/botflow-builder-homolog/(.+)$"
+              target: "$1"
+
+keda:
+  enabled: true
+  scaledObjects:
+    - name: botflow-builder-scheduled-scaler
+      targetName: botflow-builder-deploy
+      minReplicaCount: 0
+      maxReplicaCount: 3
+      triggers:
+        - name: cron-business-hours
+          type: cron
+          metadata:
+            timezone: America/Sao_Paulo
+            start: "0 8 * * 1-5"
+            end: "0 20 * * 1-5"
+            desiredReplicas: "1"
