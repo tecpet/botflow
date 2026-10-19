@@ -8,6 +8,7 @@ import {
   buildEmployeeIndicationValue,
   flattenEmployeeIndications,
   groupCategoriesForSameEmployee,
+  offersEmployeeChoice,
   parsePreferSameEmployee,
 } from "./sameEmployee";
 
@@ -145,6 +146,40 @@ describe("buildEmployeeIndicationValue", () => {
 
   it("profissional que não atende a categoria fica fora", () => {
     expect(buildEmployeeIndicationValue(ana, groom)).toBeNull();
+  });
+});
+
+describe("offersEmployeeChoice", () => {
+  it("um profissional só: não há o que escolher", () => {
+    // TP-5050: a remarcação pula "Deseja selecionar um funcionário?".
+    expect(offersEmployeeChoice([bath], [karoline])).toBe(false);
+  });
+
+  it("dois profissionais na mesma pergunta: há escolha", () => {
+    expect(offersEmployeeChoice([bath], [karoline, ana])).toBe(true);
+  });
+
+  it("Banho e Tosa com um profissional possível em cada: não há escolha", () => {
+    // A lista traz a Ana e a Deise, mas cada pergunta mostraria uma só.
+    expect(offersEmployeeChoice([bath, groom], [ana, deise])).toBe(false);
+  });
+
+  it("basta uma pergunta ter duas opções", () => {
+    expect(offersEmployeeChoice([bath, groom], [karoline, ana])).toBe(true);
+  });
+
+  it("pergunta agrupada conta só quem faz todas as categorias", () => {
+    const grouped: EmployeeServiceIndicationOption = {
+      name: "Banho e Tosa",
+      category: BATH,
+      categories: [BATH, GROOM],
+    };
+
+    expect(offersEmployeeChoice([grouped], [karoline, ana, deise])).toBe(false);
+  });
+
+  it("sem profissionais: não há escolha", () => {
+    expect(offersEmployeeChoice([bath], [])).toBe(false);
   });
 });
 

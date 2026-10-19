@@ -27,7 +27,11 @@ import { logHandler, summarizeArray } from "../../../helpers/logger";
 import {
   buildRescheduleEmployeeIndication,
   findUnavailableIndications,
-  resolveDroppedEmployeeNames,
+  hasOtherCategoryEmployees,
+  listIndicationCategoryEmployees,
+  resolveBookingEmployeeNames,
+  resolveIndicatedEmployeeNames,
+  resolveRestrictedIndication,
   searchKeepingRescheduleEmployees,
 } from "../../../helpers/rescheduleEmployees";
 import { flattenEmployeeIndications } from "../../../helpers/sameEmployee";
@@ -145,6 +149,12 @@ export const getAvailableTimes = createAction({
       helperText:
         "Horas de antecedência do leva e traz. Só entra no corte quando há um leva e traz selecionado.",
     }),
+    useClientEmployeeChoice: option.string.layout({
+      label: "Remarcação - Usar o profissional escolhido pelo cliente",
+      isRequired: false,
+      helperText:
+        'Quando "true", a remarcação busca com os funcionários indicados pelo cliente (vazio = qualquer profissional) em vez do profissional do agendamento, sem troca automática. Ligue quando o cliente escolheu na lista de profissionais ou pediu "VER OUTROS PROFISSIONAIS". Não afeta o agendamento novo.',
+    }),
     inputAdditionalDays: option.string.layout({
       label: "Input de dias adicionais",
       helperText: "Dias para adicionar",
@@ -195,6 +205,27 @@ export const getAvailableTimes = createAction({
       helperText:
         'Nomes dos profissionais do agendamento que ficaram de fora da busca (ex.: "Maria" ou "Maria e João"). Vazio quando não houve troca.',
     }),
+    restrictedToEmployees: option.string.layout({
+      label: "Horários só com profissionais específicos",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        'Recebe true quando, na remarcação, os horários são só do profissional do agendamento ou do que o cliente escolheu. Use para anunciar com quem são os horários. Para oferecer "VER OUTROS PROFISSIONAIS", use "Outros profissionais disponíveis".',
+    }),
+    restrictedEmployeeNames: option.string.layout({
+      label: "Profissionais dos horários",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        'Nomes dos profissionais a que os horários ficaram restritos (ex.: "Maria" ou "Maria e João"). Vazio quando a lista não é restrita.',
+    }),
+    otherEmployeesAvailable: option.string.layout({
+      label: "Outros profissionais disponíveis",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        'Recebe true quando os horários são restritos e outro profissional ativo atende alguma das categorias. Use para oferecer "VER OUTROS PROFISSIONAIS": com um profissional só, a opção mostraria os mesmos horários.',
+    }),
   }),
   getSetVariableIds: ({
     availableTimes,
@@ -205,6 +236,9 @@ export const getAvailableTimes = createAction({
     employeeFallback,
     employeeFallbackReason,
     replacedEmployeeNames,
+    restrictedToEmployees,
+    restrictedEmployeeNames,
+    otherEmployeesAvailable,
   }) => {
     const variables = [];
 
@@ -225,31 +259,44 @@ export const getAvailableTimes = createAction({
 
     if (replacedEmployeeNames) variables.push(replacedEmployeeNames);
 
+    if (restrictedToEmployees) variables.push(restrictedToEmployees);
+
+    if (restrictedEmployeeNames) variables.push(restrictedEmployeeNames);
+
+    if (otherEmployeesAvailable) variables.push(otherEmployeesAvailable);
+
     return variables;
   },
 });
 
-type EmployeeFallbackOutputs = {
+type RescheduleEmployeeOutputs = {
   employeeFallback: boolean;
   employeeFallbackReason: string;
   replacedEmployeeNames: string;
+  restrictedToEmployees: boolean;
+  restrictedEmployeeNames: string;
+  otherEmployeesAvailable: boolean;
 };
 
-const NO_EMPLOYEE_FALLBACK: EmployeeFallbackOutputs = {
+const NO_RESCHEDULE_EMPLOYEE_OUTPUTS: RescheduleEmployeeOutputs = {
   employeeFallback: false,
   employeeFallbackReason: "",
   replacedEmployeeNames: "",
+  restrictedToEmployees: false,
+  restrictedEmployeeNames: "",
+  otherEmployeesAvailable: false,
 };
 
 /**
- * Grava as saídas da troca de profissional, inclusive quando não houve troca.
- * As variáveis duram a sessão inteira: um `true` deixado por uma busca anterior
- * faria o fluxo avisar uma troca que não aconteceu.
+ * Grava as saídas do profissional da remarcação (troca e restrição), inclusive
+ * quando não houve troca nem restrição. As variáveis duram a sessão inteira: um
+ * `true` deixado por uma busca anterior faria o fluxo avisar uma troca que não
+ * aconteceu, ou oferecer "VER OUTROS PROFISSIONAIS" num agendamento novo.
  */
-const setEmployeeFallbackOutputs = (
+const setRescheduleEmployeeOutputs = (
   variables: { set: (values: { id: string; value: unknown }[]) => void },
   options: Record<string, unknown>,
-  outputs: EmployeeFallbackOutputs,
+  outputs: RescheduleEmployeeOutputs,
 ) => {
   for (const [optionKey, value] of Object.entries(outputs)) {
     const variableId = options[optionKey];
@@ -493,9 +540,21 @@ export const GetAvailableTimesHandler = async ({
     // motivo dos serviços acima: `employeeIndications` pode ter sobrado de outro
     // agendamento da sessão. É o que mantém o pet com o profissional que já
     // estava alocado (TP-4662).
-    const searchEmployeesIndication = rescheduleBooking
-      ? buildRescheduleEmployeeIndication(rescheduleBooking)
-      : employeesIndication;
+    //
+    // A exceção é quando o próprio cliente escolheu, na lista de profissionais
+    // da remarcação ou pela opção "VER OUTROS PROFISSIONAIS". Antes a escolha
+    // era descartada e a busca seguia com o profissional do agendamento
+    // (TP-5050). Aqui `employeeIndications` não é sobra de outro agendamento: a
+    // preparação da remarcação zera a variável antes da lista. Indicação vazia
+    // (loja sem seleção de profissional) busca com qualquer profissional.
+    const useClientEmployeeChoice =
+      isReschedule &&
+      safeJsonParse<boolean>(options.useClientEmployeeChoice, false) === true;
+
+    const searchEmployeesIndication =
+      rescheduleBooking && !useClientEmployeeChoice
+        ? buildRescheduleEmployeeIndication(rescheduleBooking)
+        : employeesIndication;
 
     logHandler("getAvailableTimes", {
       isReschedule,
@@ -686,43 +745,78 @@ export const GetAvailableTimesHandler = async ({
     // mais a categoria (a API responde erro e o dia é pulado acima) — a busca é
     // refeita sem ele em vez de deixar o cliente sem horário (TP-4662). Sai só
     // quem não tem horário: num Banho + Tosa, o profissional da Tosa continua
-    // quando a busca fecha com ele (TP-4863). No agendamento novo a indicação é
-    // escolha do cliente e segue valendo sem fallback.
-    const employeeSearch = isReschedule
-      ? await searchKeepingRescheduleEmployees({
-          indication: searchEmployeesIndication,
-          search: searchTimes,
-          hasTimes: (result) => result.all.length > 0,
-          findUnavailable: (indication) =>
-            findUnavailableIndications(
-              tecpetSdk,
-              Number(options.shopId),
-              indication,
-            ),
-        })
-      : null;
+    // quando a busca fecha com ele (TP-4863). No agendamento novo, e quando o
+    // cliente escolheu na remarcação, a indicação é escolha dele e segue valendo
+    // sem fallback.
+    const employeeSearch =
+      isReschedule && !useClientEmployeeChoice
+        ? await searchKeepingRescheduleEmployees({
+            indication: searchEmployeesIndication,
+            search: searchTimes,
+            hasTimes: (result) => result.all.length > 0,
+            findUnavailable: (indication) =>
+              findUnavailableIndications(
+                tecpetSdk,
+                Number(options.shopId),
+                indication,
+              ),
+          })
+        : null;
 
     const { all, allWithoutTakeAndBring } =
       employeeSearch?.result ?? (await searchTimes(searchEmployeesIndication));
 
     const droppedIndication = employeeSearch?.dropped ?? [];
 
-    const employeeFallbackOutputs: EmployeeFallbackOutputs = {
+    // A lista da remarcação fica restrita ao profissional do agendamento (quando
+    // a busca achou horário sem trocar ninguém) ou ao que o cliente escolheu.
+    // A busca com todos os profissionais chega como indicação vazia e não
+    // restringe. Sem nome não há como anunciar com quem são os horários, então a
+    // lista segue como não restrita. "VER OUTROS PROFISSIONAIS" só entra quando
+    // alguém além deles atende alguma das categorias.
+    const restrictedIndication = useClientEmployeeChoice
+      ? searchEmployeesIndication
+      : resolveRestrictedIndication(employeeSearch);
+
+    let restrictedEmployeeNames: string[] = [];
+    let otherEmployeesAvailable = false;
+
+    if (all.length > 0 && restrictedIndication.length > 0) {
+      const categoryEmployees = await listIndicationCategoryEmployees(
+        tecpetSdk,
+        Number(options.shopId),
+        restrictedIndication,
+      );
+
+      restrictedEmployeeNames = useClientEmployeeChoice
+        ? resolveIndicatedEmployeeNames(categoryEmployees, restrictedIndication)
+        : resolveBookingEmployeeNames(rescheduleBooking, restrictedIndication);
+
+      otherEmployeesAvailable =
+        restrictedEmployeeNames.length > 0 &&
+        hasOtherCategoryEmployees(categoryEmployees, restrictedIndication);
+    }
+
+    const rescheduleEmployeeOutputs: RescheduleEmployeeOutputs = {
       employeeFallback: droppedIndication.length > 0,
       employeeFallbackReason: employeeSearch?.reason ?? "",
       replacedEmployeeNames: formatPtBrList(
-        resolveDroppedEmployeeNames(rescheduleBooking, droppedIndication),
+        resolveBookingEmployeeNames(rescheduleBooking, droppedIndication),
       ),
+      restrictedToEmployees: restrictedEmployeeNames.length > 0,
+      restrictedEmployeeNames: formatPtBrList(restrictedEmployeeNames),
+      otherEmployeesAvailable,
     };
 
     logHandler("getAvailableTimes", {
       isReschedule,
+      useClientEmployeeChoice,
       employeesIndication: summarizeArray(searchEmployeesIndication),
       usedEmployeesIndication: employeeSearch
         ? summarizeArray(employeeSearch.indication)
         : null,
-      ...employeeFallbackOutputs,
-      timesWithFallback: employeeFallbackOutputs.employeeFallback
+      ...rescheduleEmployeeOutputs,
+      timesWithFallback: rescheduleEmployeeOutputs.employeeFallback
         ? all.length
         : null,
     });
@@ -773,7 +867,7 @@ export const GetAvailableTimesHandler = async ({
     variables.set([
       { id: options.groomAdditionalIds as string, value: groomAdditionalIds },
     ]);
-    setEmployeeFallbackOutputs(variables, options, employeeFallbackOutputs);
+    setRescheduleEmployeeOutputs(variables, options, rescheduleEmployeeOutputs);
   } catch (error) {
     console.error(error);
 
@@ -800,7 +894,11 @@ export const GetAvailableTimesHandler = async ({
       // ramo errado e oferecer "seguir sem o leva e traz" onde não há agenda.
       { id: options.noTimesAvailableForTakeAndBring as string, value: false },
     ]);
-    setEmployeeFallbackOutputs(variables, options, NO_EMPLOYEE_FALLBACK);
+    setRescheduleEmployeeOutputs(
+      variables,
+      options,
+      NO_RESCHEDULE_EMPLOYEE_OUTPUTS,
+    );
   }
 };
 

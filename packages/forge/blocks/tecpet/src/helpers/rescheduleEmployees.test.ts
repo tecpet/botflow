@@ -2,9 +2,14 @@ import { describe, expect, it } from "bun:test";
 import type { PaEmployeeIndication, TecpetSDK } from "@tec.pet/tecpet-sdk";
 import {
   buildRelaxedIndications,
+  type CategoryEmployees,
   EmployeeFallbackReason,
   findUnavailableIndications,
-  resolveDroppedEmployeeNames,
+  hasOtherCategoryEmployees,
+  listIndicationCategoryEmployees,
+  resolveBookingEmployeeNames,
+  resolveIndicatedEmployeeNames,
+  resolveRestrictedIndication,
   searchKeepingRescheduleEmployees,
 } from "./rescheduleEmployees";
 
@@ -231,7 +236,7 @@ describe("findUnavailableIndications", () => {
   });
 });
 
-describe("resolveDroppedEmployeeNames", () => {
+describe("resolveBookingEmployeeNames", () => {
   const booking = {
     services: [
       { id: 100, categoryId: BATH, employee: { id: 1, name: "Maria" } },
@@ -241,14 +246,220 @@ describe("resolveDroppedEmployeeNames", () => {
   };
 
   it("devolve os nomes dos profissionais trocados, sem repetir", () => {
-    expect(resolveDroppedEmployeeNames(booking, [maria])).toEqual(["Maria"]);
-    expect(resolveDroppedEmployeeNames(booking, [maria, joao])).toEqual([
+    expect(resolveBookingEmployeeNames(booking, [maria])).toEqual(["Maria"]);
+    expect(resolveBookingEmployeeNames(booking, [maria, joao])).toEqual([
       "Maria",
       "João",
     ]);
   });
 
   it("sem troca, sem nomes", () => {
-    expect(resolveDroppedEmployeeNames(booking, [])).toEqual([]);
+    expect(resolveBookingEmployeeNames(booking, [])).toEqual([]);
+  });
+});
+
+describe("listIndicationCategoryEmployees", () => {
+  /** SDK de mentira: devolve os funcionários (id e nome) de cada categoria. */
+  const sdkWithEmployees = (
+    employeesByCategory: Record<number, { id: number; name: string }[]>,
+    failingCategories: number[] = [],
+  ) => {
+    const calls: number[] = [];
+    const sdk = {
+      employee: {
+        getEmployeesByServiceCategory: async ({
+          serviceCategoryIds,
+        }: {
+          serviceCategoryIds: number[];
+        }) => {
+          const [categoryId] = serviceCategoryIds;
+
+          calls.push(categoryId);
+
+          if (failingCategories.includes(categoryId))
+            throw { statusCode: 500, message: "erro" };
+
+          return employeesByCategory[categoryId] ?? [];
+        },
+      },
+    } as unknown as TecpetSDK;
+
+    return { calls, sdk };
+  };
+
+  it("consulta cada categoria uma vez", async () => {
+    const { calls, sdk } = sdkWithEmployees({
+      [BATH]: [{ id: 1, name: "Maria" }],
+      [GROOM]: [{ id: 2, name: "João" }],
+    });
+
+    const employees = await listIndicationCategoryEmployees(sdk, 822, [
+      maria,
+      { id: 3, serviceCategoryId: BATH },
+      joao,
+    ]);
+
+    expect(calls).toEqual([BATH, GROOM]);
+    expect(employees.get(GROOM)).toEqual([{ id: 2, name: "João" }]);
+  });
+
+  it("categoria com consulta falha fica fora do mapa", async () => {
+    const { sdk } = sdkWithEmployees({ [BATH]: [{ id: 1, name: "Maria" }] }, [
+      GROOM,
+    ]);
+
+    const employees = await listIndicationCategoryEmployees(sdk, 822, [
+      maria,
+      joao,
+    ]);
+
+    expect([...employees.keys()]).toEqual([BATH]);
+  });
+});
+
+describe("resolveIndicatedEmployeeNames", () => {
+  it("devolve os nomes na ordem da escolha", () => {
+    // TP-5050: a indicação escolhida na lista só traz o id, e o anúncio
+    // "horários disponíveis com o João" precisa do nome.
+    const employees: CategoryEmployees = new Map([
+      [
+        BATH,
+        [
+          { id: 1, name: "Maria" },
+          { id: 3, name: "Ana" },
+        ],
+      ],
+      [GROOM, [{ id: 2, name: " João " }]],
+    ]);
+
+    expect(resolveIndicatedEmployeeNames(employees, [joao, maria])).toEqual([
+      "João",
+      "Maria",
+    ]);
+  });
+
+  it("o mesmo profissional em duas categorias aparece uma vez", () => {
+    const employees: CategoryEmployees = new Map([
+      [BATH, [{ id: 2, name: "João" }]],
+      [GROOM, [{ id: 2, name: "João" }]],
+    ]);
+
+    expect(
+      resolveIndicatedEmployeeNames(employees, [
+        { id: 2, serviceCategoryId: BATH },
+        joao,
+      ]),
+    ).toEqual(["João"]);
+  });
+
+  it("com um nome faltando, não devolve nenhum", () => {
+    const employees: CategoryEmployees = new Map([
+      [BATH, [{ id: 1, name: "Maria" }]],
+    ]);
+
+    expect(resolveIndicatedEmployeeNames(employees, [maria, joao])).toEqual([]);
+  });
+});
+
+describe("hasOtherCategoryEmployees", () => {
+  it("a Maria é a única do Banho: não há outro profissional", () => {
+    // TP-5050: com um profissional só, "VER OUTROS PROFISSIONAIS" mostraria
+    // os mesmos horários.
+    const employees: CategoryEmployees = new Map([
+      [BATH, [{ id: 1, name: "Maria" }]],
+    ]);
+
+    expect(hasOtherCategoryEmployees(employees, [maria])).toBe(false);
+  });
+
+  it("a Ana também faz Banho: há outro profissional", () => {
+    const employees: CategoryEmployees = new Map([
+      [
+        BATH,
+        [
+          { id: 1, name: "Maria" },
+          { id: 3, name: "Ana" },
+        ],
+      ],
+    ]);
+
+    expect(hasOtherCategoryEmployees(employees, [maria])).toBe(true);
+  });
+
+  it("basta uma categoria ter outro profissional", () => {
+    const employees: CategoryEmployees = new Map([
+      [BATH, [{ id: 1, name: "Maria" }]],
+      [
+        GROOM,
+        [
+          { id: 2, name: "João" },
+          { id: 4, name: "Pedro" },
+        ],
+      ],
+    ]);
+
+    expect(hasOtherCategoryEmployees(employees, [maria, joao])).toBe(true);
+  });
+
+  it("o outro profissional de uma categoria não conta para a outra", () => {
+    // O João só faz Tosa, então não é alternativa para o Banho da Maria.
+    const employees: CategoryEmployees = new Map([
+      [BATH, [{ id: 1, name: "Maria" }]],
+      [GROOM, [{ id: 2, name: "João" }]],
+    ]);
+
+    expect(hasOtherCategoryEmployees(employees, [maria, joao])).toBe(false);
+  });
+
+  it("categoria com consulta falha conta como tendo outro", () => {
+    expect(hasOtherCategoryEmployees(new Map(), [maria])).toBe(true);
+  });
+});
+
+describe("resolveRestrictedIndication", () => {
+  it("horário com o profissional do agendamento restringe a lista a ele", async () => {
+    // TP-5050: a Maria tinha vaga num dos dias da janela, então o outro dia
+    // (sem vaga só para ela) não aparecia. A lista é só dela.
+    const { search } = fakeSearch([[maria]]);
+
+    const result = await searchKeepingRescheduleEmployees({
+      indication: [maria],
+      search,
+      hasTimes,
+      findUnavailable: noneUnavailable,
+    });
+
+    expect(resolveRestrictedIndication(result)).toEqual([maria]);
+  });
+
+  it("com troca de profissional, a lista não é restrita", async () => {
+    const { search } = fakeSearch([[joao]]);
+
+    const result = await searchKeepingRescheduleEmployees({
+      indication: [maria, joao],
+      search,
+      hasTimes,
+      findUnavailable: noneUnavailable,
+    });
+
+    expect(result.dropped).toEqual([maria]);
+    expect(resolveRestrictedIndication(result)).toEqual([]);
+  });
+
+  it("busca com todos os profissionais não é restrita", async () => {
+    const { search } = fakeSearch([[]]);
+
+    const result = await searchKeepingRescheduleEmployees({
+      indication: [],
+      search,
+      hasTimes,
+      findUnavailable: noneUnavailable,
+    });
+
+    expect(resolveRestrictedIndication(result)).toEqual([]);
+  });
+
+  it("agendamento novo não tem busca de remarcação", () => {
+    expect(resolveRestrictedIndication(null)).toEqual([]);
   });
 });

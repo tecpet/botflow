@@ -29,7 +29,7 @@ import {
   EmployeeFallbackReason,
   findUnavailableIndications,
   type RescheduleEmployeeSearch,
-  resolveDroppedEmployeeNames,
+  resolveBookingEmployeeNames,
   searchKeepingRescheduleEmployees,
 } from "../../../helpers/rescheduleEmployees";
 import {
@@ -588,7 +588,7 @@ export const GetGroupAvailableTimesHandler = async ({
       replacedEmployeeNames: formatPtBrList([
         ...new Set(
           replacedBookings.flatMap((booking) =>
-            resolveDroppedEmployeeNames(
+            resolveBookingEmployeeNames(
               booking,
               employeeSearchByBooking.get(booking.id)?.dropped ?? [],
             ),

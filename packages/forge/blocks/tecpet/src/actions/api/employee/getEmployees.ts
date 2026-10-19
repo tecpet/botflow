@@ -10,6 +10,7 @@ import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
 import {
   groupCategoriesForSameEmployee,
+  offersEmployeeChoice,
   parsePreferSameEmployee,
 } from "../../../helpers/sameEmployee";
 import { parseIds, parseJsonArray } from "../../../helpers/utils";
@@ -76,11 +77,20 @@ export const getEmployess = createAction({
       helperText:
         "Saída de Configurações da Loja. Quando verdadeira, pergunta um profissional só para todas as categorias do serviço",
     }),
+    hasEmployeeChoice: option.string.layout({
+      label: "Mais de um profissional para escolher",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "Recebe true quando alguma pergunta de profissional teria duas ou mais opções. Com false, cada pergunta teria no máximo um profissional, e o fluxo pode pular a pergunta se o cliente quer escolher.",
+    }),
   }),
-  getSetVariableIds: ({ selectedService }) => {
+  getSetVariableIds: ({ selectedService, hasEmployeeChoice }) => {
     const variables = [];
 
     if (selectedService) variables.push(selectedService);
+
+    if (hasEmployeeChoice) variables.push(hasEmployeeChoice);
 
     return variables;
   },
@@ -205,11 +215,17 @@ export const GetEmployessHandler = async ({
       employees,
     });
 
+    const employeeChoice = offersEmployeeChoice(
+      offer.categories,
+      offer.employees,
+    );
+
     logHandler("getEmployess", {
       employees: summarizeArray(employees),
       preferSameEmployee,
       groupedCategories: offer.grouped,
       offeredEmployees: summarizeArray(offer.employees.map((e) => e.id)),
+      hasEmployeeChoice: employeeChoice,
     });
 
     variables.set([
@@ -222,7 +238,20 @@ export const GetEmployessHandler = async ({
     variables.set([
       { id: options.employees as string, value: offer.employees },
     ]);
+
+    if (options.hasEmployeeChoice)
+      variables.set([
+        { id: options.hasEmployeeChoice as string, value: employeeChoice },
+      ]);
   } catch (error) {
     console.error(error);
+
+    // Sem a lista não há o que oferecer: a remarcação segue como se o cliente
+    // tivesse dito que não quer escolher, em vez de perguntar e cair numa lista
+    // que não carrega. A variável dura a sessão, então nunca fica a de antes.
+    if (options.hasEmployeeChoice)
+      variables.set([
+        { id: options.hasEmployeeChoice as string, value: false },
+      ]);
   }
 };

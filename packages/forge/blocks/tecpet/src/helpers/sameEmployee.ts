@@ -94,6 +94,22 @@ export const buildEmployeeIndicationValue = (
 };
 
 /**
+ * Se alguma pergunta de profissional teria duas ou mais opções. Com no máximo
+ * uma em cada, perguntar se o cliente quer escolher não muda o agendamento, e a
+ * remarcação pula a pergunta (TP-5050).
+ */
+export const offersEmployeeChoice = (
+  categories: EmployeeServiceIndicationOption[],
+  employees: PaEmployeeResponse[],
+): boolean =>
+  categories.some(
+    (target) =>
+      employees.filter(
+        (employee) => buildEmployeeIndicationValue(employee, target) !== null,
+      ).length > 1,
+  );
+
+/**
  * A escolha agrupada entra em `Funcionarios.Selecionados` como um item só com
  * a lista de indicações; quem lê a variável espalha esses itens.
  */

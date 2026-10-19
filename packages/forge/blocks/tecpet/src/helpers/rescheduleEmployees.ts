@@ -1,4 +1,8 @@
-import type { PaEmployeeIndication, TecpetSDK } from "@tec.pet/tecpet-sdk";
+import type {
+  PaEmployeeIndication,
+  PaEmployeeResponse,
+  TecpetSDK,
+} from "@tec.pet/tecpet-sdk";
 import { describeApiError } from "./apiErrors";
 import { logHandler } from "./logger";
 
@@ -256,26 +260,162 @@ export const findUnavailableIndications = async (
   return unavailable;
 };
 
+/** Profissionais ativos de cada categoria, pelo id da categoria. */
+export type CategoryEmployees = Map<
+  number,
+  Array<Pick<PaEmployeeResponse, "id" | "name">>
+>;
+
 /**
- * Nomes dos profissionais do agendamento que ficaram de fora da busca, para a
- * mensagem poder dizer com quem não há horário ("a Maria não tem horário
- * nesses dias"). Seguem a ordem dos serviços, sem repetição.
+ * Profissionais ativos de cada categoria da indicação, pelo `/employee/list`,
+ * para dizer com quem são os horários restritos e se há outro profissional
+ * para oferecer (TP-5050). Categoria cuja consulta falhou fica fora do mapa, e
+ * quem usa decide o que vale na dúvida.
  */
-export const resolveDroppedEmployeeNames = (
+export const listIndicationCategoryEmployees = async (
+  tecpetSdk: TecpetSDK,
+  shopId: number,
+  indication: PaEmployeeIndication[],
+): Promise<CategoryEmployees> => {
+  const employeesByCategory: CategoryEmployees = new Map();
+  const serviceCategoryIds = [
+    ...new Set(indication.map((item) => item.serviceCategoryId)),
+  ];
+
+  for (const serviceCategoryId of serviceCategoryIds) {
+    try {
+      employeesByCategory.set(
+        serviceCategoryId,
+        await tecpetSdk.employee.getEmployeesByServiceCategory(
+          {
+            serviceCategoryIds: [serviceCategoryId],
+            limit: EMPLOYEE_LIST_LIMIT,
+          },
+          shopId,
+        ),
+      );
+    } catch (error) {
+      logHandler("listIndicationCategoryEmployees", {
+        shopId,
+        serviceCategoryId,
+        employeeListFailed: true,
+        error: describeApiError(error),
+      });
+    }
+  }
+
+  return employeesByCategory;
+};
+
+/**
+ * Nomes dos profissionais que o cliente escolheu na lista, para o anúncio
+ * "Esses são os horários disponíveis com a Maria" (TP-5050). A indicação da
+ * escolha só traz ids, então o nome vem da lista de cada categoria. Seguem a
+ * ordem da indicação, sem repetição.
+ *
+ * Só devolve nomes quando resolve todos. Com um nome faltando, o anúncio diria
+ * menos do que a lista mostra; sem nenhum, o fluxo só deixa de anunciar.
+ */
+export const resolveIndicatedEmployeeNames = (
+  employeesByCategory: CategoryEmployees,
+  indication: PaEmployeeIndication[],
+): string[] => {
+  const nameById = new Map<number, string>();
+
+  for (const employees of employeesByCategory.values())
+    for (const employee of employees) {
+      const name = employee.name?.trim();
+
+      if (name) nameById.set(Number(employee.id), name);
+    }
+
+  const names: string[] = [];
+
+  for (const item of indication) {
+    const name = nameById.get(item.id);
+
+    if (!name) {
+      logHandler("resolveIndicatedEmployeeNames", {
+        employeeId: item.id,
+        missingName: true,
+      });
+      return [];
+    }
+
+    if (!names.includes(name)) names.push(name);
+  }
+
+  return names;
+};
+
+/**
+ * Se alguma categoria da indicação tem outro profissional ativo além dos
+ * indicados. Sem nenhum, "VER OUTROS PROFISSIONAIS" mostraria os mesmos
+ * horários, e o fluxo não oferece a opção (TP-5050).
+ *
+ * Categoria cuja consulta falhou conta como tendo outro: era assim antes da
+ * checagem, e uma opção a mais não deixa o cliente sem horário.
+ */
+export const hasOtherCategoryEmployees = (
+  employeesByCategory: CategoryEmployees,
+  indication: PaEmployeeIndication[],
+): boolean => {
+  const serviceCategoryIds = [
+    ...new Set(indication.map((item) => item.serviceCategoryId)),
+  ];
+
+  return serviceCategoryIds.some((serviceCategoryId) => {
+    const employees = employeesByCategory.get(serviceCategoryId);
+
+    if (!employees) return true;
+
+    const indicatedIds = new Set(
+      indication
+        .filter((item) => item.serviceCategoryId === serviceCategoryId)
+        .map((item) => item.id),
+    );
+
+    return employees.some((employee) => !indicatedIds.has(Number(employee.id)));
+  });
+};
+
+/**
+ * Indicação a que os horários da remarcação ficaram restritos: a do próprio
+ * agendamento, quando a busca achou horário sem trocar ninguém (TP-5050).
+ *
+ * A troca só acontece quando a janela inteira fica vazia, então um dia em que só
+ * o profissional do agendamento está sem vaga some da lista. O fluxo usa esta
+ * indicação para dizer com quem são os horários e oferecer "VER OUTROS
+ * PROFISSIONAIS". Quando houve troca, a lista já não é só do agendamento e o
+ * aviso de troca cobre a mensagem.
+ */
+export const resolveRestrictedIndication = <T>(
+  search: RescheduleEmployeeSearch<T> | null,
+): PaEmployeeIndication[] =>
+  search && search.dropped.length === 0 ? search.indication : [];
+
+/**
+ * Nomes dos profissionais do agendamento que estão em `indication`, para a
+ * mensagem dizer com quem é (ou com quem não há) horário: os que ficaram de
+ * fora da busca ("a Maria não tem horário nesses dias") ou aqueles a que a
+ * lista ficou restrita ("horários disponíveis com a Maria"). Seguem a ordem dos
+ * serviços, sem repetição.
+ */
+export const resolveBookingEmployeeNames = (
   booking: RescheduleBookingRef,
-  dropped: PaEmployeeIndication[],
+  indication: PaEmployeeIndication[],
 ): string[] => {
   const names: string[] = [];
 
   for (const service of booking?.services ?? []) {
     const name = service?.employee?.name?.trim();
-    const wasDropped = dropped.some(
+    const isIndicated = indication.some(
       (item) =>
         item.id === Number(service?.employee?.id) &&
         item.serviceCategoryId === Number(service?.categoryId),
     );
 
-    if (wasDropped && name && !names.includes(name)) names.push(name);
+    if (isIndicated && name && !names.includes(name)) names.push(name);
   }
 
   return names;
