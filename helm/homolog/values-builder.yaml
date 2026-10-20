@@ -16,7 +16,7 @@ ingress:
         alb.ingress.kubernetes.io/group.name: k8s-public
         alb.ingress.kubernetes.io/healthcheck-path: /api/health
       hosts:
-        - host: botflow-builder-homolog-aws.tecpet.dev
+        - host: botflow-builder-homolog.tecpet.dev
 
 deployment:
   enabled: true
