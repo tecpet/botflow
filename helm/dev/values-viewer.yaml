@@ -16,7 +16,6 @@ ingress:
         alb.ingress.kubernetes.io/group.name: k8s-public
         alb.ingress.kubernetes.io/healthcheck-path: /healthz
       hosts:
-        - host: botflow-viewer-aws.tecpet.dev
         - host: botflow-viewer.tecpet.dev
 
 deployment:
