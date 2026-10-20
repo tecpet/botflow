@@ -3,6 +3,7 @@ name: Build and Deploy botflow-builder to EKS (PROD - AWS)
 on:
   push:
     branches:
+      - master
       - MAGNA-3744
   workflow_dispatch:
 
