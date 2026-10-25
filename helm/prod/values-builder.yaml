@@ -1,0 +1,90 @@
+projectName: botflow-builder
+namespace: tecpet-prod-app
+appVersion: production
+
+serviceAccount:
+  enabled: false
+
+service:
+  enabled: true
+
+ingress:
+  enabled: true
+  ingresses:
+    - annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/group.name: k8s-public
+        alb.ingress.kubernetes.io/healthcheck-path: /api/health
+        alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
+      hosts:
+        - host: botflow-builder-aws.tec.pet
+        - host: botflow-builder.tec.pet
+
+deployment:
+  enabled: true
+  containers:
+    - name: botflow-builder
+      image:
+        registry: "725198488857.dkr.ecr.us-east-2.amazonaws.com"
+        repository: "botflow-builder"
+      ports:
+        - containerPort: 3000
+      env:
+        - name: PORT
+          value: "3000"
+      envFrom:
+        - secretRef:
+            name: botflow-builder-secrets
+      readinessProbe:
+        httpGet:
+          path: /api/health
+          port: 3000
+        initialDelaySeconds: 30
+        periodSeconds: 15
+        failureThreshold: 12
+        timeoutSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /api/health
+          port: 3000
+        initialDelaySeconds: 180
+        periodSeconds: 15
+        failureThreshold: 3
+        timeoutSeconds: 5
+      resources:
+        requests:
+          cpu: "250m"
+          memory: "768Mi"
+        limits:
+          cpu: "500m"
+          memory: "1Gi"
+
+externalSecrets:
+  - name: botflow-builder-secrets
+    refreshInterval: 1m
+    secretStore:
+      name: aws-parameterstore
+      kind: ClusterSecretStore
+    dataFrom:
+      - find:
+          path: /tecpet/botflow-builder/
+          name:
+            regexp: ".*"
+        rewrite:
+          - regexp:
+              source: "^/tecpet/botflow-builder/(.+)$"
+              target: "$1"
+
+keda:
+  enabled: true
+  scaledObjects:
+    - name: botflow-builder-scaler
+      targetName: botflow-builder-deploy
+      minReplicaCount: 1
+      maxReplicaCount: 5
+      triggers:
+        - name: cpu
+          type: cpu
+          metricType: Utilization
+          metadata:
+            value: "80"
