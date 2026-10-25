@@ -18,6 +18,7 @@ ingress:
         alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
       hosts:
         - host: botflow-viewer-aws.tec.pet
+        - host: botflow-viewer.tec.pet
 
 deployment:
   enabled: true
