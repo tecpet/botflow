@@ -22,6 +22,7 @@ ingress:
 
 deployment:
   enabled: true
+  terminationGracePeriodSeconds: 45
   containers:
     - name: botflow-viewer
       image:
@@ -35,6 +36,10 @@ deployment:
       envFrom:
         - secretRef:
             name: botflow-viewer-secrets
+      lifecycle:
+        preStop:
+          sleep:
+            seconds: 15
       readinessProbe:
         httpGet:
           path: /healthz
@@ -80,7 +85,7 @@ keda:
   scaledObjects:
     - name: botflow-viewer-scaler
       targetName: botflow-viewer-deploy
-      minReplicaCount: 1
+      minReplicaCount: 2
       maxReplicaCount: 5
       triggers:
         - name: cpu
@@ -88,3 +93,7 @@ keda:
           metricType: Utilization
           metadata:
             value: "80"
+
+pdb:
+  enabled: true
+  maxUnavailable: 1

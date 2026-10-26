@@ -22,6 +22,7 @@ ingress:
 
 deployment:
   enabled: true
+  terminationGracePeriodSeconds: 45
   containers:
     - name: botflow-builder
       image:
@@ -35,6 +36,10 @@ deployment:
       envFrom:
         - secretRef:
             name: botflow-builder-secrets
+      lifecycle:
+        preStop:
+          sleep:
+            seconds: 15
       readinessProbe:
         httpGet:
           path: /api/health
