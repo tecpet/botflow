@@ -12,7 +12,7 @@ env:
   ECR_REPOSITORY: "botflow-viewer"
   EKS_CLUSTER: tecpet-production
   HELM_REPO_URL: s3://tecpet-production-helm-charts/stable/kubeapps
-  CHART_VERSION: 2.5.0
+  CHART_VERSION: 2.6.0
   RELEASE_NAME: botflow-viewer
   NAMESPACE: tecpet-prod-app
 
