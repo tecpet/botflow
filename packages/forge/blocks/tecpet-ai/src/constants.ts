@@ -2,6 +2,10 @@ import { option } from "@typebot.io/forge";
 
 export const tecpetAiDefaultBaseUrl = "https://api.tec.pet";
 
+export const tecpetPublicApiDefaultBaseUrl = "https://api.tec.pet/v1";
+
+export const tecpetAiV2Path = "/v2";
+
 export const baseOptions = option
   .object({
     baseUrl: option.string.layout({
