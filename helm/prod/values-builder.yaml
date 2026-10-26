@@ -61,7 +61,7 @@ deployment:
 
 externalSecrets:
   - name: botflow-builder-secrets
-    refreshInterval: 1m
+    refreshInterval: 0s
     secretStore:
       name: aws-parameterstore
       kind: ClusterSecretStore
