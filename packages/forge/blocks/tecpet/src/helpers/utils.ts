@@ -1893,6 +1893,14 @@ export const getSimilarBreeds = (
   return filtered.slice(0, 5).map((b) => b.breed);
 };
 
+// Raça SRD (sem raça definida) cadastrada pela loja. As lojas escrevem de
+// vários jeitos ("SRD - Sem Raça Definida", "Srd 5Kg Á 12Kg", "Gato SRD"),
+// então a comparação ignora maiúsculas e acentos.
+export const isSrdBreed = (breedName: string | undefined) => {
+  const breedNorm = normalize(breedName ?? "");
+  return breedNorm.includes("srd") || breedNorm.includes("sem raca definida");
+};
+
 // Busca de cidades da rede — parte da mesma técnica do getSimilarBreeds
 // (Levenshtein), porém sem dicionário de nomes canônicos (as cidades vêm
 // direto do cadastro da rede, não de um vocabulário fixo). Diferente das
