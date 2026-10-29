@@ -3,7 +3,16 @@ import { logHandler } from "./logger";
 
 // Fuso padrão das lojas quando `shopSettings.timeZone` vem ausente. O config
 // expõe o campo como `timeZone` (Z maiúsculo) — ler `timezone` retorna undefined.
-const DEFAULT_SHOP_TIMEZONE = "America/Sao_Paulo";
+export const DEFAULT_SHOP_TIMEZONE = "America/Sao_Paulo";
+
+/**
+ * Valores que significam "a loja não configurou a antecedência". O "null" (e o
+ * "undefined") entram aqui porque é o que o Typebot injeta na option quando a
+ * variável do fluxo está nula — não é erro de configuração da loja, então não
+ * deve gerar warn nem cair em fallback conservador. Erro de configuração de
+ * verdade é um valor presente e não numérico.
+ */
+export const NOT_CONFIGURED_VALUES = new Set(["", "null", "undefined"]);
 
 // Antecedência mínima padrão (horas) quando a loja NÃO fornece um valor
 // (campo ausente/vazio/inválido). Um `0` EXPLÍCITO continua significando
@@ -35,9 +44,10 @@ export function resolveMinAdvanceHours(
  * `utcToZonedTime(new Date(), tz)`, cujos campos locais também representam o
  * horário de parede da loja — assim os dois lados ficam na mesma referência.
  *
- * Aceita `date` em "dd/MM/yyyy" ou "dd/MM". Sem o ano, infere: usa o ano atual
- * e, se o instante resultante já estiver no passado, avança um ano (cobre a
- * virada dez→jan, já que a lista só traz agendamentos futuros).
+ * Aceita `date` em "yyyy-MM-dd" (o `dateISO` das opções de horário), "dd/MM/yyyy"
+ * ou "dd/MM". Sem o ano, infere: usa o ano atual e, se o instante resultante já
+ * estiver no passado, avança um ano (cobre a virada dez→jan, já que a lista só
+ * traz agendamentos futuros). Formatos ISO sempre trazem o ano — nada a inferir.
  */
 export function parseBookingStartWallClock(
   date: string,
@@ -46,10 +56,23 @@ export function parseBookingStartWallClock(
 ): Date | null {
   if (!date || !start) return null;
 
-  const [day, month, maybeYear] = date.split("/").map(Number);
   const [hour, minute] = start.split(":").map(Number);
 
-  if ([day, month, hour, minute].some((n) => !Number.isFinite(n))) return null;
+  if ([hour, minute].some((n) => !Number.isFinite(n))) return null;
+
+  const isoParts = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(date.trim());
+  if (isoParts) {
+    const [isoYear, isoMonth, isoDay] = isoParts.slice(1).map(Number);
+    // Sem a checagem de faixa, `new Date` rola o excedente (mês 13 → jan do ano
+    // seguinte) e uma data corrompida passaria como um instante distante no
+    // futuro — ou seja, "permitido" em vez de "não avaliável".
+    if (isoMonth < 1 || isoMonth > 12 || isoDay < 1 || isoDay > 31) return null;
+    return new Date(isoYear, isoMonth - 1, isoDay, hour, minute);
+  }
+
+  const [day, month, maybeYear] = date.split("/").map(Number);
+
+  if ([day, month].some((n) => !Number.isFinite(n))) return null;
 
   const hasYear = Number.isFinite(maybeYear);
   const year = hasYear ? maybeYear : nowInShopTz.getFullYear();

@@ -39,7 +39,7 @@ export const EndChatHandler = async ({
       .post(`${credentials.baseUrl as string}/action`, {
         json: {
           sessionId: options.sessionId,
-          message: options.text ?? "Oi",
+          message: options.text || undefined,
           action: ChatbotActionButtonTypeEnum.END,
         },
         timeout: 30000,

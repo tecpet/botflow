@@ -1,22 +1,54 @@
 import {
-  ChatbotTimeDisplayModeEnum,
   type PaEmployeeIndication,
   type PaGetAvailableTimesResponse,
   type PaGetAvailableTimesTimesBody,
+  type PaGetBookingResponse,
+  type PaShopConfigurationsSegment,
   type ShopSegment,
+  Status,
   TecpetSDK,
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
-import { format, getHours, getMinutes } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import {
+  BOT_GUARD_SCOPES,
+  buildGuardServiceIds,
+  resolveBookingGuardBlockedDates,
+} from "../../../helpers/bookingGuard";
+import {
+  isBookingWithinMinAdvanceHours,
+  NOT_CONFIGURED_VALUES,
+  resolveMinAdvanceHours,
+} from "../../../helpers/bookingMinAdvance";
+import { formatPtBrList } from "../../../helpers/groupReschedule";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
 import {
+  buildRescheduleEmployeeIndication,
+  findUnavailableIndications,
+  hasOtherCategoryEmployees,
+  listIndicationCategoryEmployees,
+  resolveBookingEmployeeNames,
+  resolveIndicatedEmployeeNames,
+  resolveRestrictedIndication,
+  searchKeepingRescheduleEmployees,
+} from "../../../helpers/rescheduleEmployees";
+import { flattenEmployeeIndications } from "../../../helpers/sameEmployee";
+import {
+  filterByDisplayGrid,
+  intervalMinutesByDisplayMode,
+  resolveDisplayGridOrigin,
+} from "../../../helpers/timeDisplayGrid";
+import {
+  extractBookingId,
+  extractTakeAndBringId,
   formatBRDate,
   formatISODate,
+  isUpcomingBooking,
   parseIds,
   parseJsonArray,
+  safeJsonParse,
 } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
@@ -105,6 +137,24 @@ export const getAvailableTimes = createAction({
       isRequired: true,
       helperText: "Tempo mínimo de antecedência para o horário selecionado",
     }),
+    selectedTakeAndBring: option.string.layout({
+      label: "Leva e traz selecionado",
+      isRequired: false,
+      helperText:
+        "Serviço de leva e traz que o cliente aceitou. Vazio = recusou ou não foi perguntado.",
+    }),
+    takeAndBringMinAdvanceHours: option.string.layout({
+      label: "Leva e traz - Antecedência mínima",
+      isRequired: false,
+      helperText:
+        "Horas de antecedência do leva e traz. Só entra no corte quando há um leva e traz selecionado.",
+    }),
+    useClientEmployeeChoice: option.string.layout({
+      label: "Remarcação - Usar o profissional escolhido pelo cliente",
+      isRequired: false,
+      helperText:
+        'Quando "true", a remarcação busca com os funcionários indicados pelo cliente (vazio = qualquer profissional) em vez do profissional do agendamento, sem troca automática. Ligue quando o cliente escolheu na lista de profissionais ou pediu "VER OUTROS PROFISSIONAIS". Não afeta o agendamento novo.',
+    }),
     inputAdditionalDays: option.string.layout({
       label: "Input de dias adicionais",
       helperText: "Dias para adicionar",
@@ -120,6 +170,13 @@ export const getAvailableTimes = createAction({
       helperText: "Dias para adicionar",
       inputType: "variableDropdown",
     }),
+    noTimesAvailableForTakeAndBring: option.string.layout({
+      label: "Sem horários por causa do leva e traz",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "Recebe true quando existiam horários e TODOS foram descartados pela antecedência do leva e traz. Use para oferecer seguir sem o leva e traz em vez de cair no ramo genérico de 'sem horários'.",
+    }),
     groomAdditionalIds: option.string.layout({
       label: "Ids dos adicionais de banho e tosa (GROOM)",
       placeholder: "Selecione",
@@ -127,12 +184,61 @@ export const getAvailableTimes = createAction({
       helperText:
         "Ids dos adicionais selecionados da categoria GROOM, para exibir/formatar separado do serviço principal",
     }),
+    employeeFallback: option.string.layout({
+      label: "Remarcação com outro profissional",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "Recebe true quando, na remarcação, o profissional do agendamento não tinha horário e a busca foi refeita sem ele. Use para avisar o cliente junto com os horários, em vez de perguntar antes.",
+    }),
+    employeeFallbackReason: option.string.layout({
+      label: "Motivo da troca de profissional",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "NO_TIMES: o profissional não tem horário nos dias buscados. EMPLOYEE_UNAVAILABLE: está inativo ou não atende mais a categoria; nunca ofereça outra data com ele. Vazio quando não houve troca.",
+    }),
+    replacedEmployeeNames: option.string.layout({
+      label: "Profissionais trocados",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        'Nomes dos profissionais do agendamento que ficaram de fora da busca (ex.: "Maria" ou "Maria e João"). Vazio quando não houve troca.',
+    }),
+    restrictedToEmployees: option.string.layout({
+      label: "Horários só com profissionais específicos",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        'Recebe true quando, na remarcação, os horários são só do profissional do agendamento ou do que o cliente escolheu. Use para anunciar com quem são os horários. Para oferecer "VER OUTROS PROFISSIONAIS", use "Outros profissionais disponíveis".',
+    }),
+    restrictedEmployeeNames: option.string.layout({
+      label: "Profissionais dos horários",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        'Nomes dos profissionais a que os horários ficaram restritos (ex.: "Maria" ou "Maria e João"). Vazio quando a lista não é restrita.',
+    }),
+    otherEmployeesAvailable: option.string.layout({
+      label: "Outros profissionais disponíveis",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        'Recebe true quando os horários são restritos e outro profissional ativo atende alguma das categorias. Use para oferecer "VER OUTROS PROFISSIONAIS": com um profissional só, a opção mostraria os mesmos horários.',
+    }),
   }),
   getSetVariableIds: ({
     availableTimes,
     inputAdditionalDays,
     noTimesAvailable,
+    noTimesAvailableForTakeAndBring,
     groomAdditionalIds,
+    employeeFallback,
+    employeeFallbackReason,
+    replacedEmployeeNames,
+    restrictedToEmployees,
+    restrictedEmployeeNames,
+    otherEmployeesAvailable,
   }) => {
     const variables = [];
 
@@ -142,11 +248,62 @@ export const getAvailableTimes = createAction({
 
     if (noTimesAvailable) variables.push(noTimesAvailable);
 
+    if (noTimesAvailableForTakeAndBring)
+      variables.push(noTimesAvailableForTakeAndBring);
+
     if (groomAdditionalIds) variables.push(groomAdditionalIds);
+
+    if (employeeFallback) variables.push(employeeFallback);
+
+    if (employeeFallbackReason) variables.push(employeeFallbackReason);
+
+    if (replacedEmployeeNames) variables.push(replacedEmployeeNames);
+
+    if (restrictedToEmployees) variables.push(restrictedToEmployees);
+
+    if (restrictedEmployeeNames) variables.push(restrictedEmployeeNames);
+
+    if (otherEmployeesAvailable) variables.push(otherEmployeesAvailable);
 
     return variables;
   },
 });
+
+type RescheduleEmployeeOutputs = {
+  employeeFallback: boolean;
+  employeeFallbackReason: string;
+  replacedEmployeeNames: string;
+  restrictedToEmployees: boolean;
+  restrictedEmployeeNames: string;
+  otherEmployeesAvailable: boolean;
+};
+
+const NO_RESCHEDULE_EMPLOYEE_OUTPUTS: RescheduleEmployeeOutputs = {
+  employeeFallback: false,
+  employeeFallbackReason: "",
+  replacedEmployeeNames: "",
+  restrictedToEmployees: false,
+  restrictedEmployeeNames: "",
+  otherEmployeesAvailable: false,
+};
+
+/**
+ * Grava as saídas do profissional da remarcação (troca e restrição), inclusive
+ * quando não houve troca nem restrição. As variáveis duram a sessão inteira: um
+ * `true` deixado por uma busca anterior faria o fluxo avisar uma troca que não
+ * aconteceu, ou oferecer "VER OUTROS PROFISSIONAIS" num agendamento novo.
+ */
+const setRescheduleEmployeeOutputs = (
+  variables: { set: (values: { id: string; value: unknown }[]) => void },
+  options: Record<string, unknown>,
+  outputs: RescheduleEmployeeOutputs,
+) => {
+  for (const [optionKey, value] of Object.entries(outputs)) {
+    const variableId = options[optionKey];
+
+    if (variableId) variables.set([{ id: variableId as string, value }]);
+  }
+};
 export const GetAvailableTimesHandler = async ({
   credentials,
   options,
@@ -162,57 +319,164 @@ export const GetAvailableTimesHandler = async ({
       credentials.apiKey as string,
     );
 
-    const rawEmployeeIndications = options.employeeIndications;
+    const parsedEmployeeIndications = safeJsonParse<unknown[]>(
+      options.employeeIndications,
+      [],
+    );
 
-    const parsedEmployeeIndications: string[] = rawEmployeeIndications
-      ? JSON.parse(options.employeeIndications as string)
-      : [];
-
+    // Indicação malformada não deve impedir a busca de horários: seguimos sem
+    // indicação em vez de derrubar o bloco.
     const employeesIndication: PaEmployeeIndication[] =
-      parsedEmployeeIndications.map((item) =>
-        typeof item === "string" ? JSON.parse(item) : item,
-      );
+      flattenEmployeeIndications(
+        (Array.isArray(parsedEmployeeIndications)
+          ? parsedEmployeeIndications
+          : []
+        ).map((item) =>
+          typeof item === "string" ? safeJsonParse<unknown>(item, null) : item,
+        ),
+      ).filter((item): item is PaEmployeeIndication => item !== null);
 
     const rawAdditionalDays = options.getAdditionalDays;
 
-    const timeSelectionBehaviorTimeDisplayMode: ChatbotTimeDisplayModeEnum =
-      (options.timeSelectionBehaviorTimeDisplayMode as ChatbotTimeDisplayModeEnum) ??
-      null;
-
-    const shopSettings = options.shopSettings
-      ? JSON.parse(options.shopSettings as string)
-      : undefined;
-
-    const selectedTimeMinAdvanceHours = Number(
-      options.selectedTimeMinAdvanceHours ?? 0,
+    const displayIntervalMinutes = intervalMinutesByDisplayMode(
+      options.timeSelectionBehaviorTimeDisplayMode,
     );
 
-    const rawServices = options.servicesIds
-      ? JSON.parse(options.servicesIds as string)
-      : [];
-    const rawCombos = options.combosIds
-      ? JSON.parse(options.combosIds as string)
-      : [];
+    const shopSettings = safeJsonParse<
+      | { timeZone?: string; segments?: PaShopConfigurationsSegment[] }
+      | undefined
+    >(options.shopSettings, undefined);
 
-    const bookingId = options.bookingId
-      ? JSON.parse(options.bookingId as string)
-      : null;
+    // Campo correto é `timeZone` (Z maiúsculo); `timezone` vinha undefined.
+    const shopTimezone = shopSettings?.timeZone ?? "America/Sao_Paulo";
 
-    const isReschedule =
-      bookingId != null &&
-      !(Array.isArray(bookingId) && bookingId.length === 0) &&
-      !(
-        typeof bookingId === "object" &&
-        !Array.isArray(bookingId) &&
-        Object.keys(bookingId).length === 0
+    // O parser grava `timeSelectionBehavior.minAdvanceHours ?? null`, e o Typebot
+    // injeta uma variável nula na option como a STRING "null". `Number("null")`
+    // é NaN, e NaN escapava do guard `<= 0` — o corte então rodava com
+    // `cutOffMinutes: NaN` e descartava TODOS os horários de hoje, deixando o
+    // cliente sem horário para a data atual. Sem valor utilizável = sem
+    // restrição, que era a intenção do `?? 0` original.
+    const rawMinAdvanceHours = String(
+      options.selectedTimeMinAdvanceHours ?? "",
+    ).trim();
+    const isMinAdvanceConfigured = !NOT_CONFIGURED_VALUES.has(
+      rawMinAdvanceHours.toLowerCase(),
+    );
+    const selectedTimeMinAdvanceHours = resolveMinAdvanceHours(
+      rawMinAdvanceHours,
+      0,
+    );
+
+    if (
+      isMinAdvanceConfigured &&
+      !Number.isFinite(Number(rawMinAdvanceHours))
+    ) {
+      console.warn(
+        "[getAvailableTimes] antecedência mínima do seletor não é numérica — seguindo sem restrição",
+        { rawMinAdvanceHours },
       );
+    }
+
+    // O leva e traz passou a ser perguntado ANTES do seletor de horários
+    // (TP-3952). Antes, o cliente escolhia um horário, ouvia "leva e traz só com
+    // Xh de antecedência" e era jogado no atendente — reclamando justamente
+    // porque queria aquele horário. Agora a antecedência do leva e traz entra
+    // como corte na própria busca: quem aceitou o serviço só vê horários que já
+    // o comportam.
+    //
+    // Só aplica quando há um leva e traz de fato selecionado. `LevaTraz.Selecionado`
+    // sobrevive entre etapas da sessão, então exigimos um id de serviço válido
+    // (e não "a variável não está vazia") para não sumir com os horários de quem
+    // recusou o serviço por causa de resíduo de um agendamento anterior.
+    const takeAndBringId = extractTakeAndBringId(
+      safeJsonParse<unknown>(options.selectedTakeAndBring, null) ??
+        options.selectedTakeAndBring,
+    );
+    const takeAndBringMinAdvanceHours =
+      takeAndBringId === null
+        ? 0
+        : resolveMinAdvanceHours(options.takeAndBringMinAdvanceHours, 0);
+
+    // O corte do seletor continua valendo sempre; o do leva e traz só endurece.
+    const effectiveMinAdvanceHours = Math.max(
+      selectedTimeMinAdvanceHours,
+      takeAndBringMinAdvanceHours,
+    );
+
+    const takeAndBringTightensCutoff =
+      takeAndBringMinAdvanceHours > selectedTimeMinAdvanceHours;
+
+    const rawServices = safeJsonParse<unknown[]>(options.servicesIds, []);
+    const rawCombos = safeJsonParse<unknown[]>(options.combosIds, []);
+
+    // Texto livre não-JSON nesse campo não deve abortar a busca de horários.
+    const rawBookingId = safeJsonParse<unknown>(options.bookingId, null);
+
+    // Primeiro filtro, barato: descarta valor que nem parece id de agendamento
+    // (0, false, "", {}, [] e o sentinela { backToMenu: true } da lista de
+    // reservas) e evita o GET abaixo.
+    const candidateBookingId = extractBookingId(rawBookingId);
+
+    // Um id válido não basta. A variável do fluxo carrega o agendamento anterior
+    // do cliente (o getFormattedMessages a consome para montar mensagem), então
+    // um cliente recorrente caía no ramo de remarcação ao iniciar um agendamento
+    // NOVO, e a busca de horários ia com o catálogo do pet em vez do serviço
+    // escolhido — devolvendo slot com a soma das durações. Só é remarcação
+    // quando o id aponta para um agendamento que o fluxo de "minhas reservas"
+    // ofereceria: do mesmo pet, em aberto e ainda por vir.
+    let rescheduleBooking: PaGetBookingResponse | null = null;
+
+    if (candidateBookingId !== null) {
+      try {
+        const booking = await tecpetSdk.booking.get(
+          candidateBookingId,
+          Number(options.shopId),
+        );
+
+        const isOpen =
+          booking?.status === Status.SCHEDULED ||
+          booking?.status === Status.CONFIRMED;
+        const isSamePet = Number(booking?.petId) === Number(options.petId);
+        const isUpcoming = isUpcomingBooking(
+          booking?.date ?? "",
+          booking?.start ?? "",
+          utcToZonedTime(new Date(), shopTimezone),
+        );
+
+        if (isOpen && isSamePet && isUpcoming) {
+          rescheduleBooking = booking;
+        }
+
+        logHandler("getAvailableTimes", {
+          candidateBookingId,
+          bookingStatus: booking?.status,
+          bookingPetId: booking?.petId,
+          bookingDate: booking?.date,
+          isOpen,
+          isSamePet,
+          isUpcoming,
+        });
+      } catch (error) {
+        // Agendamento inexistente, de outra loja ou API fora: tratamos como
+        // agendamento novo, que é o ramo seguro.
+        logHandler("getAvailableTimes", {
+          candidateBookingId,
+          bookingLookupFailed: true,
+          error: (error as Error)?.message,
+        });
+      }
+    }
+
+    const isReschedule = rescheduleBooking !== null;
 
     logHandler("getAvailableTimes", {
       shopId: options.shopId,
       petId: options.petId,
       segmentType: options.segmentType,
       isReschedule,
-      bookingId,
+      candidateBookingId,
+      bookingId: rescheduleBooking?.id ?? null,
+      rawBookingId,
     });
 
     let services: number[] = [];
@@ -221,13 +485,27 @@ export const GetAvailableTimesHandler = async ({
     let selectedAdditionalIds: number[] = [];
     let groomAdditionalIds: number[] = [];
 
-    if (isReschedule) {
-      services = parseIds(rawServices);
-      combos = parseIds(rawCombos);
+    // Serviço escolhido no agendamento novo; `null` na remarcação.
+    let selectedService: ServiceOptionType | null = null;
+
+    if (rescheduleBooking) {
+      // Lê do próprio agendamento em vez de `servicesIds`. Aquela variável tem
+      // dois sentidos conforme o fluxo (serviços do agendamento na remarcação,
+      // catálogo do menu no agendamento novo), e a remarcação só funcionava por
+      // coincidência de preenchimento. Vindo do agendamento, a lista está certa
+      // mesmo que este ramo seja alcançado indevidamente.
+      services = (rescheduleBooking.services ?? []).map((service) =>
+        Number(service.id),
+      );
+      combos = (rescheduleBooking.combos ?? []).map((combo) =>
+        Number(combo.id),
+      );
     } else {
       const parsedSelectedService: ServiceOptionType = JSON.parse(
         options.selectedService as string,
       );
+
+      selectedService = parsedSelectedService;
 
       const selectedId = Number(parsedSelectedService.id);
 
@@ -258,20 +536,43 @@ export const GetAvailableTimesHandler = async ({
       }
     }
 
+    // Na remarcação a indicação também vem do próprio agendamento, pelo mesmo
+    // motivo dos serviços acima: `employeeIndications` pode ter sobrado de outro
+    // agendamento da sessão. É o que mantém o pet com o profissional que já
+    // estava alocado (TP-4662).
+    //
+    // A exceção é quando o próprio cliente escolheu, na lista de profissionais
+    // da remarcação ou pela opção "VER OUTROS PROFISSIONAIS". Antes a escolha
+    // era descartada e a busca seguia com o profissional do agendamento
+    // (TP-5050). Aqui `employeeIndications` não é sobra de outro agendamento: a
+    // preparação da remarcação zera a variável antes da lista. Indicação vazia
+    // (loja sem seleção de profissional) busca com qualquer profissional.
+    const useClientEmployeeChoice =
+      isReschedule &&
+      safeJsonParse<boolean>(options.useClientEmployeeChoice, false) === true;
+
+    const searchEmployeesIndication =
+      rescheduleBooking && !useClientEmployeeChoice
+        ? buildRescheduleEmployeeIndication(rescheduleBooking)
+        : employeesIndication;
+
     logHandler("getAvailableTimes", {
       isReschedule,
       services,
       combos,
       selectedAdditionalIds: summarizeArray(selectedAdditionalIds),
       groomAdditionalIds: summarizeArray(groomAdditionalIds),
-      catalogServices: summarizeArray(parseIds(rawServices)),
-      catalogCombos: summarizeArray(parseIds(rawCombos)),
+      // Sem parseIds aqui: ele lança por contrato, e log de diagnóstico não
+      // pode ser capaz de derrubar o handler.
+      catalogServices: summarizeArray(rawServices),
+      catalogCombos: summarizeArray(rawCombos),
     });
 
     let additionalDays = rawAdditionalDays ? Number(rawAdditionalDays) : 0;
 
-    const showOtherDates = JSON.parse(
-      (options.showOtherDates as string) ?? "false",
+    const showOtherDates = safeJsonParse<boolean>(
+      options.showOtherDates,
+      false,
     );
 
     if (showOtherDates) {
@@ -289,53 +590,236 @@ export const GetAvailableTimesHandler = async ({
 
     const searchDates = [formatISODate(today), formatISODate(tomorrow)];
 
-    const all: AvailableTimeType[] = [];
+    // A restrição de agenda só era validada na confirmação, depois que o
+    // cliente já tinha escolhido o horário: a lista oferecia o sábado para uma
+    // tosa que a loja não faz no sábado, e quem escolhia caía no atendente
+    // (TP-4889). Agora os dias barrados saem da busca, avaliados contra os
+    // mesmos serviços que a confirmação valida.
+    //
+    // A remarcação fica de fora: ela não passa pela validação da confirmação, e
+    // o combo do agendamento não traz os serviços que o compõem.
+    const guardServiceIds = selectedService
+      ? buildGuardServiceIds({
+          selectedService,
+          catalogServiceIds: rawServices.map(Number),
+          selectedAdditionalIds,
+          takeAndBringId,
+        }).services
+      : [];
 
-    for (const dateISO of searchDates) {
-      const body: PaGetAvailableTimesTimesBody = {
-        date: dateISO,
-        combos,
-        services,
-        petId: Number(options.petId),
-        segment: options.segmentType as ShopSegment,
-        employeesIndication,
-      };
+    const guardFilter = selectedService
+      ? await resolveBookingGuardBlockedDates({
+          dates: searchDates,
+          validate: (dateISO) =>
+            tecpetSdk.bookingGuard.validation(
+              {
+                petId: Number(options.petId),
+                servicesId: guardServiceIds,
+                date: dateISO,
+                segmentType: options.segmentType as ShopSegment,
+                guardScopes: BOT_GUARD_SCOPES,
+              },
+              Number(options.shopId),
+            ),
+        })
+      : null;
 
-      let times: PaGetAvailableTimesResponse[] = [];
+    logHandler("getAvailableTimes", {
+      bookingGuard: guardFilter
+        ? {
+            services: guardServiceIds,
+            blockedDates: [...guardFilter.blockedDates].map(
+              ([dateISO, guard]) => ({
+                dateISO,
+                guardId: guard?.id ?? null,
+                guardName: guard?.name ?? null,
+              }),
+            ),
+            dateIndependent: guardFilter.dateIndependent,
+            failedDates: guardFilter.failedDates,
+          }
+        : { skipped: "reschedule" },
+    });
 
-      try {
-        times = await tecpetSdk.availableTimes.list(
-          body,
-          Number(options.shopId),
-        );
-        let filteredAvailableTimes = times;
+    const searchTimes = async (indication: PaEmployeeIndication[]) => {
+      const all: AvailableTimeType[] = [];
 
-        filteredAvailableTimes = filterAvailableTimesByMinAdvance(
-          filteredAvailableTimes,
-          selectedTimeMinAdvanceHours,
-          dateISO,
-          // Campo correto é `timeZone` (Z maiúsculo); `timezone` vinha undefined.
-          shopSettings?.timeZone ?? "America/Sao_Paulo",
-        );
+      // Mesma busca sem o corte do leva e traz. Serve só para distinguir "a loja
+      // não tem agenda" de "a agenda existe, mas nenhum horário comporta o leva e
+      // traz" — sem isso o fluxo cai no ramo genérico de "sem horários" e manda o
+      // cliente para o atendente sem a chance de seguir sem o serviço.
+      const allWithoutTakeAndBring: AvailableTimeType[] = [];
 
-        filteredAvailableTimes = filterAvailableTimesByInterval(
-          filteredAvailableTimes,
-          timeSelectionBehaviorTimeDisplayMode,
-        );
+      for (const dateISO of searchDates) {
+        // Dia barrado pela restrição sai das duas listas: não é culpa do leva e
+        // traz, e sem agenda nele o fluxo segue para as próximas datas.
+        if (guardFilter?.blockedDates.has(dateISO)) continue;
 
-        filteredAvailableTimes?.forEach((t: PaGetAvailableTimesResponse) =>
-          all.push({
-            ...t,
+        const body: PaGetAvailableTimesTimesBody = {
+          date: dateISO,
+          combos,
+          services,
+          petId: Number(options.petId),
+          segment: options.segmentType as ShopSegment,
+          employeesIndication: indication,
+          // Na remarcação o próprio agendamento não pode ocupar a agenda do
+          // profissional nem contar como compromisso do pet: sem o id, o
+          // horário atual e os que se sobrepõem a ele sumiam da lista — e com a
+          // indicação do profissional não sobra outro para cobrir (TP-4662).
+          bookingId: rescheduleBooking?.id,
+        };
+
+        let times: PaGetAvailableTimesResponse[] = [];
+
+        try {
+          times = await tecpetSdk.availableTimes.list(
+            body,
+            Number(options.shopId),
+          );
+
+          // A grade vem da abertura do segmento no dia, não do primeiro horário
+          // que sobrou: o corte de antecedência e os ocupados só removem
+          // pontos dela (TP-4816).
+          const gridOrigin = resolveDisplayGridOrigin({
+            shopSettings,
+            segmentType: options.segmentType,
             dateISO,
-            dateBR: formatBRDate(dateISO),
-            scheduleStartTime: `${t.start}`,
-          }),
-        );
-      } catch (error) {
-        console.log(error);
-        break;
+          });
+
+          const buildTimes = (minAdvanceHours: number) =>
+            filterByDisplayGrid(
+              filterAvailableTimesByMinAdvance(
+                times,
+                minAdvanceHours,
+                dateISO,
+                shopTimezone,
+              ),
+              displayIntervalMinutes,
+              gridOrigin,
+            );
+
+          const collectInto = (
+            target: AvailableTimeType[],
+            filtered: PaGetAvailableTimesResponse[],
+          ) =>
+            filtered?.forEach((t: PaGetAvailableTimesResponse) =>
+              target.push({
+                ...t,
+                dateISO,
+                dateBR: formatBRDate(dateISO),
+                scheduleStartTime: `${t.start}`,
+              }),
+            );
+
+          const offeredTimes = buildTimes(effectiveMinAdvanceHours);
+
+          logHandler("getAvailableTimes", {
+            displayGrid: {
+              dateContext: dateISO,
+              intervalMinutes: displayIntervalMinutes,
+              originMinutes: gridOrigin.minutes,
+              originSource: gridOrigin.source,
+              offered: offeredTimes.length,
+            },
+          });
+
+          collectInto(all, offeredTimes);
+
+          if (takeAndBringTightensCutoff)
+            collectInto(
+              allWithoutTakeAndBring,
+              buildTimes(selectedTimeMinAdvanceHours),
+            );
+        } catch (error) {
+          // Erro em um dia (ex.: BLOCKED_DAY) não pode interromper a janela:
+          // segue para o próximo dia (antes um `break` pulava os seguintes).
+          console.log(error);
+        }
       }
+
+      return { all, allWithoutTakeAndBring };
+    };
+
+    // Na remarcação o mesmo profissional é preferência, não requisito: se ele
+    // não tem nenhum horário na janela — agenda cheia, folga, ou nem atende
+    // mais a categoria (a API responde erro e o dia é pulado acima) — a busca é
+    // refeita sem ele em vez de deixar o cliente sem horário (TP-4662). Sai só
+    // quem não tem horário: num Banho + Tosa, o profissional da Tosa continua
+    // quando a busca fecha com ele (TP-4863). No agendamento novo, e quando o
+    // cliente escolheu na remarcação, a indicação é escolha dele e segue valendo
+    // sem fallback.
+    const employeeSearch =
+      isReschedule && !useClientEmployeeChoice
+        ? await searchKeepingRescheduleEmployees({
+            indication: searchEmployeesIndication,
+            search: searchTimes,
+            hasTimes: (result) => result.all.length > 0,
+            findUnavailable: (indication) =>
+              findUnavailableIndications(
+                tecpetSdk,
+                Number(options.shopId),
+                indication,
+              ),
+          })
+        : null;
+
+    const { all, allWithoutTakeAndBring } =
+      employeeSearch?.result ?? (await searchTimes(searchEmployeesIndication));
+
+    const droppedIndication = employeeSearch?.dropped ?? [];
+
+    // A lista da remarcação fica restrita ao profissional do agendamento (quando
+    // a busca achou horário sem trocar ninguém) ou ao que o cliente escolheu.
+    // A busca com todos os profissionais chega como indicação vazia e não
+    // restringe. Sem nome não há como anunciar com quem são os horários, então a
+    // lista segue como não restrita. "VER OUTROS PROFISSIONAIS" só entra quando
+    // alguém além deles atende alguma das categorias.
+    const restrictedIndication = useClientEmployeeChoice
+      ? searchEmployeesIndication
+      : resolveRestrictedIndication(employeeSearch);
+
+    let restrictedEmployeeNames: string[] = [];
+    let otherEmployeesAvailable = false;
+
+    if (all.length > 0 && restrictedIndication.length > 0) {
+      const categoryEmployees = await listIndicationCategoryEmployees(
+        tecpetSdk,
+        Number(options.shopId),
+        restrictedIndication,
+      );
+
+      restrictedEmployeeNames = useClientEmployeeChoice
+        ? resolveIndicatedEmployeeNames(categoryEmployees, restrictedIndication)
+        : resolveBookingEmployeeNames(rescheduleBooking, restrictedIndication);
+
+      otherEmployeesAvailable =
+        restrictedEmployeeNames.length > 0 &&
+        hasOtherCategoryEmployees(categoryEmployees, restrictedIndication);
     }
+
+    const rescheduleEmployeeOutputs: RescheduleEmployeeOutputs = {
+      employeeFallback: droppedIndication.length > 0,
+      employeeFallbackReason: employeeSearch?.reason ?? "",
+      replacedEmployeeNames: formatPtBrList(
+        resolveBookingEmployeeNames(rescheduleBooking, droppedIndication),
+      ),
+      restrictedToEmployees: restrictedEmployeeNames.length > 0,
+      restrictedEmployeeNames: formatPtBrList(restrictedEmployeeNames),
+      otherEmployeesAvailable,
+    };
+
+    logHandler("getAvailableTimes", {
+      isReschedule,
+      useClientEmployeeChoice,
+      employeesIndication: summarizeArray(searchEmployeesIndication),
+      usedEmployeesIndication: employeeSearch
+        ? summarizeArray(employeeSearch.indication)
+        : null,
+      ...rescheduleEmployeeOutputs,
+      timesWithFallback: rescheduleEmployeeOutputs.employeeFallback
+        ? all.length
+        : null,
+    });
 
     if (all.length > 0) {
       all.sort((a, b) =>
@@ -349,6 +833,33 @@ export const GetAvailableTimesHandler = async ({
       variables.set([{ id: options.noTimesAvailable as string, value: true }]);
     }
 
+    // Só é "culpa do leva e traz" quando a agenda tinha horário e o corte extra
+    // levou todos. Agenda vazia dos dois jeitos segue pelo ramo normal de "sem
+    // horários" — oferecer "seguir sem o leva e traz" ali não resolveria nada.
+    const noTimesAvailableForTakeAndBring =
+      takeAndBringTightensCutoff &&
+      all.length === 0 &&
+      allWithoutTakeAndBring.length > 0;
+
+    logHandler("getAvailableTimes", {
+      takeAndBringId,
+      selectedTimeMinAdvanceHours,
+      takeAndBringMinAdvanceHours,
+      effectiveMinAdvanceHours,
+      timesWithTakeAndBringCutoff: all.length,
+      timesWithoutTakeAndBringCutoff: takeAndBringTightensCutoff
+        ? allWithoutTakeAndBring.length
+        : all.length,
+      noTimesAvailableForTakeAndBring,
+    });
+
+    variables.set([
+      {
+        id: options.noTimesAvailableForTakeAndBring as string,
+        value: noTimesAvailableForTakeAndBring,
+      },
+    ]);
+
     variables.set([
       { id: options.inputAdditionalDays as string, value: additionalDays },
     ]);
@@ -356,65 +867,88 @@ export const GetAvailableTimesHandler = async ({
     variables.set([
       { id: options.groomAdditionalIds as string, value: groomAdditionalIds },
     ]);
+    setRescheduleEmployeeOutputs(variables, options, rescheduleEmployeeOutputs);
   } catch (error) {
     console.error(error);
+
+    // Falha do bloco não pode deixar o fluxo reentrando. Sem gravar as
+    // variáveis de saída, `inputAdditionalDays` e `availableTimes` ficam com o
+    // valor anterior e a aresta do fluxo volta a este bloco indefinidamente —
+    // foi o que consumiu a cota da credencial global e derrubou o chatbot de
+    // todas as lojas (TP-3635).
+    //
+    // Falhamos fechado, saindo pelo ramo de "sem horários disponíveis" que já
+    // existe. Isso é correto aqui porque este catch só é alcançado por erro
+    // determinístico: a chamada de horários tem catch próprio que pula o dia
+    // (erro transitório de API segue o fluxo normal) e o booking.get também.
+    // O que chega aqui não melhora com nova tentativa.
+    logHandler("getAvailableTimes", {
+      handlerFailed: true,
+      error: (error as Error)?.message,
+    });
+
+    variables.set([
+      { id: options.noTimesAvailable as string, value: true },
+      { id: options.availableTimes as string, value: [] },
+      // Nunca deixar indefinida: indefinido faz a condition do fluxo cair no
+      // ramo errado e oferecer "seguir sem o leva e traz" onde não há agenda.
+      { id: options.noTimesAvailableForTakeAndBring as string, value: false },
+    ]);
+    setRescheduleEmployeeOutputs(
+      variables,
+      options,
+      NO_RESCHEDULE_EMPLOYEE_OUTPUTS,
+    );
   }
 };
 
-function getMinutesFromMidnight(timeStr: string): number {
-  const [hours, minutes] = timeStr.split(":").map(Number);
-  return hours * 60 + (minutes || 0);
-}
-
-function filterAvailableTimesByMinAdvance(
+/**
+ * Descarta os horários que não respeitam a antecedência mínima do seletor.
+ *
+ * Compara instantes completos (data + hora) no fuso da loja. Antes o corte era
+ * feito em "minutos desde a meia-noite" e só valia quando `dateContext` era
+ * HOJE — qualquer outra data saía inteira pelo `if (!isToday) return times`.
+ * Isso fazia a antecedência do seletor ser ignorada em todos os horários de
+ * amanhã e, no ramo de "outras datas" (onde a data base é deslocada para
+ * frente), em todos os horários oferecidos.
+ */
+export function filterAvailableTimesByMinAdvance(
   times: PaGetAvailableTimesResponse[],
   minAdvanceHours: number,
   dateContext: string,
   shopTimezone: string,
 ): PaGetAvailableTimesResponse[] {
-  if (minAdvanceHours <= 0 || times.length === 0) {
+  if (
+    !Number.isFinite(minAdvanceHours) ||
+    minAdvanceHours <= 0 ||
+    times.length === 0
+  ) {
     return times;
   }
-  const nowInShopTimezone = utcToZonedTime(new Date(), shopTimezone);
-  const nowMinutes =
-    getHours(nowInShopTimezone) * 60 + getMinutes(nowInShopTimezone);
-  const cutOffMinutes = nowMinutes + minAdvanceHours * 60;
-  const todayDateStr = format(nowInShopTimezone, "yyyy-MM-dd");
-  const isToday = dateContext === todayDateStr;
-  if (!isToday) {
-    return times;
-  }
-  return times.filter((time) => {
-    const slotMinutes = getMinutesFromMidnight(time.start);
-    return slotMinutes >= cutOffMinutes;
+
+  const filtered = times.filter((time) => {
+    const allowed = isBookingWithinMinAdvanceHours({
+      date: dateContext,
+      start: time.start,
+      minAdvanceHours,
+      shopTimezone,
+    });
+
+    // `null` = não foi possível calcular o início. Mantemos o horário: a API é a
+    // fonte da verdade sobre o slot existir, e esconder a agenda inteira por um
+    // formato inesperado deixa o cliente sem opção nenhuma.
+    return allowed !== false;
   });
-}
 
-function filterAvailableTimesByInterval(
-  times: PaGetAvailableTimesResponse[],
-  mode: ChatbotTimeDisplayModeEnum | null,
-): PaGetAvailableTimesResponse[] {
-  if (!mode || mode === ChatbotTimeDisplayModeEnum.ALL || times.length === 0) {
-    return times;
-  }
-  const timesWithMinutes = times.map((t) => ({
-    ...t,
-    minutes: getMinutesFromMidnight(t.start),
-  }));
-  timesWithMinutes.sort((a, b) => a.minutes - b.minutes);
+  logHandler("getAvailableTimes", {
+    minAdvanceFilter: {
+      dateContext,
+      minAdvanceHours,
+      shopTimezone,
+      before: times.length,
+      after: filtered.length,
+    },
+  });
 
-  const intervalMinutes =
-    mode === ChatbotTimeDisplayModeEnum.THIRTY_MIN ? 30 : 60;
-
-  const filtered = [timesWithMinutes[0]];
-  let lastMinutes = timesWithMinutes[0].minutes;
-
-  for (let i = 1; i < timesWithMinutes.length; i++) {
-    const currentMinutes = timesWithMinutes[i].minutes;
-    if (currentMinutes - lastMinutes >= intervalMinutes) {
-      filtered.push(timesWithMinutes[i]);
-      lastMinutes = currentMinutes;
-    }
-  }
-  return filtered.map(({ minutes, ...rest }) => rest);
+  return filtered;
 }

@@ -21,6 +21,7 @@ export const guindanceOptionsTypeEnum: {
   CALL: "CALL",
   URL: "URL",
   END: "END",
+  CAMPAIGN_OPT_OUT: "CAMPAIGN_OPT_OUT",
 };
 
 export const showGuidanceOptions = createAction({

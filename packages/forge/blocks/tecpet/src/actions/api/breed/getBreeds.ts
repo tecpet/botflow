@@ -4,7 +4,7 @@ import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
-import { getSimilarBreeds } from "../../../helpers/utils";
+import { getSimilarBreeds, isSrdBreed } from "../../../helpers/utils";
 
 export const getBreeds = createAction({
   auth,
@@ -78,24 +78,28 @@ export const GetBreedsHandler = async ({
 
     logHandler("getBreeds", { shopId, specieId, breedName });
 
-    const breeds: PaBreedResponse[] = await tecpetSdk.breed.list(
-      specieId,
-      "",
-      shopId,
+    const breeds: PaBreedResponse[] =
+      (await tecpetSdk.breed.list(specieId, "", shopId)) ?? [];
+
+    // O SRD só entra na lista quando a espécie tem um único. Com vários (ex.:
+    // um por faixa de peso), escolher um seria chutar o porte e o preço; o
+    // cliente chega neles digitando "SRD" ou "vira-lata".
+    const srdBreeds = breeds.filter((breed) => isSrdBreed(breed.name));
+    const petSRD = srdBreeds.length === 1 ? srdBreeds[0] : null;
+
+    const similarBreeds: Partial<PaBreedResponse>[] = getSimilarBreeds(
+      breedName,
+      breeds,
     );
 
-    const petSRD: PaBreedResponse = breeds.find((breed) => {
-      if (breed.name.includes("SRD")) return breed;
-    }) as PaBreedResponse;
+    logHandler("getBreeds", {
+      breeds: summarizeArray(breeds),
+      similarBreeds: summarizeArray(similarBreeds),
+      srdCount: srdBreeds.length,
+      petSRDId: petSRD?.id,
+    });
 
-    if (breeds && breeds.length > 0) {
-      const similarBreeds: Partial<PaBreedResponse>[] = getSimilarBreeds(
-        breedName,
-        breeds,
-      );
-
-      logHandler("getBreeds", { breeds: summarizeArray(breeds), similarBreeds: summarizeArray(similarBreeds), petSRDId: petSRD?.id });
-
+    if (petSRD) {
       similarBreeds.push({
         id: petSRD.id,
         name: "SRD - Sem Raça Definida",
@@ -104,29 +108,45 @@ export const GetBreedsHandler = async ({
         specie: petSRD.specie,
         specieId: petSRD.specieId,
       });
-
-      variables.set([{ id: options.petSRD as string, value: petSRD }]);
-
-      if (options.breeds) {
-        variables.set([{ id: options.breeds, value: similarBreeds }]);
-      }
-
-      if (options.breedValues) {
-        variables.set([
-          { id: options.breedValues, value: similarBreeds.map((b) => b) },
-        ]);
-      }
-
-      if (options.breedsNames) {
-        variables.set([
-          {
-            id: options.breedsNames,
-            value: similarBreeds.map((b) => b.name),
-          },
-        ]);
-      }
     }
+
+    setBreedVariables(options, variables, similarBreeds, petSRD);
   } catch (error) {
     console.error(error);
+    // Sem as listas o fluxo monta uma escolha sem opções e encerra calado;
+    // vazias, ele cai no "não encontrei essa raça" e pede de novo.
+    setBreedVariables(options, variables, [], null);
+  }
+};
+
+// Sempre grava todas as variáveis, mesmo vazias: o fluxo lê o tamanho de
+// Racas.Valores e a escolha de raça usa Racas.Nomes/Racas.Valores.
+const setBreedVariables = (
+  options: Record<string, unknown>,
+  variables: any,
+  breedOptions: Partial<PaBreedResponse>[],
+  petSRD: PaBreedResponse | null,
+) => {
+  if (options.petSRD) {
+    variables.set([{ id: options.petSRD, value: petSRD }]);
+  }
+
+  if (options.breeds) {
+    variables.set([{ id: options.breeds, value: breedOptions }]);
+  }
+
+  if (options.breedValues) {
+    variables.set([
+      { id: options.breedValues, value: breedOptions.map((b) => b) },
+    ]);
+  }
+
+  if (options.breedsNames) {
+    variables.set([
+      {
+        id: options.breedsNames,
+        value: breedOptions.map((b) => b.name),
+      },
+    ]);
   }
 };

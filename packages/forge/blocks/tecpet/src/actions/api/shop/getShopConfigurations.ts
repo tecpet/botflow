@@ -8,11 +8,19 @@ import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
 import { logHandler, summarizeArray } from "../../../helpers/logger";
 
-
 export interface ChainAddress {
   cityName: string;
   uf: string;
 }
+
+/**
+ * `booking.preferSameEmployee` (TP-4743) vem da API independentemente da versão
+ * do SDK em que o bloco está preso; tipado aqui até o bloco subir o SDK.
+ */
+type BookingConfigWithEmployeePreference =
+  PaShopConfigurationsResponse["advancedConfig"]["booking"] & {
+    preferSameEmployee?: boolean;
+  };
 
 export const getShopConfigurations = createAction({
   auth,
@@ -53,18 +61,13 @@ export const getShopConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    chainCities: option.string.layout({
-      label: "Cidades da rede",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
-    chainUfs: option.string.layout({
-      label: "UFs da rede",
-      placeholder: "Selecione",
-      inputType: "variableDropdown",
-    }),
     chainAddresses: option.string.layout({
       label: "Endereços da rede",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    preferSameEmployee: option.string.layout({
+      label: "Manter o mesmo profissional em todos os serviços",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -76,9 +79,8 @@ export const getShopConfigurations = createAction({
     chargeModeByBreed,
     shopSegments,
     chainShops,
-    chainCities,
-    chainUfs,
     chainAddresses,
+    preferSameEmployee,
   }) => {
     const variables: string[] = [];
 
@@ -96,11 +98,9 @@ export const getShopConfigurations = createAction({
 
     if (chainShops) variables.push(chainShops);
 
-    if (chainCities) variables.push(chainCities);
-
-    if (chainUfs) variables.push(chainUfs);
-
     if (chainAddresses) variables.push(chainAddresses);
+
+    if (preferSameEmployee) variables.push(preferSameEmployee);
 
     return variables;
   },
@@ -127,55 +127,49 @@ export const GetShopConfigurationsHandler = async ({
           options.shopId as number,
         )) as PaShopConfigurationsResponse;
 
-
       if (result) {
         const chargeMode = result.advancedConfig?.global?.serviceByBreed
           ? "BREED"
           : "SIZE_AND_HAIR";
 
-        const chainShops: Array<PaShopResponse>  = result.chain?.shops ?? [];
+        const chainShops: Array<PaShopResponse> = result.chain?.shops ?? [];
 
-        const chainAddresses: Array<ChainAddress> =
-          Array.from(
-            new Map(
-              chainShops
-                .filter((shop) => shop.address?.city && shop.address?.uf)
-                .map((shop) => [
-                  shop.address.city,
-                  { cityName: shop.address.city, uf: shop.address.uf },
-                ]),
-            ).values(),
-          );
+        const chainAddresses: Array<ChainAddress> = Array.from(
+          new Map(
+            chainShops
+              .filter((shop) => shop.address?.city && shop.address?.uf)
+              .map((shop) => [
+                shop.address.city,
+                { cityName: shop.address.city, uf: shop.address.uf },
+              ]),
+          ).values(),
+        );
 
-        logHandler("getShopConfigurations", { chargeMode, serviceByBreed: result.advancedConfig?.global?.serviceByBreed, chainShops: summarizeArray(chainShops.map((s) => s.id)), chainAddresses: summarizeArray(chainAddresses), segmentsCount: result.segments?.length });
+        const preferSameEmployee =
+          (
+            result.advancedConfig?.booking as
+              | BookingConfigWithEmployeePreference
+              | undefined
+          )?.preferSameEmployee === true;
+
+        logHandler("getShopConfigurations", {
+          chargeMode,
+          preferSameEmployee,
+          serviceByBreed: result.advancedConfig?.global?.serviceByBreed,
+          chainShops: summarizeArray(chainShops.map((s) => s.id)),
+          chainAddresses: summarizeArray(chainAddresses),
+          segmentsCount: result.segments?.length,
+        });
 
         if (options.chainShops) {
           variables.set([{ id: options.chainShops, value: chainShops }]);
-        }
-
-        if (options.chainCities) {
-          variables.set([
-            {
-              id: options.chainCities,
-              value: chainAddresses.map((chainAddress) => chainAddress.cityName),
-            },
-          ]);
-        }
-
-        if (options.chainUfs) {
-          variables.set([
-            {
-              id: options.chainUfs,
-              value: chainAddresses.map((chainAddress) => chainAddress.uf),
-            },
-          ]);
         }
 
         if (options.chainAddresses) {
           variables.set([
             {
               id: options.chainAddresses,
-              value: chainAddresses
+              value: chainAddresses,
             },
           ]);
         }
@@ -184,10 +178,8 @@ export const GetShopConfigurationsHandler = async ({
             { id: options.chargeModeBySizeAndHair, value: "SIZE_AND_HAIR" },
           ]);
         }
-        if(options.shopSegments) {
-          variables.set([
-            { id: options.shopSegments, value: result.segments },
-          ]);
+        if (options.shopSegments) {
+          variables.set([{ id: options.shopSegments, value: result.segments }]);
         }
         if (options.chargeModeByBreed) {
           variables.set([{ id: options.chargeModeByBreed, value: "BREED" }]);
@@ -197,6 +189,11 @@ export const GetShopConfigurationsHandler = async ({
         }
         if (options.shopSettings) {
           variables.set([{ id: options.shopSettings, value: result }]);
+        }
+        if (options.preferSameEmployee) {
+          variables.set([
+            { id: options.preferSameEmployee, value: preferSameEmployee },
+          ]);
         }
       }
     }

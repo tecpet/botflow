@@ -13,6 +13,11 @@ O `tecpet-sdk` é o cliente TypeScript publicado (`@tec.pet/tecpet-sdk`) que o b
 Trabalhe a partir da raiz do repositório com `bun` (o monorepo é um workspace Bun/Turborepo); estes
 pacotes não têm scripts de dev próprios por pasta.
 
+> ⚠️ **Não exclua os arquivos de workflow/deploy na pasta `k8s/`.** Ela contém os manifests de
+> deploy por ambiente (`k8s/dev`, `k8s/homolog`, `k8s/prod`, cada um com `builder/` e `viewer/`).
+> Nunca apague nem sobrescreva esses `.yaml` como parte de outras tarefas — só altere quando a
+> mudança for explicitamente sobre o deploy do k8s.
+
 ## Comandos
 
 ```bash

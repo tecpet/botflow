@@ -1,6 +1,6 @@
 # ================= INSTALL BUN ===================
 ARG BUN_VERSION=1.3.3
-FROM debian:bullseye-slim AS build-bun
+FROM debian:bookworm-slim AS build-bun
 ARG BUN_VERSION
 RUN apt-get update -qq \
     && apt-get install -qq --no-install-recommends \
@@ -56,7 +56,7 @@ RUN apt-get update -qq \
 
 # ================= ADD BUN IN NODE 22 IMAGE ===================
 
-FROM node:22-bullseye-slim AS base
+FROM node:22-bookworm-slim AS base
 ARG BUN_RUNTIME_TRANSPILER_CACHE_PATH=0
 ENV BUN_RUNTIME_TRANSPILER_CACHE_PATH=${BUN_RUNTIME_TRANSPILER_CACHE_PATH}
 ARG BUN_INSTALL_BIN=/usr/local/bin
@@ -81,7 +81,7 @@ WORKDIR /app
 FROM base AS pruned
 ARG SCOPE
 COPY . .
-RUN bunx turbo prune "${SCOPE}" --docker
+RUN bunx turbo@2.6.1 prune "${SCOPE}" --docker
 
 # =============== INSTALL & BUILD =================
 
@@ -92,7 +92,7 @@ COPY --from=pruned /app/out/full/ .
 COPY bun.lock .
 COPY bunfig.toml .
 RUN SENTRYCLI_SKIP_DOWNLOAD=1 bun install
-RUN SKIP_ENV_CHECK=true NEXT_PUBLIC_VIEWER_URL=http://localhost bunx turbo build --filter="${SCOPE}"
+RUN SKIP_ENV_CHECK=true NEXT_PUBLIC_VIEWER_URL=http://localhost bunx turbo@2.6.1 build --filter="${SCOPE}"
 
 # ================== RELEASE ======================
 
