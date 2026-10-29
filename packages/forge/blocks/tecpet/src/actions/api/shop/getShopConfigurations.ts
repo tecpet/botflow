@@ -1,10 +1,26 @@
 import {
   type PaShopConfigurationsResponse,
+  type PaShopResponse,
   TecpetSDK,
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
+
+export interface ChainAddress {
+  cityName: string;
+  uf: string;
+}
+
+/**
+ * `booking.preferSameEmployee` (TP-4743) vem da API independentemente da versão
+ * do SDK em que o bloco está preso; tipado aqui até o bloco subir o SDK.
+ */
+type BookingConfigWithEmployeePreference =
+  PaShopConfigurationsResponse["advancedConfig"]["booking"] & {
+    preferSameEmployee?: boolean;
+  };
 
 export const getShopConfigurations = createAction({
   auth,
@@ -31,17 +47,40 @@ export const getShopConfigurations = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
-    variableIdToSaveAll: option.string.layout({
+    shopSettings: option.string.layout({
       label: "Salvar configurações",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    shopSegments: option.string.layout({
+      label: "Funcionamento dos Segmentos da loja",
+      inputType: "variableDropdown",
+    }),
+    chainShops: option.string.layout({
+      label: "Lojas da rede",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    chainAddresses: option.string.layout({
+      label: "Endereços da rede",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    preferSameEmployee: option.string.layout({
+      label: "Manter o mesmo profissional em todos os serviços",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
   }),
   getSetVariableIds: ({
     chargeMode,
-    variableIdToSaveAll,
+    shopSettings,
     chargeModeBySizeAndHair,
     chargeModeByBreed,
+    shopSegments,
+    chainShops,
+    chainAddresses,
+    preferSameEmployee,
   }) => {
     const variables: string[] = [];
 
@@ -53,56 +92,112 @@ export const getShopConfigurations = createAction({
 
     if (chargeMode) variables.push(chargeMode);
 
-    if (variableIdToSaveAll) variables.push(variableIdToSaveAll);
+    if (shopSettings) variables.push(shopSettings);
+
+    if (shopSegments) variables.push(shopSegments);
+
+    if (chainShops) variables.push(chainShops);
+
+    if (chainAddresses) variables.push(chainAddresses);
+
+    if (preferSameEmployee) variables.push(preferSameEmployee);
 
     return variables;
   },
 });
 export const GetShopConfigurationsHandler = async ({
-  credentials, options, variables, logs
+  credentials,
+  options,
+  variables,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
-      try {
-        if (options.shopId) {
-          const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-          );
+  try {
+    logHandler("getShopConfigurations", { shopId: options.shopId });
+    if (options.shopId) {
+      const tecpetSdk = new TecpetSDK(
+        (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+        credentials.apiKey as string,
+      );
 
-          const result: PaShopConfigurationsResponse =
-            (await tecpetSdk.shop.getConfigurations(
-              options.shopId as number,
-            )) as PaShopConfigurationsResponse;
+      const result: PaShopConfigurationsResponse =
+        (await tecpetSdk.shop.getConfigurations(
+          options.shopId as number,
+        )) as PaShopConfigurationsResponse;
 
-          if (result) {
-            const chargeMode = result.advancedConfig?.global?.serviceByBreed
-              ? "BREED"
-              : "SIZE_AND_HAIR";
-            if (options.chargeModeBySizeAndHair) {
-              variables.set([
-                { id: options.chargeModeBySizeAndHair, value: "SIZE_AND_HAIR" },
-              ]);
-            }
-            if (options.chargeModeByBreed) {
-              variables.set([
-                { id: options.chargeModeByBreed, value: "BREED" },
-              ]);
-            }
-            if (options.chargeMode) {
-              variables.set([{ id: options.chargeMode, value: chargeMode }]);
-            }
-            if (options.variableIdToSaveAll) {
-              variables.set([
-                { id: options.variableIdToSaveAll, value: result },
-              ]);
-            }
-          }
+      if (result) {
+        const chargeMode = result.advancedConfig?.global?.serviceByBreed
+          ? "BREED"
+          : "SIZE_AND_HAIR";
+
+        const chainShops: Array<PaShopResponse> = result.chain?.shops ?? [];
+
+        const chainAddresses: Array<ChainAddress> = Array.from(
+          new Map(
+            chainShops
+              .filter((shop) => shop.address?.city && shop.address?.uf)
+              .map((shop) => [
+                shop.address.city,
+                { cityName: shop.address.city, uf: shop.address.uf },
+              ]),
+          ).values(),
+        );
+
+        const preferSameEmployee =
+          (
+            result.advancedConfig?.booking as
+              | BookingConfigWithEmployeePreference
+              | undefined
+          )?.preferSameEmployee === true;
+
+        logHandler("getShopConfigurations", {
+          chargeMode,
+          preferSameEmployee,
+          serviceByBreed: result.advancedConfig?.global?.serviceByBreed,
+          chainShops: summarizeArray(chainShops.map((s) => s.id)),
+          chainAddresses: summarizeArray(chainAddresses),
+          segmentsCount: result.segments?.length,
+        });
+
+        if (options.chainShops) {
+          variables.set([{ id: options.chainShops, value: chainShops }]);
         }
-      } catch (error) {
-        console.error(error);
+
+        if (options.chainAddresses) {
+          variables.set([
+            {
+              id: options.chainAddresses,
+              value: chainAddresses,
+            },
+          ]);
+        }
+        if (options.chargeModeBySizeAndHair) {
+          variables.set([
+            { id: options.chargeModeBySizeAndHair, value: "SIZE_AND_HAIR" },
+          ]);
+        }
+        if (options.shopSegments) {
+          variables.set([{ id: options.shopSegments, value: result.segments }]);
+        }
+        if (options.chargeModeByBreed) {
+          variables.set([{ id: options.chargeModeByBreed, value: "BREED" }]);
+        }
+        if (options.chargeMode) {
+          variables.set([{ id: options.chargeMode, value: chargeMode }]);
+        }
+        if (options.shopSettings) {
+          variables.set([{ id: options.shopSettings, value: result }]);
+        }
+        if (options.preferSameEmployee) {
+          variables.set([
+            { id: options.preferSameEmployee, value: preferSameEmployee },
+          ]);
+        }
       }
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };

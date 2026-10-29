@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: botflow-viewer-homolog-app
+  annotations:
+    secret.reloader.stakater.com/reload: "botflow-viewer-homolog-secrets"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: botflow-viewer-homolog-app
+  template:
+    metadata:
+      labels:
+        app: botflow-viewer-homolog-app
+        department: backend
+        environment: HOMOLOG
+    spec:
+      containers:
+      - name: botflow-viewer-homolog-app
+        image: IMAGE_PLACEHOLDER
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PORT
+          value: "3000"
+        envFrom:
+        - secretRef:
+            name: botflow-viewer-homolog-secrets
+        readinessProbe:
+          httpGet:
+            path: /api/healthz
+            port: 3000
+            httpHeaders:
+            - name: "X-Forwarded-Host"
+              value: "botflow-viewer-homolog.tecpet.dev"
+          initialDelaySeconds: 120
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path: /api/healthz
+            port: 3000
+            httpHeaders:
+            - name: "X-Forwarded-Host"
+              value: "botflow-viewer-homolog.tecpet.dev"
+          initialDelaySeconds: 120
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cloud.google.com/backend-config: '{"ports": {"80":"botflow-viewer-homolog-backendconfig"}}'
+  name: botflow-viewer-homolog-service
+spec:
+  type: ClusterIP
+  selector:
+    app: botflow-viewer-homolog-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000

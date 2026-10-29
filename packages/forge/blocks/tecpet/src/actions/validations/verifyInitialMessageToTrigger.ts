@@ -4,6 +4,7 @@ import type {
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 
 export const verifyInitialMessageToTrigger = createAction({
   baseOptions,
@@ -51,11 +52,10 @@ export const verifyInitialMessageToTrigger = createAction({
   },
 });
 export const VerifyInitialMessageToTriggerHandler = async ({
-  options, variables, logs
+  options, variables
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         const initialMessage = options.initialClientMessage as string;
@@ -78,6 +78,8 @@ export const VerifyInitialMessageToTriggerHandler = async ({
         const chatbotTriggers: ChatbotTriggerJson[] = chatbotTriggersRaw.map(
           (item) => (typeof item === "string" ? JSON.parse(item) : item),
         );
+
+        logHandler("verifyInitialMessageToTrigger", { initialMessage, triggers: summarizeArray(chatbotTriggers), actions: summarizeArray(chatbotActions) });
 
         for (const trigger of chatbotTriggers) {
           if (trigger.patternType === "EXACTLY_MATCH") {
@@ -108,6 +110,8 @@ export const VerifyInitialMessageToTriggerHandler = async ({
           menusAction = chatbotActions;
           selectedActionMenu = action;
         }
+
+        logHandler("verifyInitialMessageToTrigger", { matchedChatbotActionId: chatbotActionId, found: Boolean(selectedActionMenu), reason: chatbotActionId ? (selectedActionMenu ? "trigger casou e ação encontrada" : "trigger casou mas ação não encontrada na lista") : "nenhum trigger casou com a mensagem inicial", selectedActionName: (selectedActionMenu as ChatbotActionJson | null)?.name ?? null });
 
         variables.set([
           { id: options.menusAction as string, value: menusAction },
