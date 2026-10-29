@@ -20,6 +20,11 @@ export const getPets = createAction({
       isRequired: true,
       helperText: "Id do cliente",
     }),
+    includeDeceased: option.string.layout({
+      label: "Incluir pets falecidos",
+      helperText:
+        "true para trazer também os pets marcados como falecidos. Vazio ou false traz somente os vivos",
+    }),
     pets: option.string.layout({
       label: "Pets",
       placeholder: "Selecione",
@@ -66,7 +71,17 @@ export const GetPetsHandler = async ({
       ? JSON.parse(rawPetsWithBooking as string)
       : null;
 
-    logHandler("getPets", { clientId: Number(options?.clientId), scheduleToAnotherPet, petsWithBooking: summarizeArray(petsWithBooking) });
+    const includeDeceased =
+      String(options.includeDeceased ?? "")
+        .trim()
+        .toLowerCase() === "true";
+
+    logHandler("getPets", {
+      clientId: Number(options?.clientId),
+      scheduleToAnotherPet,
+      includeDeceased,
+      petsWithBooking: summarizeArray(petsWithBooking),
+    });
 
     const tecpetSdk = new TecpetSDK(
       (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
@@ -74,18 +89,33 @@ export const GetPetsHandler = async ({
     );
 
     let petsResponse: Partial<PaPetResponse>[] =
-      await tecpetSdk.pet.getByClient(Number(options?.clientId));
+      await tecpetSdk.pet.getByClient(
+        Number(options?.clientId),
+        includeDeceased,
+      );
 
     if (petsResponse) {
       if (petsResponse.length > 0) {
         if (scheduleToAnotherPet && petsWithBooking) {
-          petsWithBooking.forEach((petId) => {
-            const petIndex = petsResponse.findIndex(
-              (pet) => pet.id === Number(petId),
-            );
+          const petsWithBookingIds = new Set(
+            petsWithBooking.map((petId) => Number(petId)),
+          );
+          const responsePetIds = new Set(
+            petsResponse.map((pet) => Number(pet.id)),
+          );
+          const notFoundPetsWithBooking = [...petsWithBookingIds].filter(
+            (petId) => !responsePetIds.has(petId),
+          );
 
-            petsResponse.splice(petIndex, 1);
-          });
+          if (notFoundPetsWithBooking.length > 0) {
+            logHandler("getPets", {
+              notFoundPetsWithBooking: summarizeArray(notFoundPetsWithBooking),
+            });
+          }
+
+          petsResponse = petsResponse.filter(
+            (pet) => !petsWithBookingIds.has(Number(pet.id)),
+          );
         }
 
         petsResponse.push({
@@ -93,7 +123,11 @@ export const GetPetsHandler = async ({
           name: "Informar novo pet",
         });
 
-        logHandler("getPets", { willFilterByBooking: Boolean(scheduleToAnotherPet && petsWithBooking), pets: summarizeArray(petsResponse), petsNames: petsResponse.map((p) => p.name) });
+        logHandler("getPets", {
+          willFilterByBooking: Boolean(scheduleToAnotherPet && petsWithBooking),
+          pets: summarizeArray(petsResponse),
+          petsNames: petsResponse.map((p) => p.name),
+        });
 
         variables.set([
           { id: options.pets as string, value: petsResponse.map((p) => p) },

@@ -52,24 +52,45 @@ export const VerifySimilarBreedOptionSelectedHandler = async ({
         typeof breed === "string" ? JSON.parse(breed) : breed,
     );
 
-    logHandler("verifySimilarBreedOptionSelected", { similarBreeds: summarizeArray(similarBreeds), petSRDId: petSRD?.id ?? null });
+    logHandler("verifySimilarBreedOptionSelected", {
+      similarBreeds: summarizeArray(similarBreeds),
+      petSRDId: petSRD?.id ?? null,
+    });
 
-    const petSRDIndex = similarBreeds.findIndex(
-      (breed) => breed.id === petSRD.id,
-    );
+    // A loja pode não ter SRD (ou ter vários, e aí nenhum entra na lista). Sem
+    // essa checagem, o splice(-1, 1) tiraria a última raça parecida.
+    const petSRDIndex = petSRD
+      ? similarBreeds.findIndex((breed) => breed.id === petSRD.id)
+      : -1;
 
-    similarBreeds.splice(petSRDIndex, 1);
+    if (petSRDIndex >= 0) similarBreeds.splice(petSRDIndex, 1);
 
     if (similarBreeds.length === 1) {
-      logHandler("verifySimilarBreedOptionSelected", { remaining: 1, reason: "exatamente uma raça similar (excluindo SRD) — selecionada automaticamente", selectedBreedId: similarBreeds[0]?.id ?? null });
+      logHandler("verifySimilarBreedOptionSelected", {
+        remaining: 1,
+        reason:
+          "exatamente uma raça similar (excluindo SRD) — selecionada automaticamente",
+        selectedBreedId: similarBreeds[0]?.id ?? null,
+      });
       variables.set([
         { id: options.petBreed as string, value: similarBreeds[0] },
       ]);
     } else if (similarBreeds.length > 1) {
-      logHandler("verifySimilarBreedOptionSelected", { remaining: similarBreeds.length, reason: "múltiplas raças similares (excluindo SRD) — limpando seleção para o cliente escolher" });
+      logHandler("verifySimilarBreedOptionSelected", {
+        remaining: similarBreeds.length,
+        reason:
+          "múltiplas raças similares (excluindo SRD) — limpando seleção para o cliente escolher",
+      });
       variables.set([{ id: options.petBreed as string, value: "" }]);
     } else {
-      logHandler("verifySimilarBreedOptionSelected", { remaining: 0, reason: "nenhuma raça similar restante (excluindo SRD) — nada definido" });
+      logHandler("verifySimilarBreedOptionSelected", {
+        remaining: 0,
+        reason:
+          "nenhuma raça similar restante (excluindo SRD) — limpando seleção",
+      });
+      // Limpa uma raça que tenha sobrado de uma busca anterior na sessão, para
+      // o fluxo não tratá-la como selecionada.
+      variables.set([{ id: options.petBreed as string, value: "" }]);
     }
   } catch (error) {
     console.error(error);

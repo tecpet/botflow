@@ -4,6 +4,10 @@ import {
   getAvailableTimes,
 } from "./actions/api/availableTimes/getAvailableTimes";
 import {
+  GetGroupAvailableTimesHandler,
+  getGroupAvailableTimes,
+} from "./actions/api/availableTimes/getGroupAvailableTimes";
+import {
   GetBillingMethodsHandler,
   getBillingMethods,
 } from "./actions/api/billingMethod/getBillingMethods";
@@ -16,9 +20,17 @@ import {
   createBooking,
 } from "./actions/api/booking/createBooking";
 import {
+  GetGroupBookingsHandler,
+  getGroupBookings,
+} from "./actions/api/booking/getGroupBookings";
+import {
   RescheduleBookingHandler,
   rescheduleBooking,
 } from "./actions/api/booking/rescheduleBooking";
+import {
+  RescheduleGroupBookingsHandler,
+  rescheduleGroupBookings,
+} from "./actions/api/booking/rescheduleGroupBookings";
 import { GetBreedsHandler, getBreeds } from "./actions/api/breed/getBreeds";
 import {
   GetConfigurationsHandler,
@@ -68,6 +80,10 @@ import {
   buildAvailableTimesOptions,
 } from "./actions/internal/buildAvailableTimesOptions";
 import {
+  BuildBookingServiceSelectionHandler,
+  buildBookingServiceSelection,
+} from "./actions/internal/buildBookingServiceSelection";
+import {
   BuildChainShopOptionsHandler,
   buildChainShopOptions,
 } from "./actions/internal/buildChainShopOptions";
@@ -95,6 +111,10 @@ import {
   BuildServiceOptionsHandler,
   buildServiceOptions,
 } from "./actions/internal/buildServiceOptions";
+import {
+  SearchChainCitiesHandler,
+  searchChainCities,
+} from "./actions/internal/searchChainCities";
 import {
   ShowGuidanceOptionsHandler,
   showGuidanceOptions,
@@ -148,6 +168,10 @@ import {
   verifyInputedDateText,
 } from "./actions/validations/verifyInputedDateText";
 import {
+  VerifyNotAcceptedBreedHandler,
+  verifyNotAcceptedBreed,
+} from "./actions/validations/verifyNotAcceptedBreed";
+import {
   VerifyShopTimeTableHandler,
   verifyShopTimeTable,
 } from "./actions/validations/verifyShopTimeTable";
@@ -155,6 +179,10 @@ import {
   VerifySimilarBreedOptionSelectedHandler,
   verifySimilarBreedOptionSelected,
 } from "./actions/validations/verifySimilarBreedOptionSelected";
+import {
+  VerifySimilarCityOptionSelectedHandler,
+  verifySimilarCityOptionSelected,
+} from "./actions/validations/verifySimilarCityOptionSelected";
 
 export default [
   createActionHandler(getAvailableTimes, { server: GetAvailableTimesHandler }),
@@ -162,6 +190,13 @@ export default [
   createActionHandler(cancelBooking, { server: CancelBookingHandler }),
   createActionHandler(createBooking, { server: CreateBookingHandler }),
   createActionHandler(rescheduleBooking, { server: RescheduleBookingHandler }),
+  createActionHandler(getGroupBookings, { server: GetGroupBookingsHandler }),
+  createActionHandler(getGroupAvailableTimes, {
+    server: GetGroupAvailableTimesHandler,
+  }),
+  createActionHandler(rescheduleGroupBookings, {
+    server: RescheduleGroupBookingsHandler,
+  }),
   createActionHandler(getBreeds, { server: GetBreedsHandler }),
   createActionHandler(getConfigurations, { server: GetConfigurationsHandler }),
   createActionHandler(getFormattedMessages, {
@@ -201,6 +236,9 @@ export default [
   createActionHandler(buildEmployeeOptions, {
     server: BuildEmployeeOptionsHandler,
   }),
+  createActionHandler(buildBookingServiceSelection, {
+    server: BuildBookingServiceSelectionHandler,
+  }),
   createActionHandler(buildSelectedAdditionals, {
     server: BuildSelectedAdditionalsHandler,
   }),
@@ -209,6 +247,9 @@ export default [
   }),
   createActionHandler(buildChainShopOptions, {
     server: BuildChainShopOptionsHandler,
+  }),
+  createActionHandler(searchChainCities, {
+    server: SearchChainCitiesHandler,
   }),
   createActionHandler(showGuidanceOptions, {
     server: ShowGuidanceOptionsHandler,
@@ -245,6 +286,12 @@ export default [
   }),
   createActionHandler(verifySimilarBreedOptionSelected, {
     server: VerifySimilarBreedOptionSelectedHandler,
+  }),
+  createActionHandler(verifySimilarCityOptionSelected, {
+    server: VerifySimilarCityOptionSelectedHandler,
+  }),
+  createActionHandler(verifyNotAcceptedBreed, {
+    server: VerifyNotAcceptedBreedHandler,
   }),
   createActionHandler(validateTakeAndBringMinAdvanceHours, {
     server: ValidateTakeAndBringMinAdvanceHoursHandler,

@@ -1,6 +1,7 @@
 import type { ChatbotActionJson } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { resolveMinAdvanceHours } from "../../helpers/bookingMinAdvance";
 import { logHandler } from "../../helpers/logger";
 
 export const parseSelectedFluxInfoCollectionMenus = createAction({
@@ -514,13 +515,19 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
         options.allowChangeDateAndTimeMessage as string,
         editBooking?.allowChangeDateAndTime?.message,
       ],
+      // Grava a antecedência efetiva (padrão de 1h quando a loja não
+      // configurou), a mesma que as validações de cancelamento/reagendamento
+      // usam. Com "" o aviso "pelo menos {{...}}h(s)" saía sem o número
+      // (TP-5238).
       [
         options.allowCancelMinAdvanceHours as string,
-        editBooking?.allowCancel?.minCancelAdvanceHours ?? "",
+        resolveMinAdvanceHours(editBooking?.allowCancel?.minCancelAdvanceHours),
       ],
       [
         options.allowChangeDateAndTimeMinAdvanceHours as string,
-        editBooking?.allowChangeDateAndTime?.minRescheduleAdvanceHours ?? "",
+        resolveMinAdvanceHours(
+          editBooking?.allowChangeDateAndTime?.minRescheduleAdvanceHours,
+        ),
       ],
     ];
 
@@ -606,6 +613,10 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       [
         options.professionalSelectionEnabled,
         Boolean(serviceSelection?.serviceProfessionalChoice?.enabled ?? false),
+      ],
+      [
+        options.professionalSelectionMessage,
+        serviceSelection?.serviceProfessionalChoice?.message ?? "",
       ],
       [
         options.promotionSelectionEnabled,
