@@ -3,7 +3,7 @@ name: Build and Deploy botflow-builder to EKS (HOMOLOG - AWS)
 on:
   push:
     branches:
-      - homolog-aws
+      - homolog
   workflow_dispatch:
 
 env:
