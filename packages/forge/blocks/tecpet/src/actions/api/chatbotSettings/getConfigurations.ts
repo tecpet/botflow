@@ -2,6 +2,8 @@ import { type PaChatbotSettingsResponse, TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
+import { parseJsonArray } from "../../../helpers/utils";
 
 export const getConfigurations = createAction({
   auth,
@@ -12,6 +14,10 @@ export const getConfigurations = createAction({
       label: "ID Loja",
       isRequired: true,
       helperText: "Id da loja",
+    }),
+    chainShops: option.string.layout({
+      label: "Lojas da rede",
+      helperText: "Lojas da rede",
     }),
     configurations: option.string.layout({
       label: "Configurações",
@@ -106,14 +112,14 @@ export const getConfigurations = createAction({
   },
 });
 export const GetConfigurationsHandler = async ({
-  credentials, options, variables, logs
+  credentials, options, variables
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
+        logHandler("getConfigurations", { shopId: options.shopId });
         if (options.shopId) {
           const tecpetSdk = new TecpetSDK(
           (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
@@ -124,6 +130,25 @@ export const GetConfigurationsHandler = async ({
               options.shopId as number,
             )) as PaChatbotSettingsResponse;
           if (result) {
+            const chainShops = parseJsonArray(options.chainShops);
+
+            const enabledActions = result.chatbotActions.filter((a) => a.enabled);
+            logHandler("getConfigurations", { chainShopsCount: chainShops.length, aiEnabled: result.aiEnabled, voiceResponseEnabled: result.voiceResponseEnabled, enabledActions: summarizeArray(enabledActions.map((a) => a.name)), totalActions: result.chatbotActions.length });
+
+            if (chainShops.length > 0) {
+              // Item de menu sintético: não existe como ação cadastrada na loja e
+              // por isso não tem fluxo associado. O `chatbotFlux` vazio é
+              // obrigatório — sem ele, quem consome a ação selecionada (ex.:
+              // parseSelectedFluxSettings) quebra ao ler `chatbotFlux.id`.
+              result.chatbotActions.push({
+                id: "CHAIN",
+                name: "CONSULTAR REDE",
+                description: "",
+                enabled: true,
+                chatbotFlux: { id: "CHAIN", name: "CONSULTAR REDE", fluxType: "" },
+              } as unknown as PaChatbotSettingsResponse["chatbotActions"][number]);
+            }
+
             variables.set([
               { id: options.configurations as string, value: result },
               {
@@ -177,9 +202,6 @@ export const GetConfigurationsHandler = async ({
           }
         }
       } catch (error) {
-        logs.add({
-          status: "error",
-          description: JSON.stringify(error),
-        });
+  
       }
 };

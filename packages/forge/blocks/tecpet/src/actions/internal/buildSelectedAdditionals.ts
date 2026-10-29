@@ -1,5 +1,7 @@
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
+import type { ServiceOptionType } from "./buildServiceOptions";
 
 export interface IAdditionals {
   id: string;
@@ -79,63 +81,70 @@ export const buildSelectedAdditionals = createAction({
   },
 });
 export const BuildSelectedAdditionalsHandler = async ({
-  options, variables
+  options,
+  variables,
 }: {
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const selectedAdditionalId: number = Number(options.selectedAdditional);
+  try {
+    const selectedAdditional: ServiceOptionType = JSON.parse(
+      options.selectedAdditional as string,
+    );
 
-        const loadAdditionals: IAdditionals[] = JSON.parse(
-          (options.additionalArray as string) ?? "[]",
-        );
+    const loadAdditionals: IAdditionals[] = JSON.parse(
+      (options.additionalArray as string) ?? "[]",
+    );
 
-        const additionals = loadAdditionals.map((item) =>
-          typeof item === "string" ? JSON.parse(item) : item,
-        );
+    const additionals = loadAdditionals.map((item) =>
+      typeof item === "string" ? JSON.parse(item) : item,
+    );
 
-        const selectedAdditionals = JSON.parse(
-          (options.selectedAdditionalsArray as string) ?? "[]",
-        );
+    const selectedAdditionals = JSON.parse(
+      (options.selectedAdditionalsArray as string) ?? "[]",
+    );
 
-        selectedAdditionals.push(selectedAdditionalId);
+    logHandler("buildSelectedAdditionals", { selectedAdditionalId: selectedAdditional.id, selectedAdditionalName: selectedAdditional.name, inputAdditionals: summarizeArray(additionals.map((a) => ({ id: a.id, name: a.name }))), previouslySelectedIds: summarizeArray(selectedAdditionals) });
 
-        const updatedAdditionalArray = additionals.filter(
-          (item) => item.id !== selectedAdditionalId,
-        );
+    selectedAdditionals.push(selectedAdditional.id);
 
-        variables.set([
-          {
-            id: options.updateSelectedAdditionalsArray as string,
-            value: selectedAdditionals,
-          },
-        ]);
-        variables.set([
-          {
-            id: options.updatedAdditionalOptions as string,
-            value: updatedAdditionalArray,
-          },
-        ]);
-        variables.set([
-          {
-            id: options.updatedAdditionalOptionsIds as string,
-            value: updatedAdditionalArray.map((s) => s.id),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.updatedAdditionalOptionsNames as string,
-            value: updatedAdditionalArray.map((s) => s.name),
-          },
-        ]);
-        variables.set([
-          {
-            id: options.updatedAdditionalOptionsDescriptions as string,
-            value: updatedAdditionalArray.map((s) => s.description),
-          },
-        ]);
-      } catch (error) {
-        console.error(error);
-      }
+    const updatedAdditionalArray = additionals.filter(
+      (item) => item.id !== selectedAdditional.id,
+    );
+
+    logHandler("buildSelectedAdditionals", { updatedSelectedIds: summarizeArray(selectedAdditionals), outputUpdatedAdditionals: summarizeArray(updatedAdditionalArray.map((a) => ({ id: a.id, name: a.name }))) });
+
+    variables.set([
+      {
+        id: options.updateSelectedAdditionalsArray as string,
+        value: selectedAdditionals,
+      },
+    ]);
+    variables.set([
+      {
+        id: options.updatedAdditionalOptions as string,
+        value: updatedAdditionalArray,
+      },
+    ]);
+    variables.set([
+      {
+        id: options.updatedAdditionalOptionsIds as string,
+        value: updatedAdditionalArray,
+      },
+    ]);
+    variables.set([
+      {
+        id: options.updatedAdditionalOptionsNames as string,
+        value: updatedAdditionalArray.map((s) => s.name),
+      },
+    ]);
+    variables.set([
+      {
+        id: options.updatedAdditionalOptionsDescriptions as string,
+        value: updatedAdditionalArray.map((s) => s.description),
+      },
+    ]);
+  } catch (error) {
+    console.error(error);
+  }
 };

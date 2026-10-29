@@ -3,6 +3,7 @@ import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 
 export const getCombos = createAction({
   auth,
@@ -45,23 +46,26 @@ export const getCombos = createAction({
   },
 });
 export const GetCombosHandler = async ({
-  credentials, options, variables, logs
+  credentials, options, variables
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
           credentials.apiKey as string,
         );
+        logHandler("getCombos", { shopId: Number(options?.shopId), petId: Number(options.petId), segmentType: options.segmentType });
+
         const combos: PaComboPricingResponse[] = (await tecpetSdk.combo.pricing(
           Number(options.petId),
           options.segmentType as ShopSegment,
           Number(options?.shopId),
         )) as PaComboPricingResponse[];
+
+        logHandler("getCombos", { combos: summarizeArray(combos), combosIds: combos?.map((c) => c.id) });
 
         variables.set([{ id: options.combos as string, value: combos }]);
         variables.set([

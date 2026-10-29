@@ -1,6 +1,7 @@
 import type { ChatbotActionJson } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler } from "../../helpers/logger";
 
 export const parseSelectedFluxSettings = createAction({
   baseOptions,
@@ -44,11 +45,10 @@ export const parseSelectedFluxSettings = createAction({
   }),
 });
 export const ParseSelectedFluxSettingsHandler = async ({
-  options, variables, logs
+  options, variables
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         const rawSelectedActionMenuConfig = JSON.parse(
@@ -60,10 +60,14 @@ export const ParseSelectedFluxSettingsHandler = async ({
             ? JSON.parse(rawSelectedActionMenuConfig)
             : rawSelectedActionMenuConfig;
 
+        logHandler("parseSelectedFluxSettings", { hasConfig: Boolean(selectedMenuConfig), reparsedFromString: typeof rawSelectedActionMenuConfig === "string" });
+
+        logHandler("parseSelectedFluxSettings", { fluxId: selectedMenuConfig.chatbotFlux?.id ?? "", fluxName: selectedMenuConfig.name ?? "", fluxType: selectedMenuConfig.chatbotFlux?.fluxType ?? "", fluxMode: selectedMenuConfig.mode ?? "", schedulePermission: selectedMenuConfig.schedulePermission ?? "" });
+
         variables.set([
           {
             id: options.fluxId as string,
-            value: selectedMenuConfig.chatbotFlux.id ?? "",
+            value: selectedMenuConfig.chatbotFlux?.id ?? "",
           },
         ]);
 
@@ -76,7 +80,7 @@ export const ParseSelectedFluxSettingsHandler = async ({
         variables.set([
           {
             id: options.fluxType as string,
-            value: selectedMenuConfig.chatbotFlux.fluxType ?? "",
+            value: selectedMenuConfig.chatbotFlux?.fluxType ?? "",
           },
         ]);
         variables.set([
@@ -98,6 +102,9 @@ export const ParseSelectedFluxSettingsHandler = async ({
           },
         ]);
       } catch (error) {
+        // Sem a tag do handler o stack sai solto no botflow-viewer e não dá para
+        // saber qual nó do fluxo deixou de gravar as variáveis.
+        logHandler("parseSelectedFluxSettings", { failed: true, error: error instanceof Error ? error.message : String(error) });
         console.error(error);
       }
 };
