@@ -3,7 +3,7 @@ name: Build and Deploy botflow-builder to EKS (DEV - AWS)
 on:
   push:
     branches:
-      - dev-aws
+      - dev
   workflow_dispatch:
 
 env:
