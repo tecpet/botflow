@@ -121,8 +121,12 @@ export const sanitizeString = (input: string): string => {
     "�",
   );
 
-  // 2. Escape lone backslashes that could break downstream JSON parsing
-  output = output.replace(/\\(?![\\ntbrf"'u])/g, "\\\\");
+  // 2. Escape lone backslashes that could break downstream JSON parsing.
+  // Escape pairs are matched as a whole so the second backslash of an
+  // escaped one ("\\", as JSON.stringify outputs it) is not taken as lone.
+  output = output.replace(/\\([\\ntbrf"'u]?)/g, (match, escapedChar) =>
+    escapedChar ? match : "\\\\",
+  );
 
   return output;
 };

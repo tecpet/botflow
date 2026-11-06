@@ -1,6 +1,7 @@
 import type { PaPetResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 
 export const buildClientPetsSummary = createAction({
   baseOptions,
@@ -52,6 +53,10 @@ export const BuildClientPetsSummaryHandler = async ({
         const pets: PaPetResponse[] = petParsed.map((item) =>
           typeof item === "string" ? JSON.parse(item) : item,
         );
+
+        logHandler("buildClientPetsSummary", { inputPets: summarizeArray(pets.map((p) => ({ id: p.id, name: p.name }))) });
+
+        logHandler("buildClientPetsSummary", { outputPets: summarizeArray(pets.map((p) => ({ id: p.id, name: p.name, breedName: p.breedName }))) });
 
         variables.set([
           { id: options.petsValue as string, value: pets.map((p) => p) },

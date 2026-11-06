@@ -6,6 +6,7 @@ import {
 import type { Background } from "@typebot.io/theme/schemas";
 import { Label } from "@typebot.io/ui/components/Label";
 import { Radio, RadioGroup } from "@typebot.io/ui/components/RadioGroup";
+import { useRef } from "react";
 import { BackgroundContent } from "./BackgroundContent";
 
 type Props = {
@@ -18,12 +19,26 @@ export const BackgroundSelector = ({
   onBackgroundChange,
 }: Props) => {
   const { t } = useTranslate();
+  // Remembers the last content used for each background type so switching type
+  // back and forth (e.g. color → image → color) restores the previously
+  // uploaded image / picked color instead of discarding it.
+  const contentByTypeRef = useRef<Partial<Record<BackgroundType, string>>>({});
+
+  const currentType = background?.type ?? defaultBackgroundType;
+  if (background?.content !== undefined)
+    contentByTypeRef.current[currentType] = background.content;
 
   const handleBackgroundTypeChange = (type: BackgroundType) =>
-    onBackgroundChange({ ...background, type, content: undefined });
+    onBackgroundChange({
+      ...background,
+      type,
+      content: contentByTypeRef.current[type],
+    });
 
-  const handleBackgroundContentChange = (content: string) =>
+  const handleBackgroundContentChange = (content: string) => {
+    contentByTypeRef.current[currentType] = content;
     onBackgroundChange({ ...background, content });
+  };
 
   return (
     <div className="flex flex-col gap-4">

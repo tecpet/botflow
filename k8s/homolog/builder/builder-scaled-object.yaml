@@ -1,11 +1,11 @@
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: botflow-viewer-scheduled-scaler
+  name: botflow-builder-homolog-scheduled-scaler
   namespace: tecpet-dev-app
 spec:
   scaleTargetRef:
-    name: botflow-viewer-app
+    name: botflow-builder-homolog-app
   minReplicaCount: 0
   maxReplicaCount: 3
   cooldownPeriod: 300

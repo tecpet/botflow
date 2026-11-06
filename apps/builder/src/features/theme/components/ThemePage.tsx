@@ -1,5 +1,10 @@
 import { Standard } from "@typebot.io/react";
-import { defaultBackgroundColor } from "@typebot.io/theme/constants";
+import {
+  BackgroundType,
+  defaultBackgroundColor,
+} from "@typebot.io/theme/constants";
+import type { Theme } from "@typebot.io/theme/schemas";
+import type { CSSProperties } from "react";
 import { Seo } from "@/components/Seo";
 import { TypebotHeader } from "@/features/editor/components/TypebotHeader";
 import { useTypebot } from "@/features/editor/providers/TypebotProvider";
@@ -22,9 +27,10 @@ export const ThemePage = () => {
                 borderRadius: "0.75rem",
                 width: "100%",
                 height: "100%",
-                backgroundColor:
-                  typebot.theme.general?.background?.content ??
-                  defaultBackgroundColor[typebot.version],
+                ...parseBackground(
+                  typebot.theme.general?.background,
+                  typebot.version,
+                ),
               }}
             />
           )}
@@ -32,4 +38,25 @@ export const ThemePage = () => {
       </div>
     </div>
   );
+};
+
+const parseBackground = (
+  background: NonNullable<Theme["general"]>["background"],
+  version: keyof typeof defaultBackgroundColor,
+): CSSProperties => {
+  switch (background?.type) {
+    case undefined:
+    case BackgroundType.COLOR:
+      return {
+        backgroundColor: background?.content ?? defaultBackgroundColor[version],
+      };
+    case BackgroundType.IMAGE:
+      return {
+        backgroundImage: `url(${background.content})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      };
+    case BackgroundType.NONE:
+      return {};
+  }
 };

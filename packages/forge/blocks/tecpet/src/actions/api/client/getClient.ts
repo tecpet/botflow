@@ -2,6 +2,7 @@ import { type PaClientResponse, TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler } from "../../../helpers/logger";
 
 export const getClient = createAction({
   auth,
@@ -33,22 +34,25 @@ export const getClient = createAction({
   },
 });
 export const GetClientHandler = async ({
-  credentials, options, variables, logs
+  credentials, options, variables
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         const tecpetSdk = new TecpetSDK(
           (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
           credentials.apiKey as string,
         );
+        logHandler("getClient", { shopId: (options.shopId as number) ?? 0, phoneNumber: (options?.phoneNumber as string) ?? "" });
+
         const response: PaClientResponse = await tecpetSdk.client.getByPhone(
           (options?.phoneNumber as string) ?? "",
           (options.shopId as number) ?? 0,
         );
+
+        logHandler("getClient", { found: Boolean(response), clientId: response?.id });
 
         if (response) {
           variables.set([{ id: options.client as string, value: response }]);

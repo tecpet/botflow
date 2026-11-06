@@ -7,11 +7,20 @@ import {
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
+import {
+  groupCategoriesForSameEmployee,
+  offersEmployeeChoice,
+  parsePreferSameEmployee,
+} from "../../../helpers/sameEmployee";
+import { parseIds, parseJsonArray } from "../../../helpers/utils";
 import type { ServiceOptionType } from "../../internal/buildServiceOptions";
 
 export interface EmployeeServiceIndicationOption {
   name: string;
   category: ServiceCategoryType;
+  /** Pergunta agrupada (TP-4743): todas as categorias com o mesmo profissional. */
+  categories?: ServiceCategoryType[];
 }
 
 export const serviceCategoryLabel = {
@@ -35,6 +44,16 @@ export const getEmployess = createAction({
       isRequired: true,
       helperText: "Serviço selecionado",
     }),
+    selectedAdditionals: option.string.layout({
+      label: "Adicionais selecionados",
+      isRequired: false,
+      helperText: "Array de ids dos adicionais selecionados",
+    }),
+    additionalOptions: option.string.layout({
+      label: "Opções de adicionais",
+      isRequired: false,
+      helperText: "Catálogo de adicionais disponíveis",
+    }),
     employees: option.string.layout({
       label: "Valor dos funcionários",
       isRequired: true,
@@ -52,11 +71,26 @@ export const getEmployess = createAction({
       isRequired: true,
       helperText: "ID da loja",
     }),
+    preferSameEmployee: option.string.layout({
+      label: "Manter o mesmo profissional em todos os serviços",
+      isRequired: false,
+      helperText:
+        "Saída de Configurações da Loja. Quando verdadeira, pergunta um profissional só para todas as categorias do serviço",
+    }),
+    hasEmployeeChoice: option.string.layout({
+      label: "Mais de um profissional para escolher",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+      helperText:
+        "Recebe true quando alguma pergunta de profissional teria duas ou mais opções. Com false, cada pergunta teria no máximo um profissional, e o fluxo pode pular a pergunta se o cliente quer escolher.",
+    }),
   }),
-  getSetVariableIds: ({ selectedService }) => {
+  getSetVariableIds: ({ selectedService, hasEmployeeChoice }) => {
     const variables = [];
 
     if (selectedService) variables.push(selectedService);
+
+    if (hasEmployeeChoice) variables.push(hasEmployeeChoice);
 
     return variables;
   },
@@ -65,12 +99,10 @@ export const GetEmployessHandler = async ({
   credentials,
   options,
   variables,
-  logs,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
   try {
     const selectedService: ServiceOptionType = JSON.parse(
@@ -78,6 +110,12 @@ export const GetEmployessHandler = async ({
     );
 
     const shopId = Number(options.shopId);
+
+    logHandler("getEmployess", {
+      shopId,
+      selectedServiceType: selectedService?.type,
+      selectedServiceId: selectedService?.id,
+    });
 
     const filters: PaEmployeeFilter = { serviceCategoryIds: [] };
 
@@ -116,7 +154,48 @@ export const GetEmployessHandler = async ({
       servicesCategoriesIds = [selectedService.category.id];
     }
 
+    // A Tosa (GROOM) é tratada como adicional nesta loja. Sem incluir a categoria
+    // de tosa aqui, o profissional só é escolhido para o serviço principal (Banho)
+    // e o availableTimes recebe indicação parcial — o que quebra o cálculo e cai
+    // no atendimento humano. Incluímos as categorias dos adicionais GROOM
+    // selecionados para que o fluxo também peça o profissional da tosa.
+    const selectedAdditionalIds: number[] = options.selectedAdditionals
+      ? parseIds(options.selectedAdditionals)
+      : [];
+
+    const additionalOptions: ServiceOptionType[] = options.additionalOptions
+      ? parseJsonArray<ServiceOptionType>(options.additionalOptions)
+      : [];
+
+    const groomAdditionals = additionalOptions.filter(
+      (additional) =>
+        selectedAdditionalIds.includes(Number(additional.id)) &&
+        additional.category?.type === "GROOM",
+    );
+
+    for (const groom of groomAdditionals) {
+      const alreadyIndicated = employeeServiceCategoriesIndication.some(
+        (serviceCategory) => serviceCategory.category === groom.category.type,
+      );
+
+      if (!alreadyIndicated) {
+        employeeServiceCategoriesIndication.push({
+          name: serviceCategoryLabel[groom.category.type],
+          category: groom.category.type,
+        });
+      }
+
+      if (!servicesCategoriesIds.includes(groom.category.id)) {
+        servicesCategoriesIds.push(groom.category.id);
+      }
+    }
+
     filters["serviceCategoryIds"] = servicesCategoriesIds;
+
+    logHandler("getEmployess", {
+      servicesCategoriesIds,
+      employeeServiceCategoriesIndication,
+    });
 
     const tecpetSdk = new TecpetSDK(
       (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
@@ -126,15 +205,53 @@ export const GetEmployessHandler = async ({
     const employees: PaEmployeeResponse[] =
       await tecpetSdk.employee.getEmployeesByServiceCategory(filters, shopId);
 
+    const preferSameEmployee = parsePreferSameEmployee(
+      options.preferSameEmployee,
+    );
+
+    const offer = groupCategoriesForSameEmployee({
+      preferSameEmployee,
+      categories: employeeServiceCategoriesIndication,
+      employees,
+    });
+
+    const employeeChoice = offersEmployeeChoice(
+      offer.categories,
+      offer.employees,
+    );
+
+    logHandler("getEmployess", {
+      employees: summarizeArray(employees),
+      preferSameEmployee,
+      groupedCategories: offer.grouped,
+      offeredEmployees: summarizeArray(offer.employees.map((e) => e.id)),
+      hasEmployeeChoice: employeeChoice,
+    });
+
     variables.set([
       {
         id: options.employeeServiceCategories as string,
-        value: employeeServiceCategoriesIndication,
+        value: offer.categories,
       },
     ]);
 
-    variables.set([{ id: options.employees as string, value: employees }]);
+    variables.set([
+      { id: options.employees as string, value: offer.employees },
+    ]);
+
+    if (options.hasEmployeeChoice)
+      variables.set([
+        { id: options.hasEmployeeChoice as string, value: employeeChoice },
+      ]);
   } catch (error) {
     console.error(error);
+
+    // Sem a lista não há o que oferecer: a remarcação segue como se o cliente
+    // tivesse dito que não quer escolher, em vez de perguntar e cair numa lista
+    // que não carrega. A variável dura a sessão, então nunca fica a de antes.
+    if (options.hasEmployeeChoice)
+      variables.set([
+        { id: options.hasEmployeeChoice as string, value: false },
+      ]);
   }
 };

@@ -3,6 +3,7 @@ import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 
 export const getSpecies = createAction({
   auth,
@@ -54,9 +55,14 @@ export const GetSpeciesHandler = async ({
           (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
           credentials.apiKey as string,
         );
+        logHandler("getSpecies", { shopId: Number(options?.shopId) });
+
         const species: PaSpecieResponse[] = (await tecpetSdk.specie.list(
           Number(options?.shopId),
         )) as PaSpecieResponse[];
+
+        logHandler("getSpecies", { species: summarizeArray(species), speciesIds: species?.map((s) => s.id) });
+
         if (species) {
           variables.set([{ id: options.species as string, value: species }]);
           variables.set([
