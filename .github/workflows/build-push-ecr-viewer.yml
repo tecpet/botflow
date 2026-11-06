@@ -3,7 +3,7 @@ name: Build and Deploy botflow-viewer to EKS (BETA - AWS)
 on:
   push:
     branches:
-      - beta-aws
+      - beta
   workflow_dispatch:
 
 env:
