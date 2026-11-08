@@ -3,6 +3,7 @@ import { type PaClientResponse, TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler } from "../../../helpers/logger";
 
 export const editClient = createAction({
   auth,
@@ -77,11 +78,15 @@ export const EditClientHandler = async ({
           cpf: (options.clientCpf as string) ?? "",
         };
 
+        logHandler("editClient", { shopId: Number(options.shopId), clientId: Number(options.clientId), hasName: Boolean(body.name), hasCpf: Boolean(body.cpf) });
+
         const editedClient: PaClientResponse = await tecpetSdk.client.edit(
           Number(options.clientId),
           body,
           Number(options.shopId),
         );
+
+        logHandler("editClient", { found: Boolean(editedClient), editedName: editedClient?.name, editedCpf: editedClient?.cpf, editedBirthDate: editedClient?.birthDate });
 
         if (editedClient) {
           variables.set([

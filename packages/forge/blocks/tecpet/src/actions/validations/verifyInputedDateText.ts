@@ -1,5 +1,6 @@
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler } from "../../helpers/logger";
 
 export const verifyInputedDateText = createAction({
   baseOptions,
@@ -25,16 +26,19 @@ export const verifyInputedDateText = createAction({
   },
 });
 export const VerifyInputedDateTextHandler = async ({
-  options, variables, logs
+  options, variables
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         const rawDate = options.dateInputText as string;
 
+        logHandler("verifyInputedDateText", { rawDate });
+
         const isDateValid = validarDataReal(rawDate) ? true : false;
+
+        logHandler("verifyInputedDateText", { rawDate, isDateValid, reason: isDateValid ? "data válida (formato dd/MM/yyyy e data real)" : "data inválida (formato incorreto ou data inexistente)" });
 
         variables.set([
           { id: options.isDateValid as string, value: isDateValid },

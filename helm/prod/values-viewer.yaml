@@ -1,0 +1,99 @@
+projectName: botflow-viewer
+namespace: tecpet-prod-app
+appVersion: production
+
+serviceAccount:
+  enabled: false
+
+service:
+  enabled: true
+
+ingress:
+  enabled: true
+  ingresses:
+    - annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/group.name: k8s-public
+        alb.ingress.kubernetes.io/healthcheck-path: /healthz
+        alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
+      hosts:
+        - host: botflow-viewer-aws.tec.pet
+        - host: botflow-viewer.tec.pet
+
+deployment:
+  enabled: true
+  terminationGracePeriodSeconds: 45
+  containers:
+    - name: botflow-viewer
+      image:
+        registry: "725198488857.dkr.ecr.us-east-2.amazonaws.com"
+        repository: "botflow-viewer"
+      ports:
+        - containerPort: 3000
+      env:
+        - name: PORT
+          value: "3000"
+      envFrom:
+        - secretRef:
+            name: botflow-viewer-secrets
+      lifecycle:
+        preStop:
+          sleep:
+            seconds: 15
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: 3000
+        initialDelaySeconds: 30
+        periodSeconds: 15
+        failureThreshold: 12
+        timeoutSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: 3000
+        initialDelaySeconds: 180
+        periodSeconds: 15
+        failureThreshold: 3
+        timeoutSeconds: 5
+      resources:
+        requests:
+          cpu: "250m"
+          memory: "512Mi"
+        limits:
+          cpu: "500m"
+          memory: "1Gi"
+
+externalSecrets:
+  - name: botflow-viewer-secrets
+    refreshInterval: 0s
+    secretStore:
+      name: aws-parameterstore
+      kind: ClusterSecretStore
+    dataFrom:
+      - find:
+          path: /tecpet/botflow-viewer/
+          name:
+            regexp: ".*"
+        rewrite:
+          - regexp:
+              source: "^/tecpet/botflow-viewer/(.+)$"
+              target: "$1"
+
+keda:
+  enabled: true
+  scaledObjects:
+    - name: botflow-viewer-scaler
+      targetName: botflow-viewer-deploy
+      minReplicaCount: 2
+      maxReplicaCount: 5
+      triggers:
+        - name: cpu
+          type: cpu
+          metricType: Utilization
+          metadata:
+            value: "80"
+
+pdb:
+  enabled: true
+  maxUnavailable: 1
