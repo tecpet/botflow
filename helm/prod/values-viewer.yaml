@@ -58,8 +58,8 @@ deployment:
         timeoutSeconds: 5
       resources:
         requests:
-          cpu: "250m"
-          memory: "512Mi"
+          cpu: "100m"
+          memory: "704Mi"
         limits:
           cpu: "500m"
           memory: "1Gi"
@@ -92,7 +92,7 @@ keda:
           type: cpu
           metricType: Utilization
           metadata:
-            value: "80"
+            value: "200"
 
 pdb:
   enabled: true
