@@ -1,0 +1,75 @@
+name: Build and Deploy botflow-viewer to EKS (HOMOLOG - AWS)
+
+on:
+  push:
+    branches:
+      - homolog
+  workflow_dispatch:
+
+env:
+  AWS_REGION: "us-east-2"
+  AWS_ROLE_ARN: "arn:aws:iam::280655931130:role/github-actions-oidc"
+  ECR_REPOSITORY: "botflow-viewer"
+  EKS_CLUSTER: tecpet-development
+  HELM_REPO_URL: s3://tecpet-development-helm-charts/stable/kubeapps
+  RELEASE_NAME: botflow-viewer
+  NAMESPACE: tecpet-homolog-app
+
+jobs:
+  build-and-deploy:
+    name: Build, push to ECR and deploy to EKS
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v5
+
+      - name: "Authenticate to AWS"
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: "Login to Amazon ECR"
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: "Set up Docker Buildx"
+        uses: docker/setup-buildx-action@v4
+
+      - name: "Build and Push Docker Image"
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          cache-from: type=gha,scope=viewer
+          cache-to: type=gha,mode=max,scope=viewer
+          build-args: |
+            SCOPE=viewer
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.0
+
+      - name: Install helm-s3 plugin
+        run: helm plugin install https://github.com/hypnoglow/helm-s3.git
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region "$AWS_REGION" --name "$EKS_CLUSTER"
+
+      - name: Add chart repo (helm-s3)
+        run: helm repo add kubeapps "$HELM_REPO_URL"
+
+      - name: Deploy
+        run: |
+          helm upgrade --install "$RELEASE_NAME" kubeapps/kubeapps \
+            --namespace "$NAMESPACE" \
+            -f helm/homolog/values-viewer.yaml \
+            --set deployment.containers[0].image.registry="${{ steps.login-ecr.outputs.registry }}" \
+            --set deployment.containers[0].image.repository="$ECR_REPOSITORY" \
+            --set deployment.containers[0].image.tag="${{ github.sha }}"
