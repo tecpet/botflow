@@ -8,7 +8,9 @@ import {
   type DisplayGridOrigin,
   filterByDisplayGrid,
   intervalMinutesByDisplayMode,
+  isSmartTimeDisplayMode,
   resolveDisplayGridOrigin,
+  SMART_TIME_DISPLAY_MODE,
 } from "./timeDisplayGrid";
 
 const slotsEvery5Min = (from: string, to: string, skip: string[] = []) => {
@@ -65,10 +67,28 @@ describe("intervalMinutesByDisplayMode", () => {
     );
   });
 
+  it("o modo SMART usa a grade de 30 min", () => {
+    expect(intervalMinutesByDisplayMode(SMART_TIME_DISPLAY_MODE)).toBe(30);
+  });
+
   it("não afina quando o modo está vazio ou chega como a string 'null' do Typebot", () => {
     expect(intervalMinutesByDisplayMode("")).toBe(0);
     expect(intervalMinutesByDisplayMode("null")).toBe(0);
     expect(intervalMinutesByDisplayMode(undefined)).toBe(0);
+  });
+});
+
+describe("isSmartTimeDisplayMode", () => {
+  it.each([
+    ["SMART", true],
+    ["THIRTY_MIN", false],
+    ["ALL", false],
+    ["", false],
+    ["null", false],
+    [undefined, false],
+    [null, false],
+  ])("%p → %p", (mode, expected) => {
+    expect(isSmartTimeDisplayMode(mode)).toBe(expected);
   });
 });
 

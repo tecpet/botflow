@@ -2,6 +2,12 @@ import type { PaGetAvailableTimesResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
 import { logHandler, summarizeArray } from "../../helpers/logger";
+import { isSmartTimeDisplayMode } from "../../helpers/timeDisplayGrid";
+import {
+  normalizeTimesPage,
+  paginateTimes,
+  SMART_LIST_MAX_OPTIONS,
+} from "../../helpers/timeListPagination";
 import { safeJsonParse } from "../../helpers/utils";
 import type { AvailableTimeType } from "../api/availableTimes/getAvailableTimes";
 
@@ -14,11 +20,18 @@ export const OTHER_DATES_OPTION_ID = "OTHER";
  */
 export const OTHER_EMPLOYEES_OPTION_ID = "OTHER_EMPLOYEES";
 
+/**
+ * Opção que mostra a próxima página dos mesmos dias, no modo de exibição SMART.
+ * O fluxo reconhece este id, soma 1 na página e volta para este bloco.
+ */
+export const MORE_TIMES_OPTION_ID = "MORE_TIMES";
+
 // Ações vêm sem data e são exibidas pelo próprio rótulo. O título de cada linha
 // da lista do WhatsApp tem no máximo 24 caracteres: o gateway corta o resto.
 const ACTION_OPTION_IDS = new Set([
   OTHER_DATES_OPTION_ID,
   OTHER_EMPLOYEES_OPTION_ID,
+  MORE_TIMES_OPTION_ID,
 ]);
 
 const buildActionOption = (
@@ -50,13 +63,20 @@ export const buildAvailableTimesOptions = createAction({
     timeSelectionBehaviorTimeDisplayMode: option.string.layout({
       label: "Comportamento do seletor de horários - Modo exibição",
       isRequired: true,
-      helperText: "Modo de exibição. Exemplo: de 30 em 30 min",
+      helperText:
+        'Modo de exibição. Exemplo: de 30 em 30 min. No modo SMART a lista tem até 10 linhas e os horários que não couberem saem em "VER MAIS HORÁRIOS" (id MORE_TIMES).',
     }),
     showOtherEmployeesOption: option.string.layout({
       label: "Mostrar opção de outros profissionais",
       isRequired: false,
       helperText:
         'Quando "true", adiciona "VER OUTROS PROFISSIONAIS" logo abaixo de "PREFIRO OUTRA DATA" (id OTHER_EMPLOYEES). Ligue na saída "Outros profissionais disponíveis" da busca de horários.',
+    }),
+    timesPage: option.string.layout({
+      label: "Página dos horários",
+      isRequired: false,
+      helperText:
+        'Página exibida no modo SMART (0 = primeira). Some 1 quando o cliente escolher "VER MAIS HORÁRIOS" e volte a 0 em qualquer outra escolha. Depois da última página, a lista volta para a primeira.',
     }),
     availableTimesValues: option.string.layout({
       label: "Array de horarios disponiveis ids",
@@ -127,23 +147,53 @@ export const BuildAvailableTimesOptionsHandler = async ({
       displayMode: options.timeSelectionBehaviorTimeDisplayMode,
     });
 
-    availableTimes.push(
+    const actionOptions = [
       buildActionOption(OTHER_DATES_OPTION_ID, "PREFIRO OUTRA DATA"),
-    );
+    ];
 
     if (
       safeJsonParse<boolean>(options.showOtherEmployeesOption, false) === true
     )
-      availableTimes.push(
+      actionOptions.push(
         buildActionOption(
           OTHER_EMPLOYEES_OPTION_ID,
           "VER OUTROS PROFISSIONAIS",
         ),
       );
 
+    // Nos outros modos a lista vai inteira, como antes. No SMART ela é
+    // paginada, e as opções fixas ficam sempre na página para o cliente ter
+    // saída.
+    const isSmart = isSmartTimeDisplayMode(
+      options.timeSelectionBehaviorTimeDisplayMode,
+    );
+
+    const timesPage = isSmart
+      ? paginateTimes(availableTimes, {
+          maxTimes: SMART_LIST_MAX_OPTIONS - actionOptions.length,
+          page: normalizeTimesPage(options.timesPage),
+        })
+      : { times: availableTimes, pageIndex: 0, pageCount: 1 };
+
+    const listedOptions = [
+      ...timesPage.times,
+      ...(timesPage.pageCount > 1
+        ? [buildActionOption(MORE_TIMES_OPTION_ID, "VER MAIS HORÁRIOS")]
+        : []),
+      ...actionOptions,
+    ];
+
     logHandler("buildAvailableTimesOptions", {
+      pagination: {
+        isSmart,
+        requestedPage: options.timesPage ?? null,
+        pageIndex: timesPage.pageIndex,
+        pageCount: timesPage.pageCount,
+        totalTimes: availableTimes.length,
+        listedTimes: timesPage.times.length,
+      },
       outputAvailableTimes: summarizeArray(
-        availableTimes.map((t) => ({
+        listedOptions.map((t) => ({
           id: t.id,
           dateBR: t.dateBR,
           scheduleStartTime: t.scheduleStartTime,
@@ -154,11 +204,11 @@ export const BuildAvailableTimesOptionsHandler = async ({
     variables.set([
       {
         id: options.availableTimesValues as string,
-        value: availableTimes.map((t) => t),
+        value: listedOptions,
       },
       {
         id: options.availableTimesStartAndStop as string,
-        value: availableTimes.map((t) =>
+        value: listedOptions.map((t) =>
           ACTION_OPTION_IDS.has(t.id)
             ? t.scheduleStartTime
             : "Dia " + formatDateBR(t.dateBR) + " ás " + t.scheduleStartTime,
@@ -166,7 +216,7 @@ export const BuildAvailableTimesOptionsHandler = async ({
       },
       {
         id: options.availableTimesDates as string,
-        value: availableTimes.map((t) => formatDateBR(t.dateBR)),
+        value: listedOptions.map((t) => formatDateBR(t.dateBR)),
       },
     ]);
   } catch (error) {

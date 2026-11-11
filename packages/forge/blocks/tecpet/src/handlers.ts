@@ -33,6 +33,10 @@ import {
 } from "./actions/api/booking/rescheduleGroupBookings";
 import { GetBreedsHandler, getBreeds } from "./actions/api/breed/getBreeds";
 import {
+  LookupAddressByCepHandler,
+  lookupAddressByCep,
+} from "./actions/api/cep/lookupAddressByCep";
+import {
   GetConfigurationsHandler,
   getConfigurations,
 } from "./actions/api/chatbotSettings/getConfigurations";
@@ -45,6 +49,10 @@ import {
   getInteractionMode,
 } from "./actions/api/chatbotSettings/getInteractionMode";
 import { EditClientHandler, editClient } from "./actions/api/client/editClient";
+import {
+  EditClientAddressHandler,
+  editClientAddress,
+} from "./actions/api/client/editClientAddress";
 import { GetClientHandler, getClient } from "./actions/api/client/getClient";
 import {
   getClientSummary,
@@ -209,6 +217,10 @@ export default [
     server: BuildSecondaryServiceOfferOptionsHandler,
   }),
   createActionHandler(editClient, { server: EditClientHandler }),
+  createActionHandler(editClientAddress, { server: EditClientAddressHandler }),
+  createActionHandler(lookupAddressByCep, {
+    server: LookupAddressByCepHandler,
+  }),
   createActionHandler(getClient, { server: GetClientHandler }),
   createActionHandler(getClientSummary, { server: getClientSummaryHandler }),
   createActionHandler(getCombos, { server: GetCombosHandler }),

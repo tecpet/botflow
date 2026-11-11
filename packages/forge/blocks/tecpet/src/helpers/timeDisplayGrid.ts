@@ -34,9 +34,22 @@ const DAY_KEYS: DayKey[] = [
   "saturday",
 ];
 
+/**
+ * Modo SMART (TP-5338): grade de 30 min e lista paginada que cabe na lista do
+ * WhatsApp (ver `timeListPagination`).
+ *
+ * O valor fica aqui, e não no `ChatbotTimeDisplayModeEnum` do SDK, para o bloco
+ * não depender de uma versão nova do SDK: a API já devolve "SMART".
+ */
+export const SMART_TIME_DISPLAY_MODE = "SMART";
+
+export const isSmartTimeDisplayMode = (mode: unknown): boolean =>
+  mode === SMART_TIME_DISPLAY_MODE;
+
 /** Passo da grade em minutos; `0` = sem afinar (modo ALL, vazio ou desconhecido). */
 export const intervalMinutesByDisplayMode = (mode: unknown): number => {
   if (mode === ChatbotTimeDisplayModeEnum.THIRTY_MIN) return 30;
+  if (isSmartTimeDisplayMode(mode)) return 30;
   if (mode === ChatbotTimeDisplayModeEnum.ONE_HOUR) return 60;
   return 0;
 };

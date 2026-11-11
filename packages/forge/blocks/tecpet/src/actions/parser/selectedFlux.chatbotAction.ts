@@ -178,6 +178,16 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    clientAddressEnabled: option.string.layout({
+      label: "Endereço do cliente - Habilitado",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    clientAddressMessage: option.string.layout({
+      label: "Endereço do cliente - Mensagem",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
     petGenderEnabled: option.string.layout({
       label: "Genero do pet - Habilitado",
       placeholder: "Selecione",
@@ -292,6 +302,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     additionalSelectionMessage,
     clientCpfEnabled,
     clientCpfMessage,
+    clientAddressEnabled,
+    clientAddressMessage,
     confirmClientNameEnabled,
     confirmClientNameMessage,
     guidanceMessage,
@@ -348,6 +360,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     if (additionalSelectionMessage) variables.push(additionalSelectionMessage);
     if (clientCpfEnabled) variables.push(clientCpfEnabled);
     if (clientCpfMessage) variables.push(clientCpfMessage);
+    if (clientAddressEnabled) variables.push(clientAddressEnabled);
+    if (clientAddressMessage) variables.push(clientAddressMessage);
     if (confirmClientNameEnabled) variables.push(confirmClientNameEnabled);
     if (confirmClientNameMessage) variables.push(confirmClientNameMessage);
     if (guidanceMessage) variables.push(guidanceMessage);
@@ -505,7 +519,7 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
     /* ----- Edit booking ----- */
 
     const editBookingVariables = [
-      [options.allowCancel as string, editBooking?.allowCancel.enabled],
+      [options.allowCancel as string, editBooking?.allowCancel?.enabled],
       [options.allowCancelMessage as string, editBooking?.allowCancel?.message],
       [
         options.allowChangeDateAndTime as string,
@@ -571,11 +585,11 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
     const responseMessageVariables = [
       [
         options.onComercialTimeResponseMessage as string,
-        responseMessage?.onCommercialTime.message ?? "",
+        responseMessage?.onCommercialTime?.message ?? "",
       ],
       [
         options.outOfComercialTimeResponseMessage as string,
-        responseMessage?.outOfCommercialTime.message ?? "",
+        responseMessage?.outOfCommercialTime?.message ?? "",
       ],
     ];
 
@@ -640,7 +654,7 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       ],
       [
         options.timeSelectionBehaviorBehavior,
-        timeSelection?.timeSelectionBehavior.behavior ?? "",
+        timeSelection?.timeSelectionBehavior?.behavior ?? "",
       ],
       [
         options.timeSelectionBehaviorTimeDisplayMode,
@@ -691,22 +705,27 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
         options.clientCpfEnabled,
         Boolean(extraInfo?.clientCpf?.enabled ?? false),
       ],
-      [options.clientCpfMessage, extraInfo?.clientCpf.message ?? ""],
+      [options.clientCpfMessage, extraInfo?.clientCpf?.message ?? ""],
+      [
+        options.clientAddressEnabled,
+        Boolean(extraInfo?.clientAddress?.enabled ?? false),
+      ],
+      [options.clientAddressMessage, extraInfo?.clientAddress?.message ?? ""],
       [
         options.petGenderEnabled,
         Boolean(extraInfo?.petGender?.enabled ?? false),
       ],
-      [options.petGenderMessage, extraInfo?.petGender.message ?? ""],
+      [options.petGenderMessage, extraInfo?.petGender?.message ?? ""],
       [
         options.petBirthEnabled,
         Boolean(extraInfo?.petBirthDate?.enabled ?? false),
       ],
-      [options.petBirthMessage, extraInfo?.petBirthDate.message ?? ""],
+      [options.petBirthMessage, extraInfo?.petBirthDate?.message ?? ""],
       [
         options.petWeightEnabled,
         Boolean(extraInfo?.petWeight?.enabled ?? false),
       ],
-      [options.petWeightMessage, extraInfo?.petWeight.message ?? ""],
+      [options.petWeightMessage, extraInfo?.petWeight?.message ?? ""],
       [
         options.scheduleToAnotherPetEnabled,
         extraInfo?.scheduleToAnotherPet?.enabled ?? false,

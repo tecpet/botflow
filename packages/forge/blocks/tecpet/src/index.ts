@@ -8,10 +8,12 @@ import { getGroupBookings } from "./actions/api/booking/getGroupBookings";
 import { rescheduleBooking } from "./actions/api/booking/rescheduleBooking";
 import { rescheduleGroupBookings } from "./actions/api/booking/rescheduleGroupBookings";
 import { getBreeds } from "./actions/api/breed/getBreeds";
+import { lookupAddressByCep } from "./actions/api/cep/lookupAddressByCep";
 import { getConfigurations } from "./actions/api/chatbotSettings/getConfigurations";
 import { getFormattedMessages } from "./actions/api/chatbotSettings/getFormattedMessages";
 import { getInteractionMode } from "./actions/api/chatbotSettings/getInteractionMode";
 import { editClient } from "./actions/api/client/editClient";
+import { editClientAddress } from "./actions/api/client/editClientAddress";
 import { getClient } from "./actions/api/client/getClient";
 import { getClientSummary } from "./actions/api/client/getClientSummary";
 import { getCombos } from "./actions/api/combo/getCombos";
@@ -87,7 +89,13 @@ const validations = [
   verifyNotAcceptedBreed,
 ];
 
-const clientActions = [getClient, editClient, getClientSummary];
+const clientActions = [
+  getClient,
+  editClient,
+  editClientAddress,
+  lookupAddressByCep,
+  getClientSummary,
+];
 
 const petActions = [getPets, createPet, editPet];
 
