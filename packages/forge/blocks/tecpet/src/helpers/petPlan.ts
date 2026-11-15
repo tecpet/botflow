@@ -1,7 +1,11 @@
-import type {
-  PaPetPlanInvoiceControlResponse,
-  PaPetPlanResponse,
-  PaPlanBookingInput,
+import {
+  type PaPetPlanInvoiceControlResponse,
+  type PaPetPlanResolution,
+  type PaPetPlanResponse,
+  type PaPlanBookingInput,
+  PetPlanStatus,
+  type ShopSegment,
+  type TecpetSDK,
 } from "@tec.pet/tecpet-sdk";
 import { TecpetApiError } from "./apiErrors";
 
@@ -22,27 +26,20 @@ export const petPlanRefusalErrors = [
   TecpetApiError.PET_PLAN_SERVICES_NOT_AVAILABLE,
   TecpetApiError.BOOKING_DATE_AFTER_PET_PLAN_END_DATE,
   TecpetApiError.BOOKING_DATE_BEFORE_PET_PLAN_START_DATE,
+  TecpetApiError.PET_PLAN_NOT_FROM_PET,
+  TecpetApiError.PET_PLAN_NOT_FROM_SHOP,
+];
+
+export const bookablePetPlanStatuses = [
+  PetPlanStatus.ACTIVE,
+  PetPlanStatus.PENDING,
+  PetPlanStatus.OVERDUE,
 ];
 
 const hasBalance = (control: PaPetPlanInvoiceControlResponse) =>
   control.used < control.quantity;
 
-/**
- * Escolhe o plano do pet que cobre o serviço escolhido, espelhando o painel
- * (tecpet-web, `markServicesWithPetPlan` / `verifyAndDisableCombosWithServicesInPlan`):
- *
- * - Serviço: vincula quando a fatura atual do plano tem saldo para ele.
- * - Combo: vincula quando algum serviço do combo tem saldo e nenhum serviço do
- *   combo que está no plano está esgotado — o painel desabilita esse combo no
- *   modo plano. Com um serviço coberto o servidor tira o desconto do combo e
- *   cobra os demais pelo preço avulso.
- *
- * Adicionais e leva e traz ficam de fora, como no V1. A decisão final é do
- * servidor, que escolhe a fatura pelo ciclo da data do agendamento; a fatura
- * atual aqui é só a melhor aproximação, e por isso existe o fallback para
- * avulso em `petPlanRefusalErrors`.
- */
-export const resolvePetPlanForBooking = (
+export const pickPetPlanFromList = (
   petPlans: PaPetPlanResponse[],
   serviceIds: number[],
 ): PaPlanBookingInput | undefined => {
@@ -65,4 +62,98 @@ export const resolvePetPlanForBooking = (
   }
 
   return undefined;
+};
+
+export const pickPetPlanFromResolution = (
+  resolution: PaPetPlanResolution | undefined,
+): PaPlanBookingInput | undefined => {
+  const recommendedId = resolution?.recommendedPetPlanId;
+
+  if (!recommendedId) return undefined;
+
+  const option = (resolution.options ?? []).find(
+    (item) => Number(item.petPlanId) === Number(recommendedId),
+  );
+
+  if (!option?.coversAll) return undefined;
+
+  const services = (option.services ?? [])
+    .filter((service) => service.covered)
+    .map((service) => Number(service.serviceId));
+
+  if (!services.length) return undefined;
+
+  return { petPlan: Number(option.petPlanId), services };
+};
+
+export const isRouteNotFoundError = (error: unknown): boolean =>
+  Number((error as { statusCode?: unknown })?.statusCode) === 404;
+
+export type PetPlanResolutionSource = "resolve" | "list";
+
+export type ResolvedPetPlan = {
+  plan: PaPlanBookingInput | undefined;
+  source: PetPlanResolutionSource;
+  optionsFound: number;
+};
+
+const resolveFromList = async (
+  sdk: Pick<TecpetSDK, "petPlan">,
+  petId: number,
+  serviceIds: number[],
+  shopId: number,
+): Promise<ResolvedPetPlan> => {
+  const petPlans = await sdk.petPlan.list(
+    { petId, status: bookablePetPlanStatuses, vigente: true },
+    shopId,
+  );
+
+  return {
+    plan: pickPetPlanFromList(petPlans, serviceIds),
+    source: "list",
+    optionsFound: petPlans.length,
+  };
+};
+
+export const resolvePetPlanForBooking = async ({
+  sdk,
+  petId,
+  date,
+  serviceIds,
+  segmentType,
+  shopId,
+}: {
+  sdk: Pick<TecpetSDK, "petPlan">;
+  petId: number;
+  date: string | undefined;
+  serviceIds: number[];
+  segmentType?: ShopSegment;
+  shopId: number;
+}): Promise<ResolvedPetPlan> => {
+  if (!petId || !serviceIds.length)
+    return { plan: undefined, source: "resolve", optionsFound: 0 };
+
+  if (!date) return resolveFromList(sdk, petId, serviceIds, shopId);
+
+  try {
+    const resolution = await sdk.petPlan.resolve(
+      {
+        petId,
+        date,
+        serviceIds,
+        ...(segmentType ? { segmentType } : {}),
+      },
+      shopId,
+    );
+
+    return {
+      plan: pickPetPlanFromResolution(resolution),
+      source: "resolve",
+      optionsFound: resolution?.options?.length ?? 0,
+    };
+  } catch (error) {
+    if (!isRouteNotFoundError(error)) throw error;
+
+    return resolveFromList(sdk, petId, serviceIds, shopId);
+  }
 };

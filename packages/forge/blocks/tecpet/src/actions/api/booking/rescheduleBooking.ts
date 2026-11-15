@@ -88,6 +88,8 @@ const petPlanValidityErrors = [
   TecpetApiError.BOOKING_DATE_AFTER_PET_PLAN_END_DATE,
   TecpetApiError.BOOKING_DATE_BEFORE_PET_PLAN_START_DATE,
   TecpetApiError.PET_PLAN_IS_CANCELED,
+  TecpetApiError.PET_PLAN_NOT_FROM_PET,
+  TecpetApiError.PET_PLAN_NOT_FROM_SHOP,
 ];
 
 /**

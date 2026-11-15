@@ -3,7 +3,6 @@ import {
   type PaEmployeeIndication,
   type PaGetBookingResponse,
   type PaPlanBookingInput,
-  PetPlanStatus,
   type ShopSegment,
   TecpetSDK,
 } from "@tec.pet/tecpet-sdk";
@@ -313,7 +312,9 @@ export const CreateBookingHandler = async ({
     const plan = await findPetPlanForBooking(
       tecpetSdk,
       Number(options.petId),
+      selectedTimeOption?.dateISO || undefined,
       planCandidateServiceIds,
+      (options.segmentType as ShopSegment) || undefined,
       Number(options.shopId),
     );
 
@@ -391,38 +392,29 @@ export const CreateBookingHandler = async ({
   }
 };
 
-/**
- * Planos que o V1 já considerava ao fechar o agendamento. O status é o efetivo,
- * derivado das faturas no servidor.
- */
-const bookablePetPlanStatuses = [
-  PetPlanStatus.ACTIVE,
-  PetPlanStatus.PENDING,
-  PetPlanStatus.OVERDUE,
-];
-
-/**
- * Plano do pet que cobre o serviço escolhido (TP-4568). Falha na consulta não
- * pode travar o agendamento: sem plano, ele sai avulso, como antes.
- */
 const findPetPlanForBooking = async (
   tecpetSdk: TecpetSDK,
   petId: number,
+  date: string | undefined,
   serviceIds: number[],
+  segmentType: ShopSegment | undefined,
   shopId: number,
 ): Promise<PaPlanBookingInput | undefined> => {
   if (!petId || !serviceIds.length) return undefined;
 
   try {
-    const petPlans = await tecpetSdk.petPlan.list(
-      { petId, status: bookablePetPlanStatuses, vigente: true },
+    const { plan, source, optionsFound } = await resolvePetPlanForBooking({
+      sdk: tecpetSdk,
+      petId,
+      date,
+      serviceIds,
+      segmentType,
       shopId,
-    );
-
-    const plan = resolvePetPlanForBooking(petPlans, serviceIds);
+    });
 
     logHandler("createBooking", {
-      petPlansFound: petPlans.length,
+      petPlanSource: source,
+      petPlansFound: optionsFound,
       petPlanId: plan?.petPlan ?? null,
       petPlanServices: plan?.services ?? [],
     });

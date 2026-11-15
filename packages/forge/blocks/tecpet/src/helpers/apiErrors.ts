@@ -23,6 +23,8 @@ export enum TecpetApiError {
   PET_PLAN_WITHOUT_VALID_INVOICE = "This petplan dont have valid invoice",
   PET_PLAN_WITHOUT_PAID_INVOICES = "This petPlan have not paid invoices",
   PET_PLAN_SERVICES_NOT_AVAILABLE = "Those services don't are available to this plan",
+  PET_PLAN_NOT_FROM_PET = "PET_PLAN_NOT_FROM_PET",
+  PET_PLAN_NOT_FROM_SHOP = "PET_PLAN_NOT_FROM_SHOP",
   /**
    * Código de negócio novo da Public API (TP-4219): o pet já tem compromisso que
    * se sobrepõe ao horário escolhido, em qualquer segmento da loja.
