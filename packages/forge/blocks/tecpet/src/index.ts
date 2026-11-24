@@ -50,6 +50,7 @@ import { verifyInitialMessageToTrigger } from "./actions/validations/verifyIniti
 import { verifyInputedCpfText } from "./actions/validations/verifyInputedCpf";
 import { verifyInputedDateText } from "./actions/validations/verifyInputedDateText";
 import { verifyNotAcceptedBreed } from "./actions/validations/verifyNotAcceptedBreed";
+import { verifyRescheduleTakeAndBring } from "./actions/validations/verifyRescheduleTakeAndBring";
 import { verifyShopTimeTable } from "./actions/validations/verifyShopTimeTable";
 import { verifySimilarBreedOptionSelected } from "./actions/validations/verifySimilarBreedOptionSelected";
 import { verifySimilarCityOptionSelected } from "./actions/validations/verifySimilarCityOptionSelected";
@@ -83,6 +84,7 @@ const validations = [
   validateTakeAndBringMinAdvanceHours,
   validateCancelMinAdvanceHours,
   validateRescheduleMinAdvanceHours,
+  verifyRescheduleTakeAndBring,
   verifySimilarBreedOptionSelected,
   verifySimilarCityOptionSelected,
   verifyActiveShopSegments,

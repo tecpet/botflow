@@ -180,6 +180,10 @@ import {
   verifyNotAcceptedBreed,
 } from "./actions/validations/verifyNotAcceptedBreed";
 import {
+  VerifyRescheduleTakeAndBringHandler,
+  verifyRescheduleTakeAndBring,
+} from "./actions/validations/verifyRescheduleTakeAndBring";
+import {
   VerifyShopTimeTableHandler,
   verifyShopTimeTable,
 } from "./actions/validations/verifyShopTimeTable";
@@ -313,6 +317,9 @@ export default [
   }),
   createActionHandler(validateRescheduleMinAdvanceHours, {
     server: ValidateRescheduleMinAdvanceHoursHandler,
+  }),
+  createActionHandler(verifyRescheduleTakeAndBring, {
+    server: VerifyRescheduleTakeAndBringHandler,
   }),
   createActionHandler(getServiceRecommendations, {
     server: GetServiceRecommendationsHandler,
