@@ -1,7 +1,13 @@
 import type { PaGetBookingResponse, PaPetResponse } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
+import { utcToZonedTime } from "date-fns-tz";
 import { baseOptions } from "../../constants";
-import { formatBRDateStringDayMonth } from "../../helpers/utils";
+import { logHandler, summarizeArray } from "../../helpers/logger";
+import {
+  formatBRDateStringDayMonth,
+  isUpcomingBooking,
+  parseBookingDate,
+} from "../../helpers/utils";
 
 export const buildClientBookingsSummary = createAction({
   baseOptions,
@@ -14,6 +20,11 @@ export const buildClientBookingsSummary = createAction({
     clientBookings: option.string.layout({
       label: "Agendamentos do cliente",
       isRequired: true,
+    }),
+    shopSettings: option.string.layout({
+      label: "Configurações da loja",
+      isRequired: false,
+      helperText: "Configurações da loja (usado para ler o fuso horário)",
     }),
     bookingsValue: option.string.layout({
       label: "Agendamentos",
@@ -54,9 +65,24 @@ export const BuildClientBookingsSummaryHandler = async ({
 
     const pet: PaPetResponse = JSON.parse(rawPet);
 
+    let shopSettings: { timeZone?: string } | undefined;
+    try {
+      shopSettings = options.shopSettings
+        ? JSON.parse(options.shopSettings as string)
+        : undefined;
+    } catch (parseError) {
+      console.error(
+        "[buildClientBookingsSummary] falha ao fazer parse de shopSettings",
+        { rawShopSettings: options.shopSettings },
+        parseError,
+      );
+    }
+
+    const shopTimezone = shopSettings?.timeZone ?? "America/Sao_Paulo";
+
     const clientBookingsParsed: string[] = rawClientBookings
       ? JSON.parse(rawClientBookings as string)
-      : null;
+      : [];
 
     const bookings: Array<
       PaGetBookingResponse & {
@@ -67,6 +93,26 @@ export const BuildClientBookingsSummaryHandler = async ({
       typeof item === "string" ? JSON.parse(item) : item,
     );
 
+    logHandler("buildClientBookingsSummary", {
+      petId: pet.id,
+      petName: pet.name,
+      shopTimezone,
+      inputBookings: summarizeArray(
+        bookings.map((b) => ({
+          id: b.id,
+          petId: b.petId,
+          status: b.status,
+          date: b.date,
+          start: b.start,
+        })),
+      ),
+    });
+
+    // Trazemos o "agora" para o fuso da loja para que ambos os lados da
+    // comparação estejam na mesma referência de horário de parede — ver
+    // isUpcomingBooking em helpers/utils.
+    const nowInShopTimezone = utcToZonedTime(new Date(), shopTimezone);
+
     const filteredBookings: Array<
       Partial<
         PaGetBookingResponse & {
@@ -74,9 +120,22 @@ export const BuildClientBookingsSummaryHandler = async ({
           backToMenu?: boolean;
         }
       >
-    > = bookings.filter(
-      (booking) => booking.petId === pet.id && booking.status !== "REMOVED",
-    );
+    > = bookings
+      .filter(
+        (booking) =>
+          booking.petId === pet.id &&
+          (booking.status === "SCHEDULED" || booking.status === "CONFIRMED") &&
+          isUpcomingBooking(
+            booking.date ?? "",
+            booking.start ?? "",
+            nowInShopTimezone,
+          ),
+      )
+      .sort(
+        (a, b) =>
+          parseBookingDate(a.date ?? "", a.start ?? "").getTime() -
+          parseBookingDate(b.date ?? "", b.start ?? "").getTime(),
+      );
 
     filteredBookings.forEach((booking) => {
       let bookingDescription = "";
@@ -98,10 +157,22 @@ export const BuildClientBookingsSummaryHandler = async ({
       stop: "",
     });
 
+    logHandler("buildClientBookingsSummary", {
+      outputFilteredBookings: summarizeArray(
+        filteredBookings.map((b) => ({
+          id: b.id,
+          date: b.date,
+          start: b.start,
+          bookingDescription: b.bookingDescription,
+          backToMenu: b.backToMenu,
+        })),
+      ),
+    });
+
     variables.set([
       {
         id: options.bookingsValue as string,
-        value: filteredBookings.map((b) => b),
+        value: filteredBookings,
       },
     ]);
     variables.set([

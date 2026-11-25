@@ -2,6 +2,7 @@ import { type PaClientSummaryResponse, TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 
 export const getClientSummary = createAction({
   auth,
@@ -71,6 +72,8 @@ export const getClientSummaryHandler = async ({
   variables: any;
 }) => {
   try {
+    logHandler("getClientSummary", { clientId: options.clientId as number, shopId: options.shopId as number });
+
     if (!options.clientId || !options.shopId) {
       return;
     }
@@ -83,6 +86,8 @@ export const getClientSummaryHandler = async ({
       options.clientId as number,
       options.shopId as number,
     )) as PaClientSummaryResponse;
+
+    logHandler("getClientSummary", { found: Boolean(response), hasAnyBooking: response?.hasAnyBooking, pets: summarizeArray(response?.pets), bookings: summarizeArray(response?.bookings) });
 
     if (response) {
       if (options.clientSummary) {

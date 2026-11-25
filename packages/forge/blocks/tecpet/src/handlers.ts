@@ -4,6 +4,10 @@ import {
   getAvailableTimes,
 } from "./actions/api/availableTimes/getAvailableTimes";
 import {
+  GetGroupAvailableTimesHandler,
+  getGroupAvailableTimes,
+} from "./actions/api/availableTimes/getGroupAvailableTimes";
+import {
   GetBillingMethodsHandler,
   getBillingMethods,
 } from "./actions/api/billingMethod/getBillingMethods";
@@ -16,10 +20,22 @@ import {
   createBooking,
 } from "./actions/api/booking/createBooking";
 import {
+  GetGroupBookingsHandler,
+  getGroupBookings,
+} from "./actions/api/booking/getGroupBookings";
+import {
   RescheduleBookingHandler,
   rescheduleBooking,
 } from "./actions/api/booking/rescheduleBooking";
+import {
+  RescheduleGroupBookingsHandler,
+  rescheduleGroupBookings,
+} from "./actions/api/booking/rescheduleGroupBookings";
 import { GetBreedsHandler, getBreeds } from "./actions/api/breed/getBreeds";
+import {
+  LookupAddressByCepHandler,
+  lookupAddressByCep,
+} from "./actions/api/cep/lookupAddressByCep";
 import {
   GetConfigurationsHandler,
   getConfigurations,
@@ -28,7 +44,15 @@ import {
   GetFormattedMessagesHandler,
   getFormattedMessages,
 } from "./actions/api/chatbotSettings/getFormattedMessages";
+import {
+  GetInteractionModeHandler,
+  getInteractionMode,
+} from "./actions/api/chatbotSettings/getInteractionMode";
 import { EditClientHandler, editClient } from "./actions/api/client/editClient";
+import {
+  EditClientAddressHandler,
+  editClientAddress,
+} from "./actions/api/client/editClientAddress";
 import { GetClientHandler, getClient } from "./actions/api/client/getClient";
 import {
   getClientSummary,
@@ -64,6 +88,14 @@ import {
   buildAvailableTimesOptions,
 } from "./actions/internal/buildAvailableTimesOptions";
 import {
+  BuildBookingServiceSelectionHandler,
+  buildBookingServiceSelection,
+} from "./actions/internal/buildBookingServiceSelection";
+import {
+  BuildChainShopOptionsHandler,
+  buildChainShopOptions,
+} from "./actions/internal/buildChainShopOptions";
+import {
   BuildClientBookingsSummaryHandler,
   buildClientBookingsSummary,
 } from "./actions/internal/buildClientBookingsSummary";
@@ -76,6 +108,10 @@ import {
   buildEmployeeOptions,
 } from "./actions/internal/buildEmployeeOptions";
 import {
+  BuildSecondaryServiceOfferOptionsHandler,
+  buildSecondaryServiceOfferOptions,
+} from "./actions/internal/buildSecondaryServiceOfferOptions";
+import {
   BuildSelectedAdditionalsHandler,
   buildSelectedAdditionals,
 } from "./actions/internal/buildSelectedAdditionals";
@@ -83,6 +119,10 @@ import {
   BuildServiceOptionsHandler,
   buildServiceOptions,
 } from "./actions/internal/buildServiceOptions";
+import {
+  SearchChainCitiesHandler,
+  searchChainCities,
+} from "./actions/internal/searchChainCities";
 import {
   ShowGuidanceOptionsHandler,
   showGuidanceOptions,
@@ -100,6 +140,14 @@ import {
   parseSelectedFluxSettings,
 } from "./actions/parser/selectedFlux.settings";
 import {
+  ValidateCancelMinAdvanceHoursHandler,
+  validateCancelMinAdvanceHours,
+} from "./actions/validations/validateCancelMinAdvanceHours";
+import {
+  ValidateRescheduleMinAdvanceHoursHandler,
+  validateRescheduleMinAdvanceHours,
+} from "./actions/validations/validateRescheduleMinAdvanceHours";
+import {
   ValidateTakeAndBringMinAdvanceHoursHandler,
   validateTakeAndBringMinAdvanceHours,
 } from "./actions/validations/validateTakeAndBringMinAdvanceHours";
@@ -107,6 +155,10 @@ import {
   VerifyAvailableTimesOptionSelectedHandler,
   verifyAvailableTimesOptionSelected,
 } from "./actions/validations/veirifyAvailableTimesOptionSelected";
+import {
+  VerifyActiveShopSegmentsHandler,
+  verifyActiveShopSegments,
+} from "./actions/validations/verifyActiveShopSegments";
 import {
   VerifyBookingGuardHandler,
   verifyBookingGuard,
@@ -124,9 +176,21 @@ import {
   verifyInputedDateText,
 } from "./actions/validations/verifyInputedDateText";
 import {
+  VerifyNotAcceptedBreedHandler,
+  verifyNotAcceptedBreed,
+} from "./actions/validations/verifyNotAcceptedBreed";
+import {
+  VerifyShopTimeTableHandler,
+  verifyShopTimeTable,
+} from "./actions/validations/verifyShopTimeTable";
+import {
   VerifySimilarBreedOptionSelectedHandler,
   verifySimilarBreedOptionSelected,
 } from "./actions/validations/verifySimilarBreedOptionSelected";
+import {
+  VerifySimilarCityOptionSelectedHandler,
+  verifySimilarCityOptionSelected,
+} from "./actions/validations/verifySimilarCityOptionSelected";
 
 export default [
   createActionHandler(getAvailableTimes, { server: GetAvailableTimesHandler }),
@@ -134,12 +198,29 @@ export default [
   createActionHandler(cancelBooking, { server: CancelBookingHandler }),
   createActionHandler(createBooking, { server: CreateBookingHandler }),
   createActionHandler(rescheduleBooking, { server: RescheduleBookingHandler }),
+  createActionHandler(getGroupBookings, { server: GetGroupBookingsHandler }),
+  createActionHandler(getGroupAvailableTimes, {
+    server: GetGroupAvailableTimesHandler,
+  }),
+  createActionHandler(rescheduleGroupBookings, {
+    server: RescheduleGroupBookingsHandler,
+  }),
   createActionHandler(getBreeds, { server: GetBreedsHandler }),
   createActionHandler(getConfigurations, { server: GetConfigurationsHandler }),
   createActionHandler(getFormattedMessages, {
     server: GetFormattedMessagesHandler,
   }),
+  createActionHandler(getInteractionMode, {
+    server: GetInteractionModeHandler,
+  }),
+  createActionHandler(buildSecondaryServiceOfferOptions, {
+    server: BuildSecondaryServiceOfferOptionsHandler,
+  }),
   createActionHandler(editClient, { server: EditClientHandler }),
+  createActionHandler(editClientAddress, { server: EditClientAddressHandler }),
+  createActionHandler(lookupAddressByCep, {
+    server: LookupAddressByCepHandler,
+  }),
   createActionHandler(getClient, { server: GetClientHandler }),
   createActionHandler(getClientSummary, { server: getClientSummaryHandler }),
   createActionHandler(getCombos, { server: GetCombosHandler }),
@@ -167,11 +248,20 @@ export default [
   createActionHandler(buildEmployeeOptions, {
     server: BuildEmployeeOptionsHandler,
   }),
+  createActionHandler(buildBookingServiceSelection, {
+    server: BuildBookingServiceSelectionHandler,
+  }),
   createActionHandler(buildSelectedAdditionals, {
     server: BuildSelectedAdditionalsHandler,
   }),
   createActionHandler(buildServiceOptions, {
     server: BuildServiceOptionsHandler,
+  }),
+  createActionHandler(buildChainShopOptions, {
+    server: BuildChainShopOptionsHandler,
+  }),
+  createActionHandler(searchChainCities, {
+    server: SearchChainCitiesHandler,
   }),
   createActionHandler(showGuidanceOptions, {
     server: ShowGuidanceOptionsHandler,
@@ -191,6 +281,12 @@ export default [
   createActionHandler(verifyBookingGuard, {
     server: VerifyBookingGuardHandler,
   }),
+  createActionHandler(verifyShopTimeTable, {
+    server: VerifyShopTimeTableHandler,
+  }),
+  createActionHandler(verifyActiveShopSegments, {
+    server: VerifyActiveShopSegmentsHandler,
+  }),
   createActionHandler(verifyInitialMessageToTrigger, {
     server: VerifyInitialMessageToTriggerHandler,
   }),
@@ -203,8 +299,20 @@ export default [
   createActionHandler(verifySimilarBreedOptionSelected, {
     server: VerifySimilarBreedOptionSelectedHandler,
   }),
+  createActionHandler(verifySimilarCityOptionSelected, {
+    server: VerifySimilarCityOptionSelectedHandler,
+  }),
+  createActionHandler(verifyNotAcceptedBreed, {
+    server: VerifyNotAcceptedBreedHandler,
+  }),
   createActionHandler(validateTakeAndBringMinAdvanceHours, {
     server: ValidateTakeAndBringMinAdvanceHoursHandler,
+  }),
+  createActionHandler(validateCancelMinAdvanceHours, {
+    server: ValidateCancelMinAdvanceHoursHandler,
+  }),
+  createActionHandler(validateRescheduleMinAdvanceHours, {
+    server: ValidateRescheduleMinAdvanceHoursHandler,
   }),
   createActionHandler(getServiceRecommendations, {
     server: GetServiceRecommendationsHandler,

@@ -5,7 +5,7 @@ metadata:
   annotations:
     secret.reloader.stakater.com/reload: "botflow-viewer-secrets"
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: botflow-viewer-app
@@ -34,7 +34,7 @@ spec:
             httpHeaders:
             - name: "X-Forwarded-Host"
               value: "botflow-viewer.tec.pet"
-          initialDelaySeconds: 120
+          initialDelaySeconds: 10
           periodSeconds: 15
         livenessProbe:
           httpGet:

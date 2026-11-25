@@ -4,6 +4,7 @@ metadata:
   name: botflow-viewer-backendconfig
   namespace: tecpet-prod-app
 spec:
+  timeoutSec: 120
   healthCheck:
     checkIntervalSec: 30
     port: 3000

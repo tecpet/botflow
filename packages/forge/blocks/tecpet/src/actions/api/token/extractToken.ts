@@ -3,6 +3,7 @@ import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler } from "../../../helpers/logger";
 
 export const extractToken = createAction({
   auth,
@@ -35,14 +36,14 @@ export const extractToken = createAction({
   },
 });
 export const ExtractTokenHandler = async ({
-  credentials, options, variables, logs
+  credentials, options, variables
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
+        logHandler("extractToken", { hasToken: Boolean(options.token), tokenLength: (options.token as string | undefined)?.length });
         const tecpetSdk = new TecpetSDK(
           (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
           credentials.apiKey as string,
@@ -54,6 +55,7 @@ export const ExtractTokenHandler = async ({
 
         if (result) {
           const { id, name } = result.shop;
+          logHandler("extractToken", { shopId: id, shopName: name });
           if (options.shopId) {
             variables.set([{ id: options.shopId, value: id }]);
           }
