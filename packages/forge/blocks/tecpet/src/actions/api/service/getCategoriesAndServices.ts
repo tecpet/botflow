@@ -7,6 +7,7 @@ import { TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { logHandler, summarizeArray } from "../../../helpers/logger";
 
 export const getCategoriesAndServices = createAction({
   auth,
@@ -49,60 +50,68 @@ export const getCategoriesAndServices = createAction({
   },
 });
 export const GetCategoriesAndServicesHandler = async ({
-  credentials, options, variables
+  credentials,
+  options,
+  variables,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-        );
+  try {
+    const tecpetSdk = new TecpetSDK(
+      (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+      credentials.apiKey as string,
+    );
 
-        const segmentType = options.segmentType as ShopSegment;
+    const segmentType = options.segmentType as ShopSegment;
 
-        let serviceCategoryTypes: ServiceCategoryType[] = [];
+    logHandler("getCategoriesAndServices", { shopId: Number(options?.shopId), petId: Number(options.petId), segmentType });
 
-        if (options.segmentType === "PET_SHOP") {
-          serviceCategoryTypes = [
-            "BATH",
-            "GROOM",
-            "CUSTOM",
-            "ADDITIONAL",
-          ] as ServiceCategoryType[];
-        }
+    let serviceCategoryTypes: ServiceCategoryType[] = [];
 
-        if (options.segmentType === "CLINIC") {
-          serviceCategoryTypes = [
-            "CLINIC",
-            "CUSTOM",
-            "ADDITIONAL",
-          ] as ServiceCategoryType[];
-        }
+    if (options.segmentType === "PET_SHOP") {
+      serviceCategoryTypes = [
+        "BATH",
+        "GROOM",
+        "TAKE_AND_BRING",
+        "CUSTOM",
+        "ADDITIONAL",
+      ] as ServiceCategoryType[];
+    }
 
-        const categories: PaGetServicePricingResponse[] =
-          (await tecpetSdk.service.pricing(
-            Number(options.petId),
-            segmentType,
-            serviceCategoryTypes,
-            Number(options?.shopId),
-          )) as PaGetServicePricingResponse[];
+    if (options.segmentType === "CLINIC") {
+      serviceCategoryTypes = [
+        "CLINIC",
+        "CUSTOM",
+        "TAKE_AND_BRING",
+        "ADDITIONAL",
+      ] as ServiceCategoryType[];
+    }
 
-        if (categories && categories.length > 0) {
-          const servicesIds = categories.flatMap((category) =>
-            category.services.map((service) => service.id),
-          );
+    const categories: PaGetServicePricingResponse[] =
+      (await tecpetSdk.service.pricing(
+        Number(options.petId),
+        segmentType,
+        serviceCategoryTypes,
+        Number(options?.shopId),
+      )) as PaGetServicePricingResponse[];
 
-          variables.set([
-            { id: options.categoriesAndServices as string, value: categories },
-          ]);
-          variables.set([
-            { id: options.servicesIds as string, value: servicesIds },
-          ]);
-        }
-      } catch (error) {
-        console.error(error);
-      }
+    if (categories && categories.length > 0) {
+      const servicesIds = categories.flatMap((category) =>
+        category.services.map((service) => service.id),
+      );
+
+      logHandler("getCategoriesAndServices", { serviceCategoryTypes, categories: summarizeArray(categories), servicesIds: summarizeArray(servicesIds) });
+
+      variables.set([
+        { id: options.categoriesAndServices as string, value: categories },
+      ]);
+      variables.set([
+        { id: options.servicesIds as string, value: servicesIds },
+      ]);
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };

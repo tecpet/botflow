@@ -4,6 +4,8 @@ import type {
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
+import { buildEmployeeIndicationValue } from "../../helpers/sameEmployee";
 import type { EmployeeServiceIndicationOption } from "../api/employee/getEmployees";
 
 export const buildEmployeeOptions = createAction({
@@ -53,64 +55,76 @@ export const buildEmployeeOptions = createAction({
   },
 });
 export const BuildEmployeeOptionsHandler = async ({
-  options, variables
+  options,
+  variables,
 }: {
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const parsedEmployees: string[] = JSON.parse(
-          options.employees as string,
-        );
+  try {
+    const parsedEmployees: string[] = JSON.parse(options.employees as string);
 
-        const employees: PaEmployeeResponse[] = parsedEmployees.map((item) =>
-          typeof item === "string" ? JSON.parse(item) : item,
-        );
+    const employees: PaEmployeeResponse[] = parsedEmployees.map((item) =>
+      typeof item === "string" ? JSON.parse(item) : item,
+    );
 
-        const parsedServiceCategories: string[] = JSON.parse(
-          options.employeeServiceCategoriesIndication as string,
-        );
+    const parsedServiceCategories: string[] = JSON.parse(
+      options.employeeServiceCategoriesIndication as string,
+    );
 
-        const servicesCategories: EmployeeServiceIndicationOption[] =
-          parsedServiceCategories.map((item) =>
-            typeof item === "string" ? JSON.parse(item) : item,
-          );
+    const servicesCategories: EmployeeServiceIndicationOption[] =
+      parsedServiceCategories.map((item) =>
+        typeof item === "string" ? JSON.parse(item) : item,
+      );
 
-        const employeeIndications: Array<
-          PaEmployeeIndication & { name?: string }
-        > = [];
+    const target = servicesCategories[0];
 
-        employees.forEach((employee) => {
-          const category = employee.categories.find(
-            (category) => servicesCategories[0].category === category.type,
-          );
+    logHandler("buildEmployeeOptions", {
+      inputEmployees: summarizeArray(
+        employees.map((e) => ({ id: e.id, name: e.name })),
+      ),
+      inputServiceCategories: summarizeArray(
+        servicesCategories.map((c) => ({
+          category: c.category,
+          categories: c.categories,
+          name: c.name,
+        })),
+      ),
+      targetCategory: target?.category,
+      targetCategories: target?.categories,
+    });
 
-          if (category) {
-            employeeIndications.push({
-              id: employee.id,
-              name: employee.name,
-              serviceCategoryId: category.id,
-            });
-          }
-        });
+    const employeeOptions: Array<{
+      name: string;
+      value: PaEmployeeIndication | PaEmployeeIndication[];
+    }> = [];
 
-        variables.set([
-          {
-            id: options.employeeNames as string,
-            value: employeeIndications.map((t) => t.name),
-          },
-          {
-            id: options.employeeValues as string,
-            value: employeeIndications.map((e) => {
-              return { id: e.id, serviceCategoryId: e.serviceCategoryId };
-            }),
-          },
-          {
-            id: options.serviceIndicationName as string,
-            value: servicesCategories[0].name,
-          },
-        ]);
-      } catch (error) {
-        console.error(error);
-      }
+    employees.forEach((employee) => {
+      const value = buildEmployeeIndicationValue(employee, target);
+
+      if (value) employeeOptions.push({ name: employee.name, value });
+    });
+
+    logHandler("buildEmployeeOptions", {
+      outputEmployeeIndications: summarizeArray(employeeOptions),
+      serviceIndicationName: target?.name,
+    });
+
+    variables.set([
+      {
+        id: options.employeeNames as string,
+        value: employeeOptions.map((item) => item.name),
+      },
+      {
+        id: options.employeeValues as string,
+        value: employeeOptions.map((item) => item.value),
+      },
+      {
+        id: options.serviceIndicationName as string,
+        value: target.name,
+      },
+    ]);
+  } catch (error) {
+    console.error(error);
+  }
 };

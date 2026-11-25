@@ -1,5 +1,6 @@
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler } from "../../helpers/logger";
 
 export const verifyAvailableTimesOptionSelected = createAction({
   baseOptions,
@@ -27,11 +28,10 @@ export const verifyAvailableTimesOptionSelected = createAction({
   },
 });
 export const VerifyAvailableTimesOptionSelectedHandler = async ({
-  options, variables, logs
+  options, variables
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
       try {
         let showOtherDates = false;
@@ -40,9 +40,13 @@ export const VerifyAvailableTimesOptionSelectedHandler = async ({
 
         const selectedTimeId = rawSelectedTimeId;
 
+        logHandler("verifyAvailableTimesOptionSelected", { selectedTimeId });
+
         if (selectedTimeId === "OTHER") {
           showOtherDates = true;
         }
+
+        logHandler("verifyAvailableTimesOptionSelected", { selectedTimeId, showOtherDates, reason: selectedTimeId === "OTHER" ? "opção OTHER selecionada — mostrar outras datas" : "horário específico selecionado" });
 
         variables.set([
           { id: options.showOtherDates as string, value: showOtherDates },

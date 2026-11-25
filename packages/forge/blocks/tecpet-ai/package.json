@@ -9,6 +9,7 @@
     "./handlers": "./src/handlers.ts"
   },
   "dependencies": {
+    "@tec.pet/tecpet-sdk": "^0.0.221",
     "ky": "1.2.4",
     "@typebot.io/forge": "workspace:*",
     "@typebot.io/lib": "workspace:*"

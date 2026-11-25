@@ -3,6 +3,8 @@ import { type PaClientResponse, TecpetSDK } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { auth } from "../../../auth";
 import { baseOptions, tecpetDefaultBaseUrl } from "../../../constants";
+import { sanitizeClientName, sanitizeCpf } from "../../../helpers/clientFields";
+import { logHandler } from "../../../helpers/logger";
 
 export const editClient = createAction({
   auth,
@@ -60,47 +62,76 @@ export const editClient = createAction({
   },
 });
 export const EditClientHandler = async ({
-  credentials, options, variables
+  credentials,
+  options,
+  variables,
 }: {
   credentials: Record<string, unknown>;
   options: Record<string, unknown>;
   variables: any;
 }) => {
-      try {
-        const tecpetSdk = new TecpetSDK(
-          (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
-          credentials.apiKey as string,
-        );
+  try {
+    const tecpetSdk = new TecpetSDK(
+      (credentials.baseUrl as string) ?? tecpetDefaultBaseUrl,
+      credentials.apiKey as string,
+    );
 
-        const body: PaEditClientInput = {
-          name: (options.clientName as string) ?? "",
-          cpf: (options.clientCpf as string) ?? "",
-        };
+    // Só vai para a API o que passa na validação dela: um campo vazio ou
+    // fora do formato derrubava a edição inteira com 400 (TP-4952).
+    const name = sanitizeClientName(options.clientName);
+    const cpf = sanitizeCpf(options.clientCpf);
+    const body: PaEditClientInput = {};
+    if (name) body.name = name;
+    if (cpf) body.cpf = cpf;
 
-        const editedClient: PaClientResponse = await tecpetSdk.client.edit(
-          Number(options.clientId),
-          body,
-          Number(options.shopId),
-        );
+    logHandler("editClient", {
+      shopId: Number(options.shopId),
+      clientId: Number(options.clientId),
+      hasName: Boolean(name),
+      hasCpf: Boolean(cpf),
+      ignoredName: Boolean(options.clientName) && !name,
+      ignoredCpf: Boolean(options.clientCpf) && !cpf,
+    });
 
-        if (editedClient) {
-          variables.set([
-            {
-              id: options.editedClientName as string,
-              value: editedClient.name,
-            },
-          ]);
-          variables.set([
-            { id: options.editedClientCpf as string, value: editedClient.cpf },
-          ]);
-          variables.set([
-            {
-              id: options.editedClientBirthDate as string,
-              value: editedClient.birthDate,
-            },
-          ]);
-        }
-      } catch (error) {
-        console.error(error);
-      }
+    if (!name && !cpf) {
+      logHandler("editClient", {
+        skipped: true,
+        reason: "nenhum campo válido para enviar",
+      });
+      return;
+    }
+
+    const editedClient: PaClientResponse = await tecpetSdk.client.edit(
+      Number(options.clientId),
+      body,
+      Number(options.shopId),
+    );
+
+    logHandler("editClient", {
+      found: Boolean(editedClient),
+      editedName: editedClient?.name,
+      editedCpf: editedClient?.cpf,
+      editedBirthDate: editedClient?.birthDate,
+    });
+
+    if (editedClient) {
+      variables.set([
+        {
+          id: options.editedClientName as string,
+          value: editedClient.name,
+        },
+      ]);
+      variables.set([
+        { id: options.editedClientCpf as string, value: editedClient.cpf },
+      ]);
+      variables.set([
+        {
+          id: options.editedClientBirthDate as string,
+          value: editedClient.birthDate,
+        },
+      ]);
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };

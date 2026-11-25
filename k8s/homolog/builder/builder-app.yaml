@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: botflow-builder-homolog-app
+  annotations:
+    secret.reloader.stakater.com/reload: "botflow-builder-homolog-secrets"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: botflow-builder-homolog-app
+  template:
+    metadata:
+      labels:
+        app: botflow-builder-homolog-app
+        department: backend
+        environment: HOMOLOG
+    spec:
+      containers:
+      - name: botflow-builder-homolog-app
+        image: IMAGE_PLACEHOLDER
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PORT
+          value: "3000"
+        envFrom:
+        - secretRef:
+            name: botflow-builder-homolog-secrets
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 120
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 120
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cloud.google.com/backend-config: '{"ports": {"80":"botflow-builder-homolog-backendconfig"}}'
+  name: botflow-builder-homolog-service
+spec:
+  type: ClusterIP
+  selector:
+    app: botflow-builder-homolog-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000

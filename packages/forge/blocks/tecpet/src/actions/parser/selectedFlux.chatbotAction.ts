@@ -1,6 +1,8 @@
 import type { ChatbotActionJson } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { resolveMinAdvanceHours } from "../../helpers/bookingMinAdvance";
+import { logHandler } from "../../helpers/logger";
 
 export const parseSelectedFluxInfoCollectionMenus = createAction({
   baseOptions,
@@ -71,6 +73,11 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    serviceRecommendation: option.string.layout({
+      label: "Recomendação de serviços - Habilitado",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
     serviceSelectionValueMode: option.string.layout({
       label: "Serviços do agendamento - Modo exibição do valor",
       placeholder: "Selecione",
@@ -136,6 +143,11 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    takeAndBringBehavior: option.string.layout({
+      label: "Leva e Traz - Comportamento",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
     takeAndBringMinAdvanceHours: option.string.layout({
       label: "Leva e Traz - Antecedencia",
       placeholder: "Selecione",
@@ -163,6 +175,16 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     }),
     clientCpfMessage: option.string.layout({
       label: "CPF do cliente - Mensagem",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    clientAddressEnabled: option.string.layout({
+      label: "Endereço do cliente - Habilitado",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    clientAddressMessage: option.string.layout({
+      label: "Endereço do cliente - Mensagem",
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
@@ -227,6 +249,18 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       inputType: "variableDropdown",
     }),
 
+    onComercialTimeResponseMessage: option.string.layout({
+      label: "Mensagem para resposta de horário comercial",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
+    outOfComercialTimeResponseMessage: option.string.layout({
+      label: "Mensagem para resposta de fora do horário comercial",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+
     allowCancel: option.string.layout({
       label: "Cancelar agendamento",
       placeholder: "Selecione",
@@ -247,12 +281,29 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       placeholder: "Selecione",
       inputType: "variableDropdown",
     }),
+    allowCancelMinAdvanceHours: option.string.layout({
+      label: "Antecedência mínima para cancelar",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    allowChangeDateAndTimeMinAdvanceHours: option.string.layout({
+      label: "Antecedência mínima para reagendar",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
+    allowPetRegistration: option.string.layout({
+      label: "Permitir cadastro de pet",
+      placeholder: "Selecione",
+      inputType: "variableDropdown",
+    }),
   }),
   getSetVariableIds: ({
     additionalSelectionEnabled,
     additionalSelectionMessage,
     clientCpfEnabled,
     clientCpfMessage,
+    clientAddressEnabled,
+    clientAddressMessage,
     confirmClientNameEnabled,
     confirmClientNameMessage,
     guidanceMessage,
@@ -282,19 +333,26 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     promotionSelectionEnabled,
     selectedMenuConfigurations,
     serviceSelectionMessage,
+    serviceRecommendation,
     serviceSelectionValueMode,
     serviceSelectionValueEnabled,
     takeAndBringEnabled,
     takeAndBringMessage,
+    takeAndBringBehavior,
     takeAndBringMinAdvanceHours,
     timeSelectionBehaviorBehavior,
     timeSelectionBehaviorMessage,
     timeSelectionBehaviorMinAdvanceHours,
     timeSelectionBehaviorTimeDisplayMode,
+    onComercialTimeResponseMessage,
+    outOfComercialTimeResponseMessage,
     allowCancel,
     allowChangeDateAndTime,
     allowCancelMessage,
     allowChangeDateAndTimeMessage,
+    allowCancelMinAdvanceHours,
+    allowChangeDateAndTimeMinAdvanceHours,
+    allowPetRegistration,
   }) => {
     const variables = [];
 
@@ -302,6 +360,8 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     if (additionalSelectionMessage) variables.push(additionalSelectionMessage);
     if (clientCpfEnabled) variables.push(clientCpfEnabled);
     if (clientCpfMessage) variables.push(clientCpfMessage);
+    if (clientAddressEnabled) variables.push(clientAddressEnabled);
+    if (clientAddressMessage) variables.push(clientAddressMessage);
     if (confirmClientNameEnabled) variables.push(confirmClientNameEnabled);
     if (confirmClientNameMessage) variables.push(confirmClientNameMessage);
     if (guidanceMessage) variables.push(guidanceMessage);
@@ -334,6 +394,7 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
       variables.push(serviceSelectionValueEnabled);
     if (takeAndBringEnabled) variables.push(takeAndBringEnabled);
     if (takeAndBringMessage) variables.push(takeAndBringMessage);
+    if (takeAndBringBehavior) variables.push(takeAndBringBehavior);
     if (takeAndBringMinAdvanceHours)
       variables.push(takeAndBringMinAdvanceHours);
     if (timeSelectionBehaviorBehavior)
@@ -355,6 +416,15 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
     if (allowCancelMessage) variables.push(allowCancelMessage);
     if (allowChangeDateAndTimeMessage)
       variables.push(allowChangeDateAndTimeMessage);
+    if (allowCancelMinAdvanceHours) variables.push(allowCancelMinAdvanceHours);
+    if (allowChangeDateAndTimeMinAdvanceHours)
+      variables.push(allowChangeDateAndTimeMinAdvanceHours);
+    if (onComercialTimeResponseMessage)
+      variables.push(onComercialTimeResponseMessage);
+    if (outOfComercialTimeResponseMessage)
+      variables.push(outOfComercialTimeResponseMessage);
+    if (serviceRecommendation) variables.push(serviceRecommendation);
+    if (allowPetRegistration) variables.push(allowPetRegistration);
 
     return variables;
   },
@@ -362,11 +432,9 @@ export const parseSelectedFluxInfoCollectionMenus = createAction({
 export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
   options,
   variables,
-  logs,
 }: {
   options: Record<string, unknown>;
   variables: any;
-  logs: any;
 }) => {
   try {
     const setVar = (id: string, value: any) => variables.set([{ id, value }]);
@@ -378,6 +446,11 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
           ? (options.selectedMenuConfigurations as any)
           : undefined;
 
+    logHandler("parseSelectedFluxInfoCollectionMenus", {
+      hasConfig: Boolean(chatbotActionConfig),
+      configName: chatbotActionConfig?.name ?? null,
+    });
+
     if (!chatbotActionConfig) return;
 
     const {
@@ -387,8 +460,25 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       takeAndBring,
       guidance,
       editBooking,
+      responseMessage,
       extraInfo,
     } = chatbotActionConfig.infoCollectionMenus;
+
+    logHandler("parseSelectedFluxInfoCollectionMenus", {
+      showSendingInfo: chatbotActionConfig.showSendingInfo,
+      allowPetRegistration: chatbotActionConfig.allowPetRegistration,
+      petNameEnabled: Boolean(petInfo?.petName?.enabled ?? false),
+      serviceRecommendation:
+        serviceSelection?.serviceRecommendation?.enabled ?? false,
+      takeAndBringEnabled: Boolean(
+        takeAndBring?.allowTakeAndBring?.enabled ?? false,
+      ),
+      timeSelectionBehavior:
+        timeSelection?.timeSelectionBehavior?.behavior ?? null,
+      allowCancel: editBooking?.allowCancel?.enabled ?? null,
+      allowChangeDateAndTime:
+        editBooking?.allowChangeDateAndTime?.enabled ?? null,
+    });
 
     /* ----- Sending Info ----- */
 
@@ -408,6 +498,15 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       },
     ]);
 
+    const allowPetRegistration = chatbotActionConfig.allowPetRegistration;
+
+    variables.set([
+      {
+        id: options.allowPetRegistration as string,
+        value: allowPetRegistration,
+      },
+    ]);
+
     const guidanceOptions = chatbotActionConfig.guidanceOptions;
 
     variables.set([
@@ -420,7 +519,7 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
     /* ----- Edit booking ----- */
 
     const editBookingVariables = [
-      [options.allowCancel as string, editBooking?.allowCancel.enabled],
+      [options.allowCancel as string, editBooking?.allowCancel?.enabled],
       [options.allowCancelMessage as string, editBooking?.allowCancel?.message],
       [
         options.allowChangeDateAndTime as string,
@@ -429,6 +528,20 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       [
         options.allowChangeDateAndTimeMessage as string,
         editBooking?.allowChangeDateAndTime?.message,
+      ],
+      // Grava a antecedência efetiva (padrão de 1h quando a loja não
+      // configurou), a mesma que as validações de cancelamento/reagendamento
+      // usam. Com "" o aviso "pelo menos {{...}}h(s)" saía sem o número
+      // (TP-5238).
+      [
+        options.allowCancelMinAdvanceHours as string,
+        resolveMinAdvanceHours(editBooking?.allowCancel?.minCancelAdvanceHours),
+      ],
+      [
+        options.allowChangeDateAndTimeMinAdvanceHours as string,
+        resolveMinAdvanceHours(
+          editBooking?.allowChangeDateAndTime?.minRescheduleAdvanceHours,
+        ),
       ],
     ];
 
@@ -467,6 +580,23 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
 
     petInfoVariables.forEach(([id, value]) => setVar(id as string, value));
 
+    /* ---- Response Message ---- */
+
+    const responseMessageVariables = [
+      [
+        options.onComercialTimeResponseMessage as string,
+        responseMessage?.onCommercialTime?.message ?? "",
+      ],
+      [
+        options.outOfComercialTimeResponseMessage as string,
+        responseMessage?.outOfCommercialTime?.message ?? "",
+      ],
+    ];
+
+    responseMessageVariables.forEach(([id, value]) =>
+      setVar(id as string, value),
+    );
+
     /* ---- Service Selection ---- */
 
     const serviceSelectionVariables = [
@@ -477,6 +607,10 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       [
         options.serviceSelectionValueMode,
         serviceSelection?.showServiceValues?.priceDisplayMode ?? "",
+      ],
+      [
+        options.serviceRecommendation,
+        serviceSelection?.serviceRecommendation?.enabled ?? false,
       ],
       [
         options.serviceSelectionValueEnabled,
@@ -493,6 +627,10 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       [
         options.professionalSelectionEnabled,
         Boolean(serviceSelection?.serviceProfessionalChoice?.enabled ?? false),
+      ],
+      [
+        options.professionalSelectionMessage,
+        serviceSelection?.serviceProfessionalChoice?.message ?? "",
       ],
       [
         options.promotionSelectionEnabled,
@@ -516,7 +654,7 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       ],
       [
         options.timeSelectionBehaviorBehavior,
-        timeSelection?.timeSelectionBehavior.behavior ?? "",
+        timeSelection?.timeSelectionBehavior?.behavior ?? "",
       ],
       [
         options.timeSelectionBehaviorTimeDisplayMode,
@@ -532,6 +670,10 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
       [
         options.takeAndBringEnabled,
         Boolean(takeAndBring?.allowTakeAndBring?.enabled ?? false),
+      ],
+      [
+        options.takeAndBringBehavior,
+        takeAndBring?.allowTakeAndBring?.behavior ?? "",
       ],
       [
         options.takeAndBringMessage,
@@ -563,22 +705,27 @@ export const ParseSelectedFluxInfoCollectionMenusHandler = async ({
         options.clientCpfEnabled,
         Boolean(extraInfo?.clientCpf?.enabled ?? false),
       ],
-      [options.clientCpfMessage, extraInfo?.clientCpf.message ?? ""],
+      [options.clientCpfMessage, extraInfo?.clientCpf?.message ?? ""],
+      [
+        options.clientAddressEnabled,
+        Boolean(extraInfo?.clientAddress?.enabled ?? false),
+      ],
+      [options.clientAddressMessage, extraInfo?.clientAddress?.message ?? ""],
       [
         options.petGenderEnabled,
         Boolean(extraInfo?.petGender?.enabled ?? false),
       ],
-      [options.petGenderMessage, extraInfo?.petGender.message ?? ""],
+      [options.petGenderMessage, extraInfo?.petGender?.message ?? ""],
       [
         options.petBirthEnabled,
         Boolean(extraInfo?.petBirthDate?.enabled ?? false),
       ],
-      [options.petBirthMessage, extraInfo?.petBirthDate.message ?? ""],
+      [options.petBirthMessage, extraInfo?.petBirthDate?.message ?? ""],
       [
         options.petWeightEnabled,
         Boolean(extraInfo?.petWeight?.enabled ?? false),
       ],
-      [options.petWeightMessage, extraInfo?.petWeight.message ?? ""],
+      [options.petWeightMessage, extraInfo?.petWeight?.message ?? ""],
       [
         options.scheduleToAnotherPetEnabled,
         extraInfo?.scheduleToAnotherPet?.enabled ?? false,

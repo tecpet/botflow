@@ -5,6 +5,7 @@ import type {
 } from "@tec.pet/tecpet-sdk";
 import { createAction, option } from "@typebot.io/forge";
 import { baseOptions } from "../../constants";
+import { logHandler, summarizeArray } from "../../helpers/logger";
 
 export const sendingInfoItemTypeLiteral: {
   [key in ChatbotSendingInfoItemTypeEnum]: string;
@@ -74,6 +75,8 @@ export const ShowSendingInfoItemsHandler = async ({
             typeof item === "string" ? JSON.parse(item) : item,
           );
 
+        logHandler("showSendingInfoItems", { inputItems: summarizeArray(sendingInfoItem.map((i) => ({ type: i.type, title: (i as any).title }))) });
+
         if (sendingInfoItem.length > 0) {
           infoItem = sendingInfoItem[0];
 
@@ -81,6 +84,8 @@ export const ShowSendingInfoItemsHandler = async ({
 
           infoMedias = infoItem.medias ?? [];
         }
+
+        logHandler("showSendingInfoItems", { selectedInfoItemType: infoItem?.type, infoGroup, mediasCount: infoMedias.length });
 
         variables.set([{ id: options.infoGroup as string, value: infoGroup }]);
         variables.set([
